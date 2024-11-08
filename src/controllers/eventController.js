@@ -2,7 +2,7 @@ const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
 const Event = require("../models/eventModel");
-const { getMessaging } = require("firebase-admin/messaging");
+// const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
 
 exports.createEvent = async (req, res) => {
