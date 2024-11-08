@@ -80,3 +80,19 @@ exports.editAdminSchema = Joi.object({
   role: Joi.string(),
   status: Joi.boolean(),
 });
+
+exports.createNewsSchema = Joi.object({
+  category: Joi.string(),
+  title: Joi.string(),
+  content: Joi.string(),
+  media : Joi.string(),
+  status: Joi.string(),
+});
+
+exports.editNewsSchema = Joi.object({
+  category: Joi.string(),
+  title: Joi.string(),
+  content: Joi.string(),
+  media : Joi.string(),
+  status: Joi.string(),
+});
