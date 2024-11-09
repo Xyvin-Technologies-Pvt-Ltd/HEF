@@ -1,7 +1,7 @@
 const responseHandler = require("../helpers/responseHandler");
 const Feeds = require("../models/feedsModel");
 const User = require("../models/userModel");
-const sendInAppNotification = require("../utils/sendInAppNotification");
+// const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.createFeeds = async (req, res) => {
@@ -196,11 +196,11 @@ exports.likeFeed = async (req, res) => {
     const fcmUser = [toUser.fcm];
 
     if (req.userId !== String(updateFeeds.author)) {
-      await sendInAppNotification(
-        fcmUser,
-        `${fromUser.name.first} Liked Your Post`,
-        `${fromUser.name.first} Liked Your ${updateFeeds.content}`
-      );
+      // await sendInAppNotification(
+      //   fcmUser,
+      //   `${fromUser.name.first} Liked Your Post`,
+      //   `${fromUser.name.first} Liked Your ${updateFeeds.content}`
+      // );
 
       await Notification.create({
         users: toUser._id,
@@ -246,11 +246,11 @@ exports.commentFeed = async (req, res) => {
     const fcmUser = [toUser.fcm];
 
     if (req.userId !== String(updateFeeds.author)) {
-      await sendInAppNotification(
-        fcmUser,
-        `${fromUser.name.first} Commented Your Post`,
-        `${fromUser.name.first} Commented Your ${updateFeeds.content}`
-      );
+      // await sendInAppNotification(
+      //   fcmUser,
+      //   `${fromUser.name.first} Commented Your Post`,
+      //   `${fromUser.name.first} Commented Your ${updateFeeds.content}`
+      // );
 
       await Notification.create({
         users: toUser._id,
@@ -302,12 +302,12 @@ exports.updateFeeds = async (req, res) => {
     const toUser = await User.findById(findFeeds.author).select("fcm");
     const fcmUser = [toUser.fcm];
 
-    await sendInAppNotification(
-      fcmUser,
-      `Your Feed request has been ${action}`,
-      `Your Feed request has been ${action} for ${findFeeds.content}`,
-      "https://akcaf.page.link/my_posts"
-    );
+    // await sendInAppNotification(
+    //   fcmUser,
+    //   `Your Feed request has been ${action}`,
+    //   `Your Feed request has been ${action} for ${findFeeds.content}`,
+    //   "https://akcaf.page.link/my_posts"
+    // );
 
     if (action === "accept") {
       const updateFeeds = await Feeds.findByIdAndUpdate(

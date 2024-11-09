@@ -80,3 +80,10 @@ exports.editAdminSchema = Joi.object({
   role: Joi.string(),
   status: Joi.boolean(),
 });
+
+exports.createFeedsSchema = Joi.object({
+  type: Joi.string().required(),
+  media: Joi.string(),
+  link: Joi.string(),
+  content: Joi.string().required(),
+});
