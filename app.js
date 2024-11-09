@@ -13,6 +13,8 @@ const eventRoute = require("./src/routes/event");
 const newsRoute = require("./src/routes/news");
 const adminRoute = require("./src/routes/admin");
 const roleRoute = require("./src/routes/role");
+const promotionRoute = require("./src/routes/promotion");
+
 
 //! Create an instance of the Express application
 const app = express();
@@ -51,6 +53,7 @@ app.use(`${BASE_PATH}/event`, eventRoute);
 app.use(`${BASE_PATH}/news`, newsRoute);
 app.use(`${BASE_PATH}/admin`, adminRoute);
 app.use(`${BASE_PATH}/role`, roleRoute);
+app.use(`${BASE_PATH}/promotion`,promotionRoute)
 
 //* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {

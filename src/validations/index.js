@@ -96,3 +96,23 @@ exports.editNewsSchema = Joi.object({
   media : Joi.string(),
   status: Joi.string(),
 });
+
+exports.createPromotionSchema = Joi.object({
+  title: Joi.string(),
+  description: Joi.string(),
+  type: Joi.string().required(),
+  startDate: Joi.date().required(),
+  endDate: Joi.date().required(),
+  media: Joi.string(),
+  link: Joi.string(),
+});
+
+exports.editPromotionSchema = Joi.object({
+  title: Joi.string(),
+  description: Joi.string(),
+  type: Joi.string(),
+  startDate: Joi.date(),
+  endDate: Joi.date(),
+  media: Joi.string(),
+  link: Joi.string(),
+});
