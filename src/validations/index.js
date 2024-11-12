@@ -125,3 +125,8 @@ exports.createNotificationSchema = Joi.object({
   link: Joi.string(),
   type: Joi.string().required(),
 });
+
+exports.createReport = Joi.object({
+  content: Joi.string().required(),
+  reportType: Joi.string().valid("Post", "Chat", "User", "Message").required(),
+});
