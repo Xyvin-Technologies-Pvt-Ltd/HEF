@@ -116,3 +116,29 @@ exports.editPromotionSchema = Joi.object({
   media: Joi.string(),
   link: Joi.string(),
 });
+
+
+
+exports.createProductSchema = Joi.object({
+  seller: Joi.string().required(), 
+  name: Joi.string().required(),
+  image: Joi.string().required(), 
+  price: Joi.number().required(),
+  offerPrice: Joi.number().required(),
+  description: Joi.string().required(),
+  moq: Joi.number().required(),
+  units: Joi.string().required(),
+  status: Joi.string(),
+});
+
+exports.updateProductSchema = Joi.object({
+  name: Joi.string(),
+  image: Joi.string(),
+  price: Joi.number(),
+  offerPrice: Joi.number(),
+  description: Joi.string(),
+  moq: Joi.number(),
+  units: Joi.string(),
+  status: Joi.string(),
+  reason: Joi.string(),
+});

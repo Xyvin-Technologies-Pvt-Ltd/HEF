@@ -1,0 +1,258 @@
+// productController.js
+const responseHandler = require("../helpers/responseHandler");
+const Product = require("../models/productModel");
+const validations = require("../validations");
+const checkAccess = require("../helpers/checkAccess");
+
+// Create a new product - admin
+exports.createProduct = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("productManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const createProductValidator = validations.createProductSchema.validate(
+      req.body,
+      { abortEarly: true }
+    );
+    if (createProductValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createProductValidator.error.message}`
+      );
+    }
+
+    const newProduct = await Product.create(req.body);
+    if (!newProduct) {
+      return responseHandler(res, 400, "Product creation failed!");
+    }
+
+    return responseHandler(
+      res,
+      201,
+      "New product created successfully!",
+      newProduct
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+// Get a single product by ID - admin
+exports.getProduct = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("productManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Product ID is required");
+    }
+
+    const product = await Product.findById(id);
+    if (product) {
+      return responseHandler(res, 200, "Product found successfully!", product);
+    } else {
+      return responseHandler(res, 404, "Product not found");
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+// Update a product by ID - admin
+exports.updateProduct = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("productManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Product ID is required");
+    }
+
+    const { error } = validations.updateProductSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (updatedProduct) {
+      return responseHandler(
+        res,
+        200,
+        "Product updated successfully!",
+        updatedProduct
+      );
+    } else {
+      return responseHandler(res, 404, "Product not found");
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+// Delete a product by ID - admin
+exports.deleteProduct = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("productManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Product ID is required");
+    }
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
+    if (deletedProduct) {
+      return responseHandler(res, 200, "Product deleted successfully!");
+    } else {
+      return responseHandler(res, 404, "Product not found");
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+// Get all products with pagination, filtering, and sorting -admin
+exports.getAllProducts = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("productManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { pageNo = 1, limit = 10, search, status, category } = req.query;
+    const skipCount = (pageNo - 1) * limit;
+    const filter = {};
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const totalCount = await Product.countDocuments(filter);
+    const products = await Product.find(filter)
+      .skip(skipCount)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return responseHandler(
+      res,
+      200,
+      "Products found successfully!",
+      products,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+//create product by - user
+
+exports.createProductByUser = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+
+
+    if (
+      !check ||
+      (!check.includes("productManagement_modify") &&
+        !check.includes("product_create_user"))
+    ) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const createProductValidator = validations.createProductSchema.validate(
+      req.body,
+      { abortEarly: true }
+    );
+    if (createProductValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createProductValidator.error.message}`
+      );
+    }
+
+    const newProductData = {
+      ...req.body,
+      createdBy: req.userId,
+      status: "pending",
+    };
+
+    const newProduct = await Product.create(newProductData);
+    if (!newProduct) {
+      return responseHandler(res, 400, "Product creation failed!");
+    }
+
+    return responseHandler(
+      res,
+      201,
+      "Product created successfully and awaiting approval!",
+      newProduct
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+
+// Get all products visible to users (public view)
+exports.getUserProducts = async (req, res) => {
+  try {
+    const filter = { status: "accepted" };
+    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
+    return responseHandler(res, 200, "Products found successfully!", products);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

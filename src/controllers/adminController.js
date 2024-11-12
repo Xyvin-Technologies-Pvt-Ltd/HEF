@@ -91,14 +91,10 @@ exports.getAdmin = async (req, res) => {
       .select("-password")
       .populate("role", "permissions roleName")
       .lean();
-    const mappedData = {
-      ...findAdmin,
-      createdAt: moment(findAdmin.createdAt).format("MMM DD YYYY"),
-    };
     if (!findAdmin) {
       return responseHandler(res, 404, "Admin not found");
     }
-    return responseHandler(res, 200, "Admin found", mappedData);
+    return responseHandler(res, 200, "Admin found", findAdmin);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }

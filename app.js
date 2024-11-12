@@ -14,6 +14,7 @@ const newsRoute = require("./src/routes/news");
 const adminRoute = require("./src/routes/admin");
 const roleRoute = require("./src/routes/role");
 const promotionRoute = require("./src/routes/promotion");
+const productRoute = require ("./src/routes/product")
 
 const feedsRoute = require("./src/routes/feeds");
 
@@ -56,6 +57,7 @@ app.use(`${BASE_PATH}/admin`, adminRoute);
 app.use(`${BASE_PATH}/role`, roleRoute);
 app.use(`${BASE_PATH}/promotion`,promotionRoute)
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
+app.use(`${BASE_PATH}/product`, productRoute);
 
 //* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {
