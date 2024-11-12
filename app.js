@@ -14,6 +14,8 @@ const newsRoute = require("./src/routes/news");
 const adminRoute = require("./src/routes/admin");
 const roleRoute = require("./src/routes/role");
 const promotionRoute = require("./src/routes/promotion");
+const notificationRoute = require("./src/routes/notification");
+const reportRoute = require("./src/routes/report");
 const productRoute = require ("./src/routes/product")
 
 const feedsRoute = require("./src/routes/feeds");
@@ -56,6 +58,8 @@ app.use(`${BASE_PATH}/news`, newsRoute);
 app.use(`${BASE_PATH}/admin`, adminRoute);
 app.use(`${BASE_PATH}/role`, roleRoute);
 app.use(`${BASE_PATH}/promotion`,promotionRoute)
+app.use(`${BASE_PATH}/Notification`,notificationRoute)
+app.use(`${BASE_PATH}/report`,reportRoute)
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
 app.use(`${BASE_PATH}/product`, productRoute);
 

@@ -117,6 +117,20 @@ exports.editPromotionSchema = Joi.object({
   link: Joi.string(),
 });
 
+exports.createNotificationSchema = Joi.object({
+  users: Joi.array().required(),
+  subject: Joi.string().required(),
+  content: Joi.string().required(),
+  media: Joi.string().required(),
+  link: Joi.string(),
+  type: Joi.string().required(),
+});
+
+exports.createReport = Joi.object({
+  content: Joi.string().required(),
+  reportType: Joi.string().valid("Post", "Chat", "User", "Message").required(),
+});
+
 
 
 exports.createProductSchema = Joi.object({
