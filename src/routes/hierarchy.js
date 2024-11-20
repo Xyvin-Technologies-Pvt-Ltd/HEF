@@ -1,0 +1,32 @@
+const express = require("express");
+const hierarchyController = require("../controllers/hierarchyController");
+const authVerify = require("../middlewares/authVerify");
+const hierarchyRoute = express.Router();
+hierarchyRoute.use(authVerify);
+
+// State Routes
+hierarchyRoute.post("/state", hierarchyController.createState);
+hierarchyRoute.get("/state/:id", hierarchyController.getState);
+hierarchyRoute.put("/state/:id", hierarchyController.updateState);
+
+// Zone Routes
+hierarchyRoute.post("/zone", hierarchyController.createZone);
+hierarchyRoute.get("/zone/:id", hierarchyController.getZone);
+hierarchyRoute.put("/zone/:id", hierarchyController.updateZone);
+
+// District Routes
+hierarchyRoute.post("/district", hierarchyController.createDistrict);
+hierarchyRoute.get("/district/:id", hierarchyController.getDistrict);
+hierarchyRoute.put("/district/:id", hierarchyController.updateDistrict);
+
+// Chapter Routes
+hierarchyRoute.post("/chapter", hierarchyController.createChapter);
+hierarchyRoute.get("/chapter/:id", hierarchyController.getChapter);
+hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
+
+// Member Routes
+hierarchyRoute.post("/member", hierarchyController.createMember);
+hierarchyRoute.get("/member/:id", hierarchyController.getMember);
+hierarchyRoute.put("/member/:id", hierarchyController.updateMember);
+
+module.exports = hierarchyRoute;

@@ -56,7 +56,7 @@
  *       - name: id
  *         in: path
  *         required: true
- *         description: ID of the news article to update
+ *         description: ID of the news article to updateString
  *         schema:
  *           type: string
  *     requestBody:

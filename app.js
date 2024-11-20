@@ -16,6 +16,7 @@ const roleRoute = require("./src/routes/role");
 const promotionRoute = require("./src/routes/promotion");
 const notificationRoute = require("./src/routes/notification");
 const reportRoute = require("./src/routes/report");
+const hierarchyRoute = require("./src/routes/hierarchy");
 
 
 //! Create an instance of the Express application
@@ -58,6 +59,7 @@ app.use(`${BASE_PATH}/role`, roleRoute);
 app.use(`${BASE_PATH}/promotion`,promotionRoute)
 app.use(`${BASE_PATH}/Notification`,notificationRoute)
 app.use(`${BASE_PATH}/report`,reportRoute)
+app.use(`${BASE_PATH}/hierarchy`,hierarchyRoute)
 
 //* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {
