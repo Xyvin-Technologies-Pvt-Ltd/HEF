@@ -1,5 +1,10 @@
 const Joi = require("joi");
 
+const linkSchema = Joi.object({
+  name: Joi.string().required(),
+  link: Joi.string().uri().required(),
+});
+
 exports.createEventSchema = Joi.object({
   eventName: Joi.string().required(),
   description: Joi.string().required(),
@@ -155,4 +160,90 @@ exports.updateProductSchema = Joi.object({
   units: Joi.string(),
   status: Joi.string(),
   reason: Joi.string(),
+});
+
+
+exports.createUserSchema = Joi.object({
+  name: Joi.string().required(),
+  uid: Joi.string().required(),
+  memberId: Joi.string(),
+  bloodgroup: Joi.string(),
+  role: Joi.string(),
+  image: Joi.string(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().trim().required(),
+  secondaryPhone: Joi.array(),
+  bio: Joi.string(),
+  status: Joi.string(),
+  address: Joi.string(),
+  businessCatogary: Joi.string(),
+  businessSubCatogary: Joi.string(),
+  company: Joi.object({
+    name: Joi.string(),
+    designation: Joi.string(),
+    email: Joi.string().email(),
+    websites: Joi.string(),
+  }),
+});
+
+exports.editUserSchema = Joi.object({
+  name: Joi.string(),
+  role: Joi.string(),
+  image: Joi.string(),
+  email: Joi.string().email(),
+  phone: Joi.string().trim(),
+  bio: Joi.string(),
+  status: Joi.string(),
+  address: Joi.string(),
+});
+
+exports.updateUserSchema = Joi.object({
+  name: Joi.string(),
+  uid: Joi.string(),
+  memberId: Joi.string(),
+  bloodgroup: Joi.string(),
+  role: Joi.string(),
+  image: Joi.string(),
+  email: Joi.string().email(),
+  phone: Joi.string().trim(),
+  bio: Joi.string(),
+  status: Joi.string(),
+  address: Joi.string(),
+  company: Joi.object({
+    name: Joi.string().optional(),
+    designation: Joi.string().optional(),
+    email: Joi.string().email().optional(),
+    websites: Joi.string(),
+  }).optional(),
+  social: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  websites: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  awards: Joi.array().items(
+    Joi.object({
+      image: Joi.string(),
+      name: Joi.string(),
+      authority: Joi.string(),
+    })
+  ),
+  videos: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  certificates: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
 });

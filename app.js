@@ -17,7 +17,7 @@ const promotionRoute = require("./src/routes/promotion");
 const notificationRoute = require("./src/routes/notification");
 const reportRoute = require("./src/routes/report");
 const productRoute = require ("./src/routes/product")
-
+const userRoute = require ("./src/routes/user")
 const feedsRoute = require("./src/routes/feeds");
 
 //! Create an instance of the Express application
@@ -62,6 +62,7 @@ app.use(`${BASE_PATH}/Notification`,notificationRoute)
 app.use(`${BASE_PATH}/report`,reportRoute)
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
 app.use(`${BASE_PATH}/product`, productRoute);
+app.use(`${BASE_PATH}/user`, userRoute);
 
 //* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {
