@@ -16,6 +16,8 @@ const roleRoute = require("./src/routes/role");
 const promotionRoute = require("./src/routes/promotion");
 const notificationRoute = require("./src/routes/notification");
 const reportRoute = require("./src/routes/report");
+const hierarchyRoute = require("./src/routes/hierarchy");
+
 const productRoute = require ("./src/routes/product")
 const userRoute = require ("./src/routes/user")
 const feedsRoute = require("./src/routes/feeds");
@@ -60,6 +62,7 @@ app.use(`${BASE_PATH}/role`, roleRoute);
 app.use(`${BASE_PATH}/promotion`,promotionRoute)
 app.use(`${BASE_PATH}/Notification`,notificationRoute)
 app.use(`${BASE_PATH}/report`,reportRoute)
+app.use(`${BASE_PATH}/hierarchy`,hierarchyRoute)
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
 app.use(`${BASE_PATH}/product`, productRoute);
 app.use(`${BASE_PATH}/user`, userRoute);

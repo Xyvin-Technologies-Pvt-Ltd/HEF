@@ -90,7 +90,7 @@ exports.createNewsSchema = Joi.object({
   category: Joi.string(),
   title: Joi.string(),
   content: Joi.string(),
-  media : Joi.string(),
+  media: Joi.string(),
   status: Joi.string(),
 });
 
@@ -98,7 +98,7 @@ exports.editNewsSchema = Joi.object({
   category: Joi.string(),
   title: Joi.string(),
   content: Joi.string(),
-  media : Joi.string(),
+  media: Joi.string(),
   status: Joi.string(),
 });
 
@@ -135,6 +135,76 @@ exports.createReport = Joi.object({
   content: Joi.string().required(),
   reportType: Joi.string().valid("Post", "Chat", "User", "Message").required(),
 });
+
+exports.createStateSchema = Joi.object({
+  name: Joi.string().required(),
+  zones: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.editStateSchema = Joi.object({
+  name: Joi.string().required(),
+  zones: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.createDistrictSchema = Joi.object({
+  name: Joi.string().required(),
+  zoneId: Joi.string(),
+  chapters: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.editDistrictSchema = Joi.object({
+  name: Joi.string().required(),
+  zoneId: Joi.string(),
+  chapters: Joi.string(),
+  admins: Joi.array(),
+});
+
+exports.createChapterSchema = Joi.object({
+  name: Joi.string().required(),
+  districtId: Joi.string(),
+  members: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.editChapterSchema = Joi.object({
+  name: Joi.string().required(),
+  districtId: Joi.string(),
+  members: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.createZoneSchema = Joi.object({
+  name: Joi.string().required(),
+  stateId: Joi.string(),
+  districts: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.editZoneSchema = Joi.object({
+  name: Joi.string(),
+  stateId: Joi.string(),
+  districts: Joi.array(),
+  admins: Joi.array(),
+});
+
+exports.createMemberSchema = Joi.object({
+  name: Joi.string(),
+  //memberId: Joi.string(),
+  chapterId: Joi.string(),
+  subscription: Joi.string(),
+  role: Joi.string(),
+});
+
+exports.editMemberSchema = Joi.object({
+  name: Joi.string(),
+  chapterId: Joi.string(),
+  subscription: Joi.string(),
+  admins: Joi.array(),
+});
+
 
 
 
