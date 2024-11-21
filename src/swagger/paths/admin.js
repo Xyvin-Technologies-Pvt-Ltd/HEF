@@ -22,10 +22,10 @@
  *             properties:
  *               email:
  *                 type: string
- *                 example: "admin@example.com"
+ *                 example: "ttj@duck.com"
  *               password:
  *                 type: string
- *                 example: "password123"
+ *                 example: "12345"
  *     responses:
  *       200:
  *         description: Login successful
