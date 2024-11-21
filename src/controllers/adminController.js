@@ -1,9 +1,12 @@
 const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const Admin = require("../models/adminModel");
+const logActivity = require("../models/logActivityModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateToken } = require("../utils/generateToken");
 const validations = require("../validations");
+let status = "failure";
+let errorMessage = null;
 
 exports.loginAdmin = async (req, res) => {
   try {
@@ -65,7 +68,7 @@ exports.createAdmin = async (req, res) => {
     req.body.password = hashedPassword;
 
     const newAdmin = await Admin.create(req.body);
-
+    status = "success";
     if (newAdmin) {
       return responseHandler(
         res,
@@ -77,7 +80,18 @@ exports.createAdmin = async (req, res) => {
       return responseHandler(res, 400, `Admin creation failed...!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -94,9 +108,21 @@ exports.getAdmin = async (req, res) => {
     if (!findAdmin) {
       return responseHandler(res, 404, "Admin not found");
     }
+    status = "success";
     return responseHandler(res, 200, "Admin found", findAdmin);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -123,6 +149,7 @@ exports.getAllAdmins = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
+    status = "success";
     return responseHandler(
       res,
       200,
@@ -131,7 +158,18 @@ exports.getAllAdmins = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Get all admins",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -153,6 +191,9 @@ exports.fetchAdmin = async (req, res) => {
       .select("-password")
       .populate("role", "permissions")
       .lean();
+
+    status = "success";
+
     const mappedData = {
       ...findAdmin,
       createdAt: moment(findAdmin.createdAt).format("MMM DD YYYY"),
@@ -162,6 +203,17 @@ exports.fetchAdmin = async (req, res) => {
     }
     return responseHandler(res, 200, "Admin found", mappedData);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
