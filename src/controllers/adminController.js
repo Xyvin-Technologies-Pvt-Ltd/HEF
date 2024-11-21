@@ -5,8 +5,6 @@ const logActivity = require("../models/logActivityModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateToken } = require("../utils/generateToken");
 const validations = require("../validations");
-let status = "failure";
-let errorMessage = null;
 
 exports.loginAdmin = async (req, res) => {
   try {
@@ -37,6 +35,8 @@ exports.loginAdmin = async (req, res) => {
 };
 
 exports.createAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("adminManagement_modify")) {
@@ -96,6 +96,8 @@ exports.createAdmin = async (req, res) => {
 };
 
 exports.getAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const id = req.userId;
     if (!id) {
@@ -127,6 +129,8 @@ exports.getAdmin = async (req, res) => {
 };
 
 exports.getAllAdmins = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("adminManagement_view")) {
@@ -174,6 +178,8 @@ exports.getAllAdmins = async (req, res) => {
 };
 
 exports.fetchAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("adminManagement_view")) {

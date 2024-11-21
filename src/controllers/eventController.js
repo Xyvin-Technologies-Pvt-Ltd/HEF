@@ -4,8 +4,12 @@ const validations = require("../validations");
 const Event = require("../models/eventModel");
 // const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
+const e = require("express");
+const logActivity = require("../models/logActivityModel");
 
 exports.createEvent = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("eventManagement_modify")) {
@@ -31,6 +35,7 @@ exports.createEvent = async (req, res) => {
         `An event with the name "${req.body.eventName}" already exists.`
       );
     }
+    status = "success";
     const newEvent = await Event.create(req.body);
     if (newEvent)
       return responseHandler(
@@ -40,11 +45,24 @@ exports.createEvent = async (req, res) => {
         newEvent
       );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Event creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.editEvent = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("eventManagement_modify")) {
@@ -68,6 +86,9 @@ exports.editEvent = async (req, res) => {
     if (!updatedEvent) {
       return responseHandler(res, 404, "Event not found");
     }
+
+    status = "success";
+
     return responseHandler(
       res,
       200,
@@ -75,12 +96,24 @@ exports.editEvent = async (req, res) => {
       updatedEvent
     );
   } catch (error) {
-    console.error("Error updating event:", error);
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Event update",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.deleteEvent = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("eventManagement_modify")) {
@@ -91,12 +124,26 @@ exports.deleteEvent = async (req, res) => {
       );
     }
     const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+
+    status = "success";
+
     if (!deletedEvent) {
       return responseHandler(res, 404, "Event not found");
     }
     return responseHandler(res, 200, `Event deleted successfully`);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Event deletion",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -124,6 +171,7 @@ exports.getSingleEvent = async (req, res) => {
         };
       }),
     };
+
     if (!event) {
       return responseHandler(res, 404, "Event not found");
     }
@@ -140,7 +188,10 @@ exports.getSingleEvent = async (req, res) => {
 
 exports.getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find().populate().sort({ createdAt: -1, _id: 1 });
+    const events = await Event.find()
+      .populate()
+      .sort({ createdAt: -1, _id: 1 });
+
     if (!events || events.length === 0) {
       return responseHandler(res, 404, "No events found");
     }
@@ -151,6 +202,8 @@ exports.getAllEvents = async (req, res) => {
 };
 
 exports.getAllEventsForAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const { pageNo = 1, status, limit = 10, search } = req.query;
     const skipCount = 10 * (pageNo - 1);
@@ -183,6 +236,9 @@ exports.getAllEventsForAdmin = async (req, res) => {
     if (!events || events.length === 0) {
       return responseHandler(res, 404, "No events found");
     }
+
+    status = "success";
+
     return responseHandler(
       res,
       200,
@@ -190,7 +246,18 @@ exports.getAllEventsForAdmin = async (req, res) => {
       mappedEvents
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Event list",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
   }
 };
 
