@@ -126,7 +126,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     }
     const totalCount = await Feeds.countDocuments(filter);
     const data = await Feeds.find(filter)
-      .populate("author", "name")
+      .populate("author","name")
       .populate({
         path: "comment.user",
         select: "name image",
@@ -136,18 +136,11 @@ exports.getAllFeedsForAdmin = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
-    const mappedData = data.map((item) => {
-      return {
-        ...item,
-        fullName: `${item.author.name.first} ${item.author.name.middle} ${item.author.name.last}`,
-      };
-    });
-
     return responseHandler(
       res,
       200,
       `Feeds found successfull..!`,
-      mappedData,
+      data,
       totalCount
     );
   } catch (error) {

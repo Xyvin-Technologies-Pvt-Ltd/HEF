@@ -282,7 +282,8 @@ exports.getAllUsers = async (req, res) => {
     const mappedData = data.map((user) => {
       return {
         ...user,
-        name: user.name || "", // Using only the name field
+        name: user.name || "",
+        companyName:user?.company?.name || "",
       };
     });
 
