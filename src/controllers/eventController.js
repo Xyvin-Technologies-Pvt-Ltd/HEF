@@ -202,7 +202,7 @@ exports.getAllEvents = async (req, res) => {
 };
 
 exports.getAllEventsForAdmin = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const { pageNo = 1, status, limit = 10, search } = req.query;
@@ -237,7 +237,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
       return responseHandler(res, 404, "No events found");
     }
 
-    status = "success";
+    Status = "success";
 
     return responseHandler(
       res,
@@ -255,7 +255,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
       description: "Event list",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
-      status,
+      status: Status,
       errorMessage,
     });
   }
