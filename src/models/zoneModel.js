@@ -7,12 +7,6 @@ const zoneSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "State",
     },
-    districts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "District",
-      },
-    ],
     admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }

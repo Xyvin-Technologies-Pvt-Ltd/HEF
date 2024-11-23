@@ -7,12 +7,6 @@ const districtSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Zone",
     },
-    chapters: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Chapter",
-      },
-    ],
     admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
 
