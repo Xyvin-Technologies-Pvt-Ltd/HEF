@@ -139,55 +139,47 @@ exports.createReport = Joi.object({
 
 exports.createStateSchema = Joi.object({
   name: Joi.string().required(),
-  zones: Joi.array(),
   admins: Joi.array(),
 });
 
 exports.editStateSchema = Joi.object({
   name: Joi.string().required(),
-  zones: Joi.array(),
   admins: Joi.array(),
 });
 
 exports.createDistrictSchema = Joi.object({
   name: Joi.string().required(),
-  zoneId: Joi.string(),
-  chapters: Joi.array(),
+  zoneId: Joi.string().required(),
   admins: Joi.array(),
 });
 
 exports.editDistrictSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string(),
   zoneId: Joi.string(),
-  chapters: Joi.string(),
   admins: Joi.array(),
 });
 
 exports.createChapterSchema = Joi.object({
   name: Joi.string().required(),
-  districtId: Joi.string(),
-  members: Joi.array(),
+  districtId: Joi.string().required(),
   admins: Joi.array(),
 });
 
 exports.editChapterSchema = Joi.object({
   name: Joi.string().required(),
   districtId: Joi.string(),
-  members: Joi.array(),
   admins: Joi.array(),
 });
 
 exports.createZoneSchema = Joi.object({
   name: Joi.string().required(),
-  stateId: Joi.string(),
-  districts: Joi.array(),
+  stateId: Joi.string().required(),
   admins: Joi.array(),
 });
 
 exports.editZoneSchema = Joi.object({
   name: Joi.string(),
   stateId: Joi.string(),
-  districts: Joi.array(),
   admins: Joi.array(),
 });
 
