@@ -129,7 +129,7 @@ exports.getAdmin = async (req, res) => {
 };
 
 exports.getAllAdmins = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -153,7 +153,7 @@ exports.getAllAdmins = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -171,7 +171,7 @@ exports.getAllAdmins = async (req, res) => {
       description: "Get all admins",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
-      status,
+      status: Status,
       errorMessage,
     });
   }
@@ -200,14 +200,10 @@ exports.fetchAdmin = async (req, res) => {
 
     status = "success";
 
-    const mappedData = {
-      ...findAdmin,
-      createdAt: moment(findAdmin.createdAt).format("MMM DD YYYY"),
-    };
     if (!findAdmin) {
       return responseHandler(res, 404, "Admin not found");
     }
-    return responseHandler(res, 200, "Admin found", mappedData);
+    return responseHandler(res, 200, "Admin found", findAdmin);
   } catch (error) {
     errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
