@@ -8,6 +8,7 @@ hierarchyRoute.use(authVerify);
 hierarchyRoute.post("/state", hierarchyController.createState);
 hierarchyRoute.get("/state/:id", hierarchyController.getState);
 hierarchyRoute.put("/state/:id", hierarchyController.updateState);
+hierarchyRoute.get("/state/list", hierarchyController.getAllStates);
 
 // Zone Routes
 hierarchyRoute.post("/zone", hierarchyController.createZone);
@@ -28,5 +29,7 @@ hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 hierarchyRoute.post("/member", hierarchyController.createMember);
 hierarchyRoute.get("/member/:id", hierarchyController.getMember);
 hierarchyRoute.put("/member/:id", hierarchyController.updateMember);
+
+hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
 
 module.exports = hierarchyRoute;

@@ -272,6 +272,9 @@ exports.getAllUsers = async (req, res) => {
         { name: { $regex: search, $options: "i" } },
       ];
     }
+    if (status) {
+      filter.status = status;
+    }
     const totalCount = await User.countDocuments(filter);
     const data = await User.find(filter)
       .skip(skipCount)
@@ -283,7 +286,7 @@ exports.getAllUsers = async (req, res) => {
       return {
         ...user,
         name: user.name || "",
-        companyName:user?.company?.name || "",
+        companyName: user?.company?.name || "",
       };
     });
 
@@ -298,7 +301,6 @@ exports.getAllUsers = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
-
 
 exports.listUsers = async (req, res) => {
   try {
@@ -332,7 +334,6 @@ exports.listUsers = async (req, res) => {
   }
 };
 
-
 exports.fetchUser = async (req, res) => {
   try {
     const id = req.userId;
@@ -340,7 +341,7 @@ exports.fetchUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const findUser = await User.findById(id)
+    const findUser = await User.findById(id);
 
     if (findUser) {
       // Fields to consider for profile completion
@@ -377,7 +378,6 @@ exports.fetchUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 exports.loginUser = async (req, res) => {
   try {
@@ -450,8 +450,6 @@ exports.getVersion = async (req, res) => {
   }
 };
 
-
-
 exports.getApprovals = async (req, res) => {
   try {
     const { userId } = req;
@@ -469,7 +467,7 @@ exports.getApprovals = async (req, res) => {
     }
     const { pageNo = 1, limit = 10 } = req.query;
     const skipCount = 10 * (pageNo - 1);
-    const filter = { status: "inactive"};
+    const filter = { status: "inactive" };
     const totalCount = await User.countDocuments(filter);
     const data = await User.find(filter)
       .skip(skipCount)
@@ -552,9 +550,6 @@ exports.approveUser = async (req, res) => {
   }
 };
 
-
-
-
 exports.getUsers = async (req, res) => {
   try {
     const { pageNo = 1, limit = 10, status } = req.query;
@@ -581,9 +576,6 @@ exports.getUsers = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
-
-
-
 
 exports.blockUser = async (req, res) => {
   try {

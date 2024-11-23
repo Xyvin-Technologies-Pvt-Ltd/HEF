@@ -551,3 +551,55 @@
  *       500:
  *         description: Internal Server Error
  */
+
+/**
+ * @swagger
+ * /hierarchy/state/list:
+ *   get:
+ *     summary: Retrieve all states
+ *     description: Fetches a list of all states. Access is restricted to users with the required permissions.
+ *     tags:
+ *       - Hierarchy
+ *     responses:
+ *       200:
+ *         description: States retrieved successfully
+ *       403:
+ *         description: Access denied due to insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /hierarchy/levels/{id}/{type}:
+ *   get:
+ *     summary: Retrieve hierarchical levels
+ *     description: Fetches zones, districts, or chapters based on the given `id` and `type`.
+ *     tags:
+ *       - Hierarchy
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the state, zone, or district.
+ *         schema:
+ *           type: string
+ *           example: "6489b1fda32c1e123456789a"
+ *       - name: type
+ *         in: path
+ *         required: true
+ *         description: The type of level to fetch (state, zone, or district).
+ *         schema:
+ *           type: string
+ *           enum: [state, zone, district]
+ *           example: "state"
+ *     responses:
+ *       200:
+ *         description: Levels retrieved successfully
+ *       400:
+ *         description: Bad request (missing `id` or `type`)
+ *       403:
+ *         description: Access denied due to insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */

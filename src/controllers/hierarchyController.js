@@ -1,4 +1,3 @@
-
 const responseHandler = require("../helpers/responseHandler");
 const State = require("../models/stateModel");
 const validations = require("../validations");
@@ -7,7 +6,6 @@ const District = require("../models/districtModel");
 const Zone = require("../models/zoneModel");
 const Chapter = require("../models/chapterModel");
 const Member = require("../models/memberModel");
-
 
 //state
 
@@ -121,6 +119,30 @@ exports.updateState = async (req, res) => {
   }
 };
 
+exports.getAllStates = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const getAllStates = await State.find();
+    if (getAllStates) {
+      return responseHandler(
+        res,
+        200,
+        `states found successfully..!`,
+        getAllStates
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
 // exports.deleteState = async (req, res) => {
 //   try {
 //     const check = await checkAccess(req.roleId, "permissions");
@@ -146,458 +168,501 @@ exports.updateState = async (req, res) => {
 //   }
 // };
 
-
 //district
 
 exports.createDistrict = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const createDistrictValidator = validations.createDistrictSchema.validate(
-        req.body,
-        {
-          abortEarly: true,
-        }
-      );
-  
-      if (createDistrictValidator.error) {
-        return responseHandler(
-          res,
-          400,
-          `Invalid input: ${createDistrictValidator.error}`
-        );
-      }
-  
-      const newDistrict = await District.create(req.body);
-      if (!newDistrict) {
-        return responseHandler(res, 400, `district creation failed...!`);
-      }
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
       return responseHandler(
         res,
-        201,
-        `New district created successfullyy..!`,
-        newDistrict
+        403,
+        "You don't have permission to perform this action"
       );
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
     }
-  };
-  
-  exports.getDistrict = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_view")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "district with this Id is required");
-      }
-  
-      const findDistrict = await District.findById(id);
-      if (findDistrict) {
-        return responseHandler(
-          res,
-          200,
-          `district found successfully..!`,
-          findDistrict
-        );
-      }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.updateDistrict = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "district Id is required");
-      }
-  
-      const { error } = validations.editDistrictSchema.validate(req.body, {
+    const createDistrictValidator = validations.createDistrictSchema.validate(
+      req.body,
+      {
         abortEarly: true,
-      });
-  
-      if (error) {
-        return responseHandler(res, 400, `Invalid input: ${error.message}`);
       }
-  
-      const updateDistrict = await District.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      if (this.updateDistrict) {
+    );
+
+    if (createDistrictValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createDistrictValidator.error}`
+      );
+    }
+
+    const newDistrict = await District.create(req.body);
+    if (!newDistrict) {
+      return responseHandler(res, 400, `district creation failed...!`);
+    }
+    return responseHandler(
+      res,
+      201,
+      `New district created successfullyy..!`,
+      newDistrict
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getDistrict = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "district with this Id is required");
+    }
+
+    const findDistrict = await District.findById(id);
+    if (findDistrict) {
+      return responseHandler(
+        res,
+        200,
+        `district found successfully..!`,
+        findDistrict
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.updateDistrict = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "district Id is required");
+    }
+
+    const { error } = validations.editDistrictSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const updateDistrict = await District.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (this.updateDistrict) {
+      return responseHandler(
+        res,
+        200,
+        `district updated successfully..!`,
+        updateDistrict
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+//zone
+
+exports.createZone = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const createZoneValidator = validations.createZoneSchema.validate(
+      req.body,
+      {
+        abortEarly: true,
+      }
+    );
+
+    if (createZoneValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createZoneValidator.error}`
+      );
+    }
+
+    const newZone = await Zone.create(req.body);
+    if (!newZone) {
+      return responseHandler(res, 400, `zone creation failed...!`);
+    }
+    return responseHandler(
+      res,
+      201,
+      `New zone created successfullyy..!`,
+      newZone
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getZone = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "zone with this Id is required");
+    }
+
+    const findZone = await Zone.findById(id);
+    if (findZone) {
+      return responseHandler(res, 200, `zone found successfully..!`, findZone);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.updateZone = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "zone Id is required");
+    }
+
+    const { error } = validations.editZoneSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const updateZone = await Zone.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (this.updateZone) {
+      return responseHandler(
+        res,
+        200,
+        `zone updated successfully..!`,
+        updateZone
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+//chapter
+
+exports.createChapter = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const createChapterValidator = validations.createChapterSchema.validate(
+      req.body,
+      {
+        abortEarly: true,
+      }
+    );
+
+    if (createChapterValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createChapterValidator.error}`
+      );
+    }
+
+    const newChapter = await Chapter.create(req.body);
+    if (!newChapter) {
+      return responseHandler(res, 400, `chapter creation failed...!`);
+    }
+    return responseHandler(
+      res,
+      201,
+      `New Chapter created successfullyy..!`,
+      newChapter
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getChapter = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "chapter with this Id is required");
+    }
+
+    const findChapter = await Chapter.findById(id);
+    if (findChapter) {
+      return responseHandler(
+        res,
+        200,
+        `chapter found successfully..!`,
+        findChapter
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.updateChapter = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "chapter Id is required");
+    }
+
+    const { error } = validations.editChapterSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const updateChapter = await Chapter.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (this.updateChapter) {
+      return responseHandler(
+        res,
+        200,
+        `chapter updated successfully..!`,
+        updateChapter
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+//member
+
+exports.createMember = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const createMemberValidator = validations.createMemberSchema.validate(
+      req.body,
+      {
+        abortEarly: true,
+      }
+    );
+
+    if (createMemberValidator.error) {
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${createMemberValidator.error}`
+      );
+    }
+
+    const newMember = await Member.create(req.body);
+    if (!newMember) {
+      return responseHandler(res, 400, `member creation failed...!`);
+    }
+    return responseHandler(
+      res,
+      201,
+      `New member created successfullyy..!`,
+      newMember
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getMember = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "member with this Id is required");
+    }
+
+    const findMember = await Member.findById(id);
+    if (findMember) {
+      return responseHandler(
+        res,
+        200,
+        `zone found successfully..!`,
+        findMember
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.updateMember = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "member Id is required");
+    }
+
+    const { error } = validations.editMemberSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const updateMember = await Member.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (this.updateMember) {
+      return responseHandler(
+        res,
+        200,
+        `member updated successfully..!`,
+        updateMember
+      );
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getLevels = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { id, type } = req.params;
+
+    if (!id) {
+      return responseHandler(res, 400, "ID is required");
+    }
+
+    if (!type) {
+      return responseHandler(res, 400, "Type is required");
+    }
+
+    if (type === "state") {
+      const findState = await Zone.find({ stateId: id });
+      if (findState) {
         return responseHandler(
           res,
           200,
-          `district updated successfully..!`,
-          updateDistrict
+          `Zones found successfully..!`,
+          findState
         );
       }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-
-
-
-  //zone
-
-  exports.createZone = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const createZoneValidator = validations.createZoneSchema.validate(
-        req.body,
-        {
-          abortEarly: true,
-        }
-      );
-  
-      if (createZoneValidator.error) {
-        return responseHandler(
-          res,
-          400,
-          `Invalid input: ${createZoneValidator.error}`
-        );
-      }
-  
-      const newZone = await Zone.create(req.body);
-      if (!newZone) {
-        return responseHandler(res, 400, `zone creation failed...!`);
-      }
-      return responseHandler(
-        res,
-        201,
-        `New zone created successfullyy..!`,
-        newZone
-      );
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.getZone = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_view")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "zone with this Id is required");
-      }
-  
-      const findZone = await Zone.findById(id);
+    } else if (type === "zone") {
+      const findZone = await District.find({ zoneId: id });
       if (findZone) {
         return responseHandler(
           res,
           200,
-          `zone found successfully..!`,
+          `Districts found successfully..!`,
           findZone
         );
       }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.updateZone = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "zone Id is required");
-      }
-  
-      const { error } = validations.editZoneSchema.validate(req.body, {
-        abortEarly: true,
-      });
-  
-      if (error) {
-        return responseHandler(res, 400, `Invalid input: ${error.message}`);
-      }
-  
-      const updateZone = await Zone.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      if (this.updateZone) {
+    } else if (type === "district") {
+      const findDistrict = await Chapter.find({ districtId: id });
+      if (findDistrict) {
         return responseHandler(
           res,
           200,
-          `zone updated successfully..!`,
-          updateZone
+          `Chapters found successfully..!`,
+          findDistrict
         );
       }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
     }
-  };
-
-
-
-  //chapter
-
-  exports.createChapter = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const createChapterValidator = validations.createChapterSchema.validate(
-        req.body,
-        {
-          abortEarly: true,
-        }
-      );
-  
-      if (createChapterValidator.error) {
-        return responseHandler(
-          res,
-          400,
-          `Invalid input: ${createChapterValidator.error}`
-        );
-      }
-  
-      const newChapter = await Chapter.create(req.body);
-      if (!newChapter) {
-        return responseHandler(res, 400, `chapter creation failed...!`);
-      }
-      return responseHandler(
-        res,
-        201,
-        `New Chapter created successfullyy..!`,
-        newChapter
-      );
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.getChapter = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_view")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "chapter with this Id is required");
-      }
-  
-      const findChapter = await Chapter.findById(id);
-      if (findChapter) {
-        return responseHandler(
-          res,
-          200,
-          `chapter found successfully..!`,
-          findChapter
-        );
-      }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.updateChapter = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "chapter Id is required");
-      }
-  
-      const { error } = validations.editChapterSchema.validate(req.body, {
-        abortEarly: true,
-      });
-  
-      if (error) {
-        return responseHandler(res, 400, `Invalid input: ${error.message}`);
-      }
-  
-      const updateChapter = await Chapter.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      if (this.updateChapter) {
-        return responseHandler(
-          res,
-          200,
-          `chapter updated successfully..!`,
-          updateChapter
-        );
-      }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-
-
-
-
-  //member
-
-  exports.createMember = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const createMemberValidator = validations.createMemberSchema.validate(
-        req.body,
-        {
-          abortEarly: true,
-        }
-      );
-  
-      if (createMemberValidator.error) {
-        return responseHandler(
-          res,
-          400,
-          `Invalid input: ${createMemberValidator.error}`
-        );
-      }
-  
-      const newMember = await Member.create(req.body);
-      if (!newMember) {
-        return responseHandler(res, 400, `member creation failed...!`);
-      }
-      return responseHandler(
-        res,
-        201,
-        `New member created successfullyy..!`,
-        newMember
-      );
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.getMember = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_view")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "member with this Id is required");
-      }
-  
-      const findMember = await Member.findById(id);
-      if (findMember) {
-        return responseHandler(
-          res,
-          200,
-          `zone found successfully..!`,
-          findMember
-        );
-      }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
-  
-  exports.updateMember = async (req, res) => {
-    try {
-      const check = await checkAccess(req.roleId, "permissions");
-      if (!check || !check.includes("hierarchyManagement_modify")) {
-        return responseHandler(
-          res,
-          403,
-          "You don't have permission to perform this action"
-        );
-      }
-      const { id } = req.params;
-  
-      if (!id) {
-        return responseHandler(res, 400, "member Id is required");
-      }
-  
-      const { error } = validations.editMemberSchema.validate(req.body, {
-        abortEarly: true,
-      });
-  
-      if (error) {
-        return responseHandler(res, 400, `Invalid input: ${error.message}`);
-      }
-  
-      const updateMember = await Member.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      if (this.updateMember) {
-        return responseHandler(
-          res,
-          200,
-          `member updated successfully..!`,
-          updateMember
-        );
-      }
-    } catch (error) {
-      return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-    }
-  };
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
