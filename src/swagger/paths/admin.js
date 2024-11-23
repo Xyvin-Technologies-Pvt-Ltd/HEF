@@ -145,3 +145,78 @@
  *       500:
  *         description: Internal Server Error
  */
+
+/**
+ * @swagger
+ * /admin/{id}:
+ *   put:
+ *     summary: Update an existing admin
+ *     description: API endpoint to update an existing admin
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Jane Doe"
+ *               email:
+ *                 type: string
+ *                 example: "admin_updated@example.com"
+ *               phone:
+ *                 type: string
+ *                 example: "+987654321"
+ *               password:
+ *                 type: string
+ *                 example: "newpassword456"
+ *               role:
+ *                 type: string
+ *                 example: "666c1a3895a6b176b7f2bcf7"
+ *     responses:
+ *       200:
+ *         description: Admin updated successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Admin not found
+ */
+/**
+ * @swagger
+ * /admin/{id}:
+ *   delete:
+ *     summary: Delete an existing admin
+ *     description: API endpoint to delete an existing admin by their unique identifier
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the admin to be deleted
+ *     responses:
+ *       200:
+ *         description: Admin deleted successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Admin not found
+ *       500:
+ *         description: Internal server error
+ */

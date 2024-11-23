@@ -223,3 +223,115 @@ exports.fetchAdmin = async (req, res) => {
     });
   }
 };
+
+exports.updateAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+ 
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("adminManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+  
+    const { error } = validations.editAdminSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const adminId = req.params.id;
+    const findAdmin = await Admin.findById(adminId);
+    if (!findAdmin) {
+      return responseHandler(res, 404, `Admin not found`);
+    }
+
+  
+    if (req.body.password) {
+      req.body.password = await hashPassword(req.body.password);
+    }
+
+    const updatedAdmin = await Admin.findByIdAndUpdate(adminId, req.body, {
+      new: true,
+      runValidators: true, 
+    });
+
+    status = "success";
+    if (updatedAdmin) {
+      return responseHandler(
+        res,
+        200,
+        "Admin updated successfully",
+        updatedAdmin
+      );
+    } else {
+      return responseHandler(res, 400, "Admin update failed");
+    }
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Admin update",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
+  }
+};
+
+exports.deleteAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("adminManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const adminId = req.params.id;
+    const findAdmin = await Admin.findById(adminId);
+    if (!findAdmin) {
+      return responseHandler(res, 404, `Admin not found`);
+    }
+
+    const deletedAdmin = await Admin.findByIdAndDelete(adminId);
+
+    status = "success";
+    if (deletedAdmin) {
+      return responseHandler(res, 200, "Admin deleted successfully");
+    } else {
+      return responseHandler(res, 400, "Admin deletion failed");
+    }
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Admin deletion",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      status,
+      errorMessage,
+    });
+  }
+};

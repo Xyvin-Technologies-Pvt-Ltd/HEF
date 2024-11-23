@@ -11,7 +11,8 @@ adminRoute
   .route("/")
   .post(adminController.createAdmin)
   .get(adminController.getAdmin);
-
+adminRoute.put("/:id", adminController.updateAdmin);
+adminRoute.delete("/:id", adminController.deleteAdmin);
 adminRoute.route("/single/:id").get(adminController.fetchAdmin);
 
 adminRoute.get("/list", adminController.getAllAdmins);

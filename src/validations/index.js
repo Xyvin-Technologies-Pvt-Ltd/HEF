@@ -83,6 +83,7 @@ exports.editAdminSchema = Joi.object({
   email: Joi.string(),
   phone: Joi.string(),
   role: Joi.string(),
+  password :Joi.string(),
   status: Joi.boolean(),
 });
 
