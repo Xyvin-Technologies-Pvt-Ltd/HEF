@@ -20,7 +20,7 @@ const userSchema = mongoose.Schema(
     bio: { type: String },
     status: {
       type: String,
-      enum: ["active", "inactive", "rejected", "deleted", "blocked"],
+      enum: ["active", "inactive", "suspended", "deleted", "blocked"],
       default: "inactive",
     },
     address: { type: String },
