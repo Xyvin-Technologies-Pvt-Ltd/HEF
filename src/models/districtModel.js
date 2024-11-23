@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const districtSchema = new mongoose.Schema(
   {
-    name: {type :String},
+    name: { type: String },
     zoneId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Zone",
@@ -13,7 +13,7 @@ const districtSchema = new mongoose.Schema(
         ref: "Chapter",
       },
     ],
-    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
 
   { timestamps: true }

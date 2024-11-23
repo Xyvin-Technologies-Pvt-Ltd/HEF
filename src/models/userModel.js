@@ -12,6 +12,7 @@ const userSchema = mongoose.Schema(
       enum: ["president", "secretary", "treasurer", "rep", "member"],
       default: "member",
     },
+    chapter: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     image: { type: String },
     email: { type: String },
     phone: { type: String, trim: true },
@@ -30,7 +31,7 @@ const userSchema = mongoose.Schema(
       websites: { type: String },
       phone: { type: String, trim: true },
     },
-    social: {type : String},
+    social: { type: String },
     businessCatogary: { type: String },
     businessSubCatogary: { type: String },
     awards: [
@@ -40,8 +41,8 @@ const userSchema = mongoose.Schema(
         authority: { type: String },
       },
     ],
-    videos:  {type : String},
-    certificates:  {type : String},
+    videos: { type: String },
+    certificates: { type: String },
     otp: { type: Number },
 
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

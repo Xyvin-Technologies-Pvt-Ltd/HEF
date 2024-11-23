@@ -13,9 +13,7 @@ const zoneSchema = new mongoose.Schema(
         ref: "District",
       },
     ],
-    admins: 
-    [{ type: mongoose.Schema.Types.ObjectId, 
-      ref: 'User' }],
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

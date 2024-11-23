@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const memberSchema = mongoose.Schema(
   {
-    name: {type :String},
-    memberId: {type:String},
+    name: { type: String },
+    memberId: { type: String },
     chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     contactInfo: Object,
     subscription: {
@@ -11,7 +11,7 @@ const memberSchema = mongoose.Schema(
       enum: ["active", "inactive"],
       default: "inactive",
     },
-    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -9,7 +9,7 @@ const stateSchema = new mongoose.Schema(
         ref: "Zone",
       },
     ],
-    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

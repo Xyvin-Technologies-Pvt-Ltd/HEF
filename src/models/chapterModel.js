@@ -7,13 +7,7 @@ const chapterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "District",
     },
-    members: 
-    [{ type: mongoose.Schema.Types.ObjectId, 
-      ref: "Member"
-     }],
-    admins:
-     [{ type: mongoose.Schema.Types.ObjectId, 
-      ref: 'User' }],
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
