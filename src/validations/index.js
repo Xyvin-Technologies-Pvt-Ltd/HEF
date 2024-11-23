@@ -240,6 +240,7 @@ exports.createUserSchema = Joi.object({
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   role: Joi.string(),
+  chapter: Joi.string(),
   image: Joi.string(),
   email: Joi.string().email().required(),
   phone: Joi.string().trim().required(),
