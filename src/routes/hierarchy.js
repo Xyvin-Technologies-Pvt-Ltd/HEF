@@ -5,10 +5,12 @@ const hierarchyRoute = express.Router();
 hierarchyRoute.use(authVerify);
 
 // State Routes
+
+hierarchyRoute.get("/state/list", hierarchyController.getAllStates);
 hierarchyRoute.post("/state", hierarchyController.createState);
 hierarchyRoute.get("/state/:id", hierarchyController.getState);
 hierarchyRoute.put("/state/:id", hierarchyController.updateState);
-hierarchyRoute.get("/state/list", hierarchyController.getAllStates);
+
 
 // Zone Routes
 hierarchyRoute.post("/zone", hierarchyController.createZone);
