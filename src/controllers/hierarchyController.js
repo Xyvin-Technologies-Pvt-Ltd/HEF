@@ -668,5 +668,67 @@ exports.getLevels = async (req, res) => {
 };
 
 exports.getHierarchyList = async (req, res) => {
-  
-}
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(res, 403, "Permission denied", []);
+    }
+
+    const { type } = req.params;
+
+    if (!type) {
+      return responseHandler(res, 400, "Type parameter is required", []);
+    }
+
+    let data = [];
+
+    const mapData = (items, category) =>
+      items.map((item) => ({
+        id: item._id,
+        name: item.name,
+        admins: item.admins || [],
+        category,
+      }));
+
+    if (type === "state") {
+      const states = await State.find();
+      data = mapData(states, "state");
+    } else if (type === "zone") {
+      const zones = await Zone.find();
+      data = mapData(zones, "zone");
+    } else if (type === "district") {
+      const districts = await District.find();
+      data = mapData(districts, "district");
+    } else if (type === "chapter") {
+      const chapters = await Chapter.find();
+      data = mapData(chapters, "chapter");
+    } else if (type === "all") {
+      const states = await State.find();
+      const zones = await Zone.find();
+      const districts = await District.find();
+      const chapters = await Chapter.find();
+
+      data = [
+        ...mapData(states, "state"),
+        ...mapData(zones, "zone"),
+        ...mapData(districts, "district"),
+        ...mapData(chapters, "chapter"),
+      ];
+    } else {
+      return responseHandler(res, 400, "Invalid type parameter", []);
+    }
+
+    if (!data.length) {
+      return responseHandler(res, 404, `${type} data not found`, []);
+    }
+
+    return responseHandler(
+      res,
+      200,
+      `${type} data retrieved successfully`,
+      data
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error`, []);
+  }
+};

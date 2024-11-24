@@ -603,3 +603,33 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /hierarchy/list/{type}:
+ *   get:
+ *     summary: Retrieve hierarchy data by type
+ *     description: Fetches hierarchical data for states, zones, districts, chapters, or all levels.
+ *     tags:
+ *       - Hierarchy
+ *     parameters:
+ *       - name: type
+ *         in: path
+ *         required: true
+ *         description: The type of hierarchy to fetch (state, zone, district, chapter, or all).
+ *         schema:
+ *           type: string
+ *           enum: [state, zone, district, chapter, all]
+ *           example: "state"
+ *     responses:
+ *       200:
+ *         description: Hierarchy data retrieved successfully
+ *       400:
+ *         description: Missing or invalid `type` parameter
+ *       403:
+ *         description: Access denied due to insufficient permissions
+ *       404:
+ *         description: No data found for the specified type
+ *       500:
+ *         description: Internal server error
+ */
