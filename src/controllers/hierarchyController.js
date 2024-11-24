@@ -666,3 +666,7 @@ exports.getLevels = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+exports.getHierarchyList = async (req, res) => {
+  
+}
