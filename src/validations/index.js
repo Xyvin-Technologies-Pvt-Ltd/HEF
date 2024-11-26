@@ -253,7 +253,7 @@ exports.createUserSchema = Joi.object({
 
 exports.editUserSchema = Joi.object({
   name: Joi.string().required(),
-  uid: Joi.string().required(),
+  uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   role: Joi.string(),
