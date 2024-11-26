@@ -511,6 +511,12 @@
  *                 type: string
  *                 description: Residential address of the user.
  *                 example: "123 Main St, City, Country"
+ *               secondaryPhone:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Additional phone numbers of the user.
+ *                 example: ["+1234567891", "+1234567892"]
  *     responses:
  *       200:
  *         description: User updated successfully

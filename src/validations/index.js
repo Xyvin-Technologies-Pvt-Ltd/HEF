@@ -260,6 +260,7 @@ exports.editUserSchema = Joi.object({
   bio: Joi.string(),
   status: Joi.string(),
   address: Joi.string(),
+  secondaryPhone: Joi.array(),
 });
 
 exports.updateUserSchema = Joi.object({
