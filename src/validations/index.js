@@ -252,15 +252,28 @@ exports.createUserSchema = Joi.object({
 });
 
 exports.editUserSchema = Joi.object({
-  name: Joi.string(),
+  name: Joi.string().required(),
+  uid: Joi.string().required(),
+  memberId: Joi.string(),
+  bloodgroup: Joi.string(),
   role: Joi.string(),
+  chapter: Joi.string(),
   image: Joi.string(),
-  email: Joi.string().email(),
-  phone: Joi.string().trim(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().trim().required(),
+  secondaryPhone: Joi.array(),
   bio: Joi.string(),
   status: Joi.string(),
   address: Joi.string(),
-  secondaryPhone: Joi.array(),
+  businessCatogary: Joi.string(),
+  businessSubCatogary: Joi.string(),
+  company: Joi.object({
+    name: Joi.string(),
+    designation: Joi.string(),
+    email: Joi.string().email(),
+    websites: Joi.string(),
+    phone: Joi.string(),
+  }),
 });
 
 exports.updateUserSchema = Joi.object({

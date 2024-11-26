@@ -139,7 +139,7 @@
  *           schema:
  *             type: object
  *             properties:
-  *               name:
+ *               name:
  *                 type: string
  *                 description: Full name of the user.
  *                 example: "John Doe"
@@ -481,11 +481,27 @@
  *                 type: string
  *                 description: Full name of the user.
  *                 example: "John Doe"
+ *               uid:
+ *                 type: string
+ *                 description: Unique identifier for the user.
+ *                 example: "UID123456"
+ *               memberId:
+ *                 type: string
+ *                 description: Membership ID of the user.
+ *                 example: "MEM123456"
+ *               bloodgroup:
+ *                 type: string
+ *                 description: User's blood group.
+ *                 example: "O+"
  *               role:
  *                 type: string
  *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 description: Role assigned to the user.
  *                 example: "member"
+ *               chapter:
+ *                 type: string
+ *                 description: Reference to the user's chapter ID.
+ *                 example: "63f9c6e4f3b17c00084b8b99"
  *               image:
  *                 type: string
  *                 description: URL of the user's profile image.
@@ -498,25 +514,56 @@
  *                 type: string
  *                 description: Phone number of the user.
  *                 example: "+1234567890"
- *               bio:
- *                 type: string
- *                 description: Brief biography or description of the user.
- *                 example: "Experienced developer in web technologies."
- *               status:
- *                 type: string
- *                 enum: ["active", "inactive", "rejected", "deleted", "blocked"]
- *                 description: Current status of the user.
- *                 example: "active"
- *               address:
- *                 type: string
- *                 description: Residential address of the user.
- *                 example: "123 Main St, City, Country"
  *               secondaryPhone:
  *                 type: array
  *                 items:
  *                   type: string
  *                 description: Additional phone numbers of the user.
  *                 example: ["+1234567891", "+1234567892"]
+ *               bio:
+ *                 type: string
+ *                 description: Brief biography or description of the user.
+ *                 example: "Experienced developer in web technologies."
+ *               status:
+ *                 type: string
+ *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
+ *                 description: Current status of the user.
+ *                 example: "active"
+ *               address:
+ *                 type: string
+ *                 description: Residential address of the user.
+ *                 example: "123 Main St, City, Country"
+ *               businessCatogary:
+ *                 type: string
+ *                 description: User's business category.
+ *                 example: "Technology"
+ *               businessSubCatogary:
+ *                 type: string
+ *                 description: User's business sub-category.
+ *                 example: "Software Development"
+ *               company:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Name of the company.
+ *                     example: "Tech Solutions Inc."
+ *                   designation:
+ *                     type: string
+ *                     description: User's designation at the company.
+ *                     example: "Software Engineer"
+ *                   email:
+ *                     type: string
+ *                     description: Company email of the user.
+ *                     example: "johndoe@company.com"
+ *                   websites:
+ *                     type: string
+ *                     description: Company's website.
+ *                     example: "https://company.com"
+ *                   phone:
+ *                     type: string
+ *                     description: Company's phone number.
+ *                     example: "+1234567890"
  *     responses:
  *       200:
  *         description: User updated successfully
