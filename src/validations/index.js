@@ -247,6 +247,7 @@ exports.createUserSchema = Joi.object({
     designation: Joi.string(),
     email: Joi.string().email(),
     websites: Joi.string(),
+    phone: Joi.string(),
   }),
 });
 
@@ -262,52 +263,27 @@ exports.editUserSchema = Joi.object({
 });
 
 exports.updateUserSchema = Joi.object({
-  name: Joi.string(),
-  uid: Joi.string(),
+ 
+  name: Joi.string().required(),
+  uid: Joi.string().required(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   role: Joi.string(),
+  chapter: Joi.string(),
   image: Joi.string(),
-  email: Joi.string().email(),
-  phone: Joi.string().trim(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().trim().required(),
+  secondaryPhone: Joi.array(),
   bio: Joi.string(),
   status: Joi.string(),
   address: Joi.string(),
+  businessCatogary: Joi.string(),
+  businessSubCatogary: Joi.string(),
   company: Joi.object({
-    name: Joi.string().optional(),
-    designation: Joi.string().optional(),
-    email: Joi.string().email().optional(),
+    name: Joi.string(),
+    designation: Joi.string(),
+    email: Joi.string().email(),
     websites: Joi.string(),
-  }).optional(),
-  social: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      link: Joi.string(),
-    })
-  ),
-  websites: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      link: Joi.string(),
-    })
-  ),
-  awards: Joi.array().items(
-    Joi.object({
-      image: Joi.string(),
-      name: Joi.string(),
-      authority: Joi.string(),
-    })
-  ),
-  videos: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      link: Joi.string(),
-    })
-  ),
-  certificates: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      link: Joi.string(),
-    })
-  ),
+    phone: Joi.string(),
+  }),
 });

@@ -52,10 +52,10 @@ exports.verifyUser = async (req, res) => {
     await user.save();
     const token = generateToken(user._id);
 
-    return responseHandler(res, 200, "User verified successfully",[{
+    return responseHandler(res, 200, "User verified successfully",{
       token: token,
       userId: user._id
-    }]);
+    });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }

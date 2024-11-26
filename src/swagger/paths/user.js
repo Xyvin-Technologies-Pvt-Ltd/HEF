@@ -139,7 +139,7 @@
  *           schema:
  *             type: object
  *             properties:
- *               name:
+  *               name:
  *                 type: string
  *                 description: Full name of the user.
  *                 example: "John Doe"
@@ -160,6 +160,10 @@
  *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 description: Role assigned to the user.
  *                 example: "member"
+ *               chapter:
+ *                 type: string
+ *                 description: Reference to the user's chapter ID.
+ *                 example: "63f9c6e4f3b17c00084b8b99"
  *               image:
  *                 type: string
  *                 description: URL of the user's profile image.
@@ -172,19 +176,33 @@
  *                 type: string
  *                 description: Phone number of the user.
  *                 example: "+1234567890"
+ *               secondaryPhone:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Additional phone numbers of the user.
+ *                 example: ["+1234567891", "+1234567892"]
  *               bio:
  *                 type: string
  *                 description: Brief biography or description of the user.
  *                 example: "Experienced developer in web technologies."
  *               status:
  *                 type: string
- *                 enum: ["active", "inactive", "rejected", "deleted", "blocked"]
+ *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 description: Current status of the user.
  *                 example: "active"
  *               address:
  *                 type: string
  *                 description: Residential address of the user.
  *                 example: "123 Main St, City, Country"
+ *               businessCatogary:
+ *                 type: string
+ *                 description: User's business category.
+ *                 example: "Technology"
+ *               businessSubCatogary:
+ *                 type: string
+ *                 description: User's business sub-category.
+ *                 example: "Software Development"
  *               company:
  *                 type: object
  *                 properties:
@@ -201,79 +219,13 @@
  *                     description: Company email of the user.
  *                     example: "johndoe@company.com"
  *                   websites:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         name:
- *                           type: string
- *                           example: "Company Website"
- *                         link:
- *                           type: string
- *                           example: "https://company.com"
- *               social:
- *                 type: array
- *                 description: User's social media links.
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       example: "LinkedIn"
- *                     link:
- *                       type: string
- *                       example: "https://linkedin.com/in/johndoe"
- *               websites:
- *                 type: array
- *                 description: User's personal websites.
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       example: "Portfolio"
- *                     link:
- *                       type: string
- *                       example: "https://johndoe.com"
- *               awards:
- *                 type: array
- *                 description: Awards received by the user.
- *                 items:
- *                   type: object
- *                   properties:
- *                     image:
- *                       type: string
- *                       example: "https://example.com/award.jpg"
- *                     name:
- *                       type: string
- *                       example: "Best Developer Award"
- *                     authority:
- *                       type: string
- *                       example: "Tech Conference"
- *               videos:
- *                 type: array
- *                 description: Links to videos related to the user.
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       example: "Introduction Video"
- *                     link:
- *                       type: string
- *                       example: "https://youtube.com/video123"
- *               certificates:
- *                 type: array
- *                 description: Certificates earned by the user.
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       example: "Certified React Developer"
- *                     link:
- *                       type: string
- *                       example: "https://certificates.com/react-cert"
+ *                     type: string
+ *                     description: Company's website.
+ *                     example: "https://company.com"
+ *                   phone:
+ *                     type: string
+ *                     description: Company's phone number.
+ *                     example: "+1234567890"
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -347,6 +299,10 @@
  *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 description: Role assigned to the user.
  *                 example: "member"
+ *               chapter:
+ *                 type: string
+ *                 description: Reference to the user's chapter ID.
+ *                 example: "63f9c6e4f3b17c00084b8b99"
  *               image:
  *                 type: string
  *                 description: URL of the user's profile image.
@@ -359,19 +315,33 @@
  *                 type: string
  *                 description: Phone number of the user.
  *                 example: "+1234567890"
+ *               secondaryPhone:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Additional phone numbers of the user.
+ *                 example: ["+1234567891", "+1234567892"]
  *               bio:
  *                 type: string
  *                 description: Brief biography or description of the user.
  *                 example: "Experienced developer in web technologies."
  *               status:
  *                 type: string
- *                 enum: ["active", "inactive", "rejected", "deleted", "blocked"]
+ *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 description: Current status of the user.
  *                 example: "active"
  *               address:
  *                 type: string
  *                 description: Residential address of the user.
  *                 example: "123 Main St, City, Country"
+ *               businessCatogary:
+ *                 type: string
+ *                 description: User's business category.
+ *                 example: "Technology"
+ *               businessSubCatogary:
+ *                 type: string
+ *                 description: User's business sub-category.
+ *                 example: "Software Development"
  *               company:
  *                 type: object
  *                 properties:
@@ -388,16 +358,13 @@
  *                     description: Company email of the user.
  *                     example: "johndoe@company.com"
  *                   websites:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         name:
- *                           type: string
- *                           example: "Company Website"
- *                         link:
- *                           type: string
- *                           example: "https://company.com"
+ *                     type: string
+ *                     description: Company's website.
+ *                     example: "https://company.com"
+ *                   phone:
+ *                     type: string
+ *                     description: Company's phone number.
+ *                     example: "+1234567890"
  *     responses:
  *       201:
  *         description: User created successfully
@@ -410,7 +377,6 @@
  *       500:
  *         description: Internal Server Error
  */
-
 /**
  * @swagger
  * /user/admin/single/{id}:
