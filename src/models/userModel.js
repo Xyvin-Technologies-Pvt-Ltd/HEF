@@ -1,6 +1,15 @@
 const { array, string } = require("joi");
 const mongoose = require("mongoose");
 
+
+const linkSchema = new mongoose.Schema(
+  {
+    name: { type: String },
+    link: { type: String },
+  },
+  { _id: false }
+);
+
 const userSchema = mongoose.Schema(
   {
     name: { type: String },
@@ -31,9 +40,10 @@ const userSchema = mongoose.Schema(
       websites: { type: String },
       phone: { type: String, trim: true },
     },
-    social: { type: String },
     businessCatogary: { type: String },
     businessSubCatogary: { type: String },
+    social: [linkSchema],
+    websites: [linkSchema],
     awards: [
       {
         image: { type: String },
@@ -41,8 +51,8 @@ const userSchema = mongoose.Schema(
         authority: { type: String },
       },
     ],
-    videos: { type: String },
-    certificates: { type: String },
+    videos: [linkSchema],
+    certificates: [linkSchema],
     otp: { type: Number },
 
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

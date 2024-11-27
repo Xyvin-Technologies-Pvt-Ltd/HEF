@@ -274,6 +274,37 @@ exports.editUserSchema = Joi.object({
     websites: Joi.string(),
     phone: Joi.string(),
   }),
+  social: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  websites: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  awards: Joi.array().items(
+    Joi.object({
+      image: Joi.string(),
+      name: Joi.string(),
+      authority: Joi.string(),
+    })
+  ),
+  videos: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  certificates: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
 });
 
 exports.updateUserSchema = Joi.object({
@@ -300,4 +331,35 @@ exports.updateUserSchema = Joi.object({
     websites: Joi.string(),
     phone: Joi.string(),
   }),
+  social: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  websites: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  awards: Joi.array().items(
+    Joi.object({
+      image: Joi.string(),
+      name: Joi.string(),
+      authority: Joi.string(),
+    })
+  ),
+  videos: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
+  certificates: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      link: Joi.string(),
+    })
+  ),
 });

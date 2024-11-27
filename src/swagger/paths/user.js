@@ -157,8 +157,8 @@
  *                 example: "O+"
  *               role:
  *                 type: string
- *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 description: Role assigned to the user.
+ *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 example: "member"
  *               chapter:
  *                 type: string
@@ -170,11 +170,12 @@
  *                 example: "https://example.com/image.jpg"
  *               email:
  *                 type: string
+ *                 format: email
  *                 description: Email address of the user.
  *                 example: "john.doe@example.com"
  *               phone:
  *                 type: string
- *                 description: Phone number of the user.
+ *                 description: Primary phone number of the user.
  *                 example: "+1234567890"
  *               secondaryPhone:
  *                 type: array
@@ -188,8 +189,8 @@
  *                 example: "Experienced developer in web technologies."
  *               status:
  *                 type: string
- *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 description: Current status of the user.
+ *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 example: "active"
  *               address:
  *                 type: string
@@ -216,6 +217,7 @@
  *                     example: "Software Engineer"
  *                   email:
  *                     type: string
+ *                     format: email
  *                     description: Company email of the user.
  *                     example: "johndoe@company.com"
  *                   websites:
@@ -226,6 +228,75 @@
  *                     type: string
  *                     description: Company's phone number.
  *                     example: "+1234567890"
+ *               social:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Social platform name.
+ *                       example: "LinkedIn"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the social profile.
+ *                       example: "https://linkedin.com/in/johndoe"
+ *               websites:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Website name.
+ *                       example: "Personal Blog"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the website.
+ *                       example: "https://johndoe.com"
+ *               awards:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     image:
+ *                       type: string
+ *                       description: Award image URL.
+ *                       example: "https://example.com/award.jpg"
+ *                     name:
+ *                       type: string
+ *                       description: Name of the award.
+ *                       example: "Best Developer"
+ *                     authority:
+ *                       type: string
+ *                       description: Awarding authority.
+ *                       example: "Tech Awards Committee"
+ *               videos:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Name of the video.
+ *                       example: "Tech Talk"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the video.
+ *                       example: "https://youtube.com/video"
+ *               certificates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Name of the certificate.
+ *                       example: "React Developer"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the certificate.
+ *                       example: "https://example.com/certificate"
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -451,8 +522,6 @@
  *         description: Internal Server Error
  */
 
-
-
 /**
  * @swagger
  * /user/admin/single/{id}:
@@ -495,8 +564,8 @@
  *                 example: "O+"
  *               role:
  *                 type: string
- *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 description: Role assigned to the user.
+ *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 example: "member"
  *               chapter:
  *                 type: string
@@ -508,11 +577,12 @@
  *                 example: "https://example.com/image.jpg"
  *               email:
  *                 type: string
+ *                 format: email
  *                 description: Email address of the user.
  *                 example: "john.doe@example.com"
  *               phone:
  *                 type: string
- *                 description: Phone number of the user.
+ *                 description: Primary phone number of the user.
  *                 example: "+1234567890"
  *               secondaryPhone:
  *                 type: array
@@ -526,8 +596,8 @@
  *                 example: "Experienced developer in web technologies."
  *               status:
  *                 type: string
- *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 description: Current status of the user.
+ *                 enum: ["active", "inactive", "suspended", "deleted", "blocked"]
  *                 example: "active"
  *               address:
  *                 type: string
@@ -554,6 +624,7 @@
  *                     example: "Software Engineer"
  *                   email:
  *                     type: string
+ *                     format: email
  *                     description: Company email of the user.
  *                     example: "johndoe@company.com"
  *                   websites:
@@ -564,6 +635,75 @@
  *                     type: string
  *                     description: Company's phone number.
  *                     example: "+1234567890"
+ *               social:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Social platform name.
+ *                       example: "LinkedIn"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the social profile.
+ *                       example: "https://linkedin.com/in/johndoe"
+ *               websites:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Website name.
+ *                       example: "Personal Blog"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the website.
+ *                       example: "https://johndoe.com"
+ *               awards:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     image:
+ *                       type: string
+ *                       description: Award image URL.
+ *                       example: "https://example.com/award.jpg"
+ *                     name:
+ *                       type: string
+ *                       description: Name of the award.
+ *                       example: "Best Developer"
+ *                     authority:
+ *                       type: string
+ *                       description: Awarding authority.
+ *                       example: "Tech Awards Committee"
+ *               videos:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Name of the video.
+ *                       example: "Tech Talk"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the video.
+ *                       example: "https://youtube.com/video"
+ *               certificates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: Name of the certificate.
+ *                       example: "React Developer"
+ *                     link:
+ *                       type: string
+ *                       description: URL to the certificate.
+ *                       example: "https://example.com/certificate"
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -576,6 +716,7 @@
  *       500:
  *         description: Internal Server Error
  */
+
 
 /**
  * @swagger
