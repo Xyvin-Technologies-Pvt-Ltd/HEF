@@ -1,4 +1,4 @@
-//const moment = require("moment-timezone");
+const moment = require("moment-timezone");
 const responseHandler = require("../helpers/responseHandler");
 const Promotion = require("../models/promotionModel");
 const validations = require("../validations");
