@@ -246,13 +246,35 @@ exports.createProductByUser = async (req, res) => {
 
 exports.getUserProducts = async (req, res) => {
   try {
+    const { pageNo = 1, limit = 10 } = req.query; // Default values for pagination
     const filter = { status: "accepted" };
-    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
-    return responseHandler(res, 200, "Products found successfully!", products);
+
+    // Calculate skip and limit for pagination
+    const skip = (pageNo - 1) * limit;
+
+    // Fetch products with pagination and sorting
+    const products = await Product.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
+    // Fetch total count for pagination metadata
+    const totalProducts = await Product.countDocuments(filter);
+
+    const response = {
+      totalProducts,
+      currentPage: Number(pageNo),
+      totalPages: Math.ceil(totalProducts / limit),
+      products,
+    };
+
+    return responseHandler(res, 200, "Products found successfully!", response);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
 
 // exports.getAllProductsUser = async (req, res) => {
 //   try {

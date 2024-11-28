@@ -278,17 +278,46 @@
  */
 
 
+
 /**
  * @swagger
  * /product:
  *   get:
- *     summary: Get all user products
- *     description: Retrieves all products with a status of "accepted", sorted by creation date in descending order.
+ *     summary: Get a list of products
+ *     description: Retrieves a paginated list of products with optional filtering by search, status, and category.
  *     tags:
  *       - Product
+ *     parameters:
+ *       - in: query
+ *         name: pageNo
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: The page number for pagination (defaults to 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: The number of products per page (defaults to 10)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term to filter products by name or description
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter products by status
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter products by category
  *     responses:
- *       400:
- *         description: Invalid input
+ *       200:
+ *         description: Products retrieved successfully
  *       403:
  *         description: Permission denied
  *       500:
