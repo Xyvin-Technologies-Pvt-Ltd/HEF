@@ -198,7 +198,6 @@ exports.createProductByUser = async (req, res) => {
   try {
     const check = await checkAccess(req.roleId, "permissions");
 
-
     if (
       !check ||
       (!check.includes("productManagement_modify") &&
@@ -245,8 +244,6 @@ exports.createProductByUser = async (req, res) => {
   }
 };
 
-
-// Get all products visible to users (public view)
 exports.getUserProducts = async (req, res) => {
   try {
     const filter = { status: "accepted" };
@@ -256,3 +253,48 @@ exports.getUserProducts = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+// exports.getAllProductsUser = async (req, res) => {
+//   try {
+//     const {
+//       pageNo = 1,
+//       limit = 10,
+//       search,
+//       category,
+//       sortBy = "createdAt",
+//       order = "desc",
+//     } = req.query;
+//     const skipCount = (pageNo - 1) * limit;
+//     const filter = { status: "accepted" };
+
+//     if (search) {
+//       filter.$or = [
+//         { name: { $regex: search, $options: "i" } },
+//         { description: { $regex: search, $options: "i" } },
+//       ];
+//     }
+
+//     if (category) {
+//       filter.category = category;
+//     }
+
+//     const sortOrder = order.toLowerCase() === "asc" ? 1 : -1;
+
+//     const totalCount = await Product.countDocuments(filter);
+
+//     const products = await Product.find(filter)
+//       .skip(skipCount)
+//       .limit(parseInt(limit))
+//       .sort({ [sortBy]: sortOrder })
+//       .lean();
+
+//     return responseHandler(res, 200, "Products retrieved successfully!", {
+//       products,
+//       totalCount,
+//       pageNo,
+//       limit,
+//     });
+//   } catch (error) {
+//     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+//   }
+// };
