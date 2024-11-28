@@ -10,12 +10,13 @@ productRoute
   .post(productController.createProduct)
   .get(productController.getAllProducts);
 productRoute
+  .route("/")
+  .get(productController.getUserProducts);
+productRoute
   .route("/single/:id")
   .get(productController.getProduct)
   .put(productController.updateProduct)
   .delete(productController.deleteProduct);
-productRoute
-  .route("/user")
-  .post(productController.createProduct)
+productRoute.route("/user").post(productController.createProduct);
 
 module.exports = productRoute;

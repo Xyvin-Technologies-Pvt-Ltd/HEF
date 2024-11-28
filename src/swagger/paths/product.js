@@ -4,6 +4,7 @@
  *   - name: Product
  *     description: Product related endpoints
  */
+
 /**
  * @swagger
  * /product/admin:
@@ -249,59 +250,7 @@
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Product:
- *       type: object
- *       properties:
- *         seller:
- *           type: string
- *           description: Reference ID of the seller, linked to the User model
- *           example: "60c72b2f9b1e8e1a8c123abc"
- *         name:
- *           type: string
- *           description: Name of the product
- *           example: "User Created Product"
- *         image:
- *           type: string
- *           description: URL of the product image
- *           example: "https://example.com/image.jpg"
- *         price:
- *           type: number
- *           description: Original price of the product
- *           example: 49.99
- *         offerPrice:
- *           type: number
- *           description: Discounted price of the product
- *           example: 39.99
- *         description:
- *           type: string
- *           description: Description of the product
- *           example: "This is a user-created product."
- *         moq:
- *           type: number
- *           description: Minimum order quantity
- *           example: 10
- *         units:
- *           type: string
- *           description: Units of the product (e.g., "kg", "pcs")
- *           example: "pcs"
- *         status:
- *           type: string
- *           description: Current status of the product
- *           example: "pending"
- */
-
-/**
- * @swagger
- * tags:
- *   - name: Product
- *     description: Product related endpoints
- */
-
-/**
- * @swagger
- * /product/user:
+ * /product:
  *   post:
  *     summary: Create a new product by user
  *     description: Allows a user to create a new product with pending status, subject to approval.
@@ -320,6 +269,24 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid input
+ *       403:
+ *         description: Permission denied
+ *       500:
+ *         description: Internal Server Error
+ */
+
+
+/**
+ * @swagger
+ * /product:
+ *   get:
+ *     summary: Get all user products
+ *     description: Retrieves all products with a status of "accepted", sorted by creation date in descending order.
+ *     tags:
+ *       - Product
+ *     responses:
  *       400:
  *         description: Invalid input
  *       403:

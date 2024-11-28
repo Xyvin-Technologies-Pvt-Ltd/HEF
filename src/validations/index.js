@@ -5,6 +5,12 @@ const linkSchema = Joi.object({
   link: Joi.string().uri().required(),
 });
 
+exports.createFeedsSchema = Joi.object({
+  type: Joi.string().required(),
+  media: Joi.string(),
+  link: Joi.string(),
+  content: Joi.string().required(),
+});
 exports.createEventSchema = Joi.object({
   eventName: Joi.string().required(),
   description: Joi.string().required(),
