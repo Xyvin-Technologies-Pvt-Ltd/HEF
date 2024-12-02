@@ -52,10 +52,46 @@ exports.verifyUser = async (req, res) => {
     await user.save();
     const token = generateToken(user._id);
 
-    return responseHandler(res, 200, "User verified successfully",{
+    return responseHandler(res, 200, "User verified successfully", {
       token: token,
-      userId: user._id
+      userId: user._id,
     });
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.createNewUser = async (req, res) => {
+  try {
+    const { error } = validations.createUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const checkExist = await User.findOne({
+      $or: [{ email: req.body.email }, { phone: req.body.phone }],
+    });
+
+    if (checkExist) {
+      return responseHandler(
+        res,
+        409,
+        `User with this email or phone already exists`
+      );
+    }
+    const uniqueMemberId = await generateUniqueDigit();
+    req.body.memberId = `HEF-${uniqueMemberId}`;
+    const newUser = await User.create(req.body);
+
+    if (newUser)
+      return responseHandler(
+        res,
+        201,
+        `New User created successfull..!`,
+        newUser
+      );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }

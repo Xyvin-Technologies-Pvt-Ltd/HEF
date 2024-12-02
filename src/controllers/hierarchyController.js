@@ -121,14 +121,6 @@ exports.updateState = async (req, res) => {
 
 exports.getAllStates = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_view")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
     const getAllStates = await State.find();
     if (getAllStates) {
       return responseHandler(
@@ -669,11 +661,6 @@ exports.getLevels = async (req, res) => {
 
 exports.getHierarchyList = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_view")) {
-      return responseHandler(res, 403, "Permission denied", []);
-    }
-
     const { type } = req.params;
 
     if (!type) {

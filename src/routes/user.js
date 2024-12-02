@@ -13,7 +13,7 @@ userRoute.get("/", userController.fetchUser);
 userRoute.get("/users", userController.getUsers);
 userRoute.get("/single/:id", userController.getSingleUser);
 userRoute.patch("/update", userController.updateUser);
-
+userRoute.post("/", userController.createNewUser);
 userRoute.post("/admin", userController.createUser);
 userRoute
   .route("/admin/single/:id")
