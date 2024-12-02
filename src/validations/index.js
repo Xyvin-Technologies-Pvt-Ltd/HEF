@@ -89,7 +89,7 @@ exports.editAdminSchema = Joi.object({
   email: Joi.string(),
   phone: Joi.string(),
   role: Joi.string(),
-  password :Joi.string(),
+  password: Joi.string(),
   status: Joi.boolean(),
 });
 
@@ -204,13 +204,10 @@ exports.editMemberSchema = Joi.object({
   admins: Joi.array(),
 });
 
-
-
-
 exports.createProductSchema = Joi.object({
-  seller: Joi.string().required(), 
+  seller: Joi.string().required(),
   name: Joi.string().required(),
-  image: Joi.string().required(), 
+  image: Joi.string().required(),
   price: Joi.number().required(),
   offerPrice: Joi.number().required(),
   description: Joi.string().required(),
@@ -230,7 +227,6 @@ exports.updateProductSchema = Joi.object({
   status: Joi.string(),
   reason: Joi.string(),
 });
-
 
 exports.createUserSchema = Joi.object({
   name: Joi.string().required(),
@@ -314,7 +310,6 @@ exports.editUserSchema = Joi.object({
 });
 
 exports.updateUserSchema = Joi.object({
- 
   name: Joi.string().required(),
   uid: Joi.string().required(),
   memberId: Joi.string(),
@@ -368,4 +363,16 @@ exports.updateUserSchema = Joi.object({
       link: Joi.string(),
     })
   ),
+});
+
+exports.createReviewSchema = Joi.object({
+  toUser: Joi.string().required(),
+  rating: Joi.number().required(),
+  comment: Joi.string().required(),
+});
+
+exports.updateReviewSchema = Joi.object({
+  toUser: Joi.string().required(),
+  rating: Joi.number().required(),
+  comment: Joi.string().required(),
 });

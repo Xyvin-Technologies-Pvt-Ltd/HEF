@@ -10,19 +10,19 @@ const feedsSchema = mongoose.Schema(
     link: { type: String },
     content: { type: String },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    like: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    comment: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        comment: { type: String },
-        _id: false,
-      },
-    ],
+    // like: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
+    // comment: [
+    //   {
+    //     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    //     comment: { type: String },
+    //     _id: false,
+    //   },
+    // ],
     status: {
       type: String,
       enum: ["published", "unpublished", "rejected"],

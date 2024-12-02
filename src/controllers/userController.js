@@ -400,7 +400,7 @@ exports.loginUser = async (req, res) => {
           const newUser = await User.create({
             uid: decodedToken.uid,
             phone: decodedToken.phone_number,
-            memberId: `AKCAF-${uniqueMemberId}`,
+            memberId: `HEF-${uniqueMemberId}`,
             fcm,
           });
           const token = generateToken(newUser._id);

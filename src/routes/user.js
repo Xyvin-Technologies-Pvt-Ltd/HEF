@@ -3,13 +3,13 @@ const userController = require("../controllers/userController");
 const authVerify = require("../middlewares/authVerify");
 const userRoute = express.Router();
 
-
 userRoute.post("/send-otp", userController.sendOtp);
 userRoute.post("/verify", userController.verifyUser);
 userRoute.post("/login", userController.loginUser);
 userRoute.get("/app-version", userController.getVersion);
-userRoute.get("/", userController.fetchUser);
+
 userRoute.use(authVerify);
+userRoute.get("/", userController.fetchUser);
 userRoute.get("/users", userController.getUsers);
 userRoute.get("/single/:id", userController.getSingleUser);
 userRoute.patch("/update", userController.updateUser);

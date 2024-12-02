@@ -3,23 +3,15 @@ const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const Review = require("../models/reviewModel");
 
-exports.post = async (req, res) => {
+exports.createReview = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("review_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-
     const { error } = validations.createReviewSchema.validate(req.body, {
       abortEarly: true,
     });
     if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
+    req.body.reviewer = req.userId;
 
     const review = await Review.create(req.body);
     return responseHandler(res, 201, "Review added successfully", review);
@@ -28,31 +20,21 @@ exports.post = async (req, res) => {
   }
 };
 
-exports.get = async (req, res) => {
+exports.getReviews = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const reviews = await Review.find({ userId }).populate(
-      "userId",
-      "name email"
-    );
+    const reviews = await Review.find({ userId })
+      .populate("toUser", "name image")
+      .populate("reviewer", "name image");
     return responseHandler(res, 200, "Reviews fetched successfully", reviews);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
 
-exports.put = async (req, res) => {
+exports.editReviews = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("review_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-
     const { reviewId } = req.params;
     const { error } = validations.updateReviewSchema.validate(req.body, {
       abortEarly: true,
@@ -61,11 +43,9 @@ exports.put = async (req, res) => {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
 
-    const updatedReview = await Review.findByIdAndUpdate(
-      reviewId,
-      req.body,
-      { new: true }
-    );
+    const updatedReview = await Review.findByIdAndUpdate(reviewId, req.body, {
+      new: true,
+    });
     if (!updatedReview) {
       return responseHandler(res, 404, "Review not found");
     }
@@ -81,7 +61,7 @@ exports.put = async (req, res) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.deleteReviews = async (req, res) => {
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("review_modify")) {

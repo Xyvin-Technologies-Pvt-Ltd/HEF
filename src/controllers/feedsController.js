@@ -81,8 +81,9 @@ exports.getAllFeeds = async (req, res) => {
     const currentUser = await User.findById(req.userId).select(
       "blockedUsers notInterestedPosts"
     );
-    const blockedUsersList = currentUser.blockedUsers;
-    const notInterestedUsersList = currentUser.notInterestedPosts;
+    const blockedUsersList = currentUser.blockedUsers? currentUser.blockedUsers : [];
+    const notInterestedUsersList = currentUser.notInterestedPosts? currentUser.notInterestedPosts : [];
+ 
 
     const filter = {
       status: "published",
@@ -92,10 +93,6 @@ exports.getAllFeeds = async (req, res) => {
     };
     const totalCount = await Feeds.countDocuments(filter);
     const data = await Feeds.find(filter)
-      .populate({
-        path: "comment.user",
-        select: "name image",
-      })
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
@@ -153,121 +150,121 @@ exports.getAllFeedsForAdmin = async (req, res) => {
   }
 };
 
-exports.likeFeed = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return responseHandler(res, 400, "Feeds with this Id is required");
-    }
+// exports.likeFeed = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     if (!id) {
+//       return responseHandler(res, 400, "Feeds with this Id is required");
+//     }
 
-    const findFeeds = await Feeds.findById(id);
-    if (!findFeeds) {
-      return responseHandler(res, 404, "Feeds not found");
-    }
+//     const findFeeds = await Feeds.findById(id);
+//     if (!findFeeds) {
+//       return responseHandler(res, 404, "Feeds not found");
+//     }
 
-    if (findFeeds.like.includes(req.userId)) {
-      const updateFeeds = await Feeds.findByIdAndUpdate(
-        id,
-        {
-          $pull: { like: req.userId },
-        },
-        { new: true }
-      );
-      return responseHandler(
-        res,
-        200,
-        "Feeds unliked successfully",
-        updateFeeds
-      );
-    }
+//     if (findFeeds.like.includes(req.userId)) {
+//       const updateFeeds = await Feeds.findByIdAndUpdate(
+//         id,
+//         {
+//           $pull: { like: req.userId },
+//         },
+//         { new: true }
+//       );
+//       return responseHandler(
+//         res,
+//         200,
+//         "Feeds unliked successfully",
+//         updateFeeds
+//       );
+//     }
 
-    const updateFeeds = await Feeds.findByIdAndUpdate(
-      id,
-      {
-        $push: { like: req.userId },
-      },
-      { new: true }
-    );
+//     const updateFeeds = await Feeds.findByIdAndUpdate(
+//       id,
+//       {
+//         $push: { like: req.userId },
+//       },
+//       { new: true }
+//     );
 
-    const toUser = await User.findById(updateFeeds.author).select("fcm");
-    const fromUser = await User.findById(req.userId).select("name");
-    const fcmUser = [toUser.fcm];
+//     const toUser = await User.findById(updateFeeds.author).select("fcm");
+//     const fromUser = await User.findById(req.userId).select("name");
+//     const fcmUser = [toUser.fcm];
 
-    if (req.userId !== String(updateFeeds.author)) {
-      // await sendInAppNotification(
-      //   fcmUser,
-      //   `${fromUser.name.first} Liked Your Post`,
-      //   `${fromUser.name.first} Liked Your ${updateFeeds.content}`
-      // );
+//     if (req.userId !== String(updateFeeds.author)) {
+//       // await sendInAppNotification(
+//       //   fcmUser,
+//       //   `${fromUser.name.first} Liked Your Post`,
+//       //   `${fromUser.name.first} Liked Your ${updateFeeds.content}`
+//       // );
 
-      await Notification.create({
-        users: toUser._id,
-        subject: `${fromUser.name.first} Liked Your Post`,
-        content: `${fromUser.name.first} Liked Your ${updateFeeds.content}`,
-        type: "in-app",
-      });
-    }
+//       await Notification.create({
+//         users: toUser._id,
+//         subject: `${fromUser.name.first} Liked Your Post`,
+//         content: `${fromUser.name.first} Liked Your ${updateFeeds.content}`,
+//         type: "in-app",
+//       });
+//     }
 
-    return responseHandler(res, 200, "Feeds liked successfully", updateFeeds);
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-  }
-};
+//     return responseHandler(res, 200, "Feeds liked successfully", updateFeeds);
+//   } catch (error) {
+//     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+//   }
+// };
 
-exports.commentFeed = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return responseHandler(res, 400, "Feeds with this Id is required");
-    }
+// exports.commentFeed = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     if (!id) {
+//       return responseHandler(res, 400, "Feeds with this Id is required");
+//     }
 
-    const findFeeds = await Feeds.findById(id);
-    if (!findFeeds) {
-      return responseHandler(res, 404, "Feeds not found");
-    }
+//     const findFeeds = await Feeds.findById(id);
+//     if (!findFeeds) {
+//       return responseHandler(res, 404, "Feeds not found");
+//     }
 
-    const updateFeeds = await Feeds.findByIdAndUpdate(
-      id,
-      {
-        $push: {
-          comment: {
-            user: req.userId,
-            comment: req.body.comment,
-          },
-        },
-      },
-      { new: true }
-    );
+//     const updateFeeds = await Feeds.findByIdAndUpdate(
+//       id,
+//       {
+//         $push: {
+//           comment: {
+//             user: req.userId,
+//             comment: req.body.comment,
+//           },
+//         },
+//       },
+//       { new: true }
+//     );
 
-    const toUser = await User.findById(updateFeeds.author).select("fcm");
-    const fromUser = await User.findById(req.userId).select("name");
-    const fcmUser = [toUser.fcm];
+//     const toUser = await User.findById(updateFeeds.author).select("fcm");
+//     const fromUser = await User.findById(req.userId).select("name");
+//     const fcmUser = [toUser.fcm];
 
-    if (req.userId !== String(updateFeeds.author)) {
-      // await sendInAppNotification(
-      //   fcmUser,
-      //   `${fromUser.name.first} Commented Your Post`,
-      //   `${fromUser.name.first} Commented Your ${updateFeeds.content}`
-      // );
+//     if (req.userId !== String(updateFeeds.author)) {
+//       // await sendInAppNotification(
+//       //   fcmUser,
+//       //   `${fromUser.name.first} Commented Your Post`,
+//       //   `${fromUser.name.first} Commented Your ${updateFeeds.content}`
+//       // );
 
-      await Notification.create({
-        users: toUser._id,
-        subject: `${fromUser.name.first} Commented Your Post`,
-        content: `${fromUser.name.first} Commented Your ${updateFeeds.content}`,
-        type: "in-app",
-      });
-    }
+//       await Notification.create({
+//         users: toUser._id,
+//         subject: `${fromUser.name.first} Commented Your Post`,
+//         content: `${fromUser.name.first} Commented Your ${updateFeeds.content}`,
+//         type: "in-app",
+//       });
+//     }
 
-    return responseHandler(
-      res,
-      200,
-      "Feeds commented successfully",
-      updateFeeds
-    );
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-  }
-};
+//     return responseHandler(
+//       res,
+//       200,
+//       "Feeds commented successfully",
+//       updateFeeds
+//     );
+//   } catch (error) {
+//     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+//   }
+// };
 
 exports.getUserFeeds = async (req, res) => {
   try {

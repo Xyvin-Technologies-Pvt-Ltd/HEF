@@ -116,7 +116,7 @@
  * @swagger
  * /user:
  *   get:
- *     summary: Get all users
+ *     summary: fetch user
  *     description: Retrieves a list of all users.
  *     tags: [User]
  *     responses:

@@ -160,42 +160,7 @@
  *         description: Internal Server Error
  */
 
-/**
- * @swagger
- * /feeds/comment/{id}:
- *   post:
- *     summary: Comment on a feed
- *     description: Adds a comment to a specific feed by the user.
- *     tags:
- *       - Feeds
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *           format: objectId
- *         description: The ID of the feed to comment on.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               comment:
- *                 type: string
- *                 example: "This is the content of the feed..."
- *     responses:
- *       200:
- *         description: Successfully commented on the feed
- *       400:
- *         description: Bad request, feed ID is required
- *       404:
- *         description: Feed not found
- *       500:
- *         description: Internal Server Error
- */
+
 
 /**
  * @swagger

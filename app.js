@@ -21,6 +21,7 @@ const hierarchyRoute = require("./src/routes/hierarchy");
 const productRoute = require ("./src/routes/product")
 const userRoute = require ("./src/routes/user")
 const feedsRoute = require("./src/routes/feeds");
+const reviewRoute = require("./src/routes/review");
 
 //! Create an instance of the Express application
 const app = express();
@@ -66,6 +67,7 @@ app.use(`${BASE_PATH}/hierarchy`,hierarchyRoute)
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
 app.use(`${BASE_PATH}/product`, productRoute);
 app.use(`${BASE_PATH}/user`, userRoute);
+app.use(`${BASE_PATH}/review`, reviewRoute);
 
 //* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {

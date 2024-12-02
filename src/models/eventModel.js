@@ -17,6 +17,11 @@ const eventSchema = mongoose.Schema(
     link: { type: String },
     venue: { type: String },
     organiserName: { type: String },
+    coordinator: [
+      {
+        name: { type: mongoose.Schema.Types.ObjectId, ref: "User"},
+      },
+    ],
     speakers: [
       {
         name: { type: String },
@@ -31,6 +36,12 @@ const eventSchema = mongoose.Schema(
       default: "pending",
     },
     rsvp: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    attented: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
