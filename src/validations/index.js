@@ -379,19 +379,11 @@ exports.updateReviewSchema = Joi.object({
 
 exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
-  member: Joi.object({
-    state: Joi.string().required(),
-    zone: Joi.string().required(),
-    district: Joi.string().required(),
-    chapter: Joi.string().required(),
-  }).required(),
+  member: Joi.string().required(),
+  sender: Joi.string().required(),
   title: Joi.string().required(),
-  discription: Joi.string(),
-  referal: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-    })
-  ),
+  description: Joi.string(),
+  referral: Joi.string(),
   contact: Joi.string(),
   amount: Joi.string(),
   discount: Joi.string(),

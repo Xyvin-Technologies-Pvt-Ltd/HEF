@@ -1057,3 +1057,39 @@
  *       500:
  *         description: Internal server error
  */
+
+
+
+/**
+ * @swagger
+ * /user/listuid:
+ *   get:
+ *     summary: Fetch user IDs and usernames
+ *     description: Fetches a paginated list of user IDs and usernames, excluding blocked users and the current user.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - name: pageNo
+ *         in: query
+ *         description: Page number for pagination
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *       - name: limit
+ *         in: query
+ *         description: Number of results per page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *     responses:
+ *       200:
+ *         description: User blocked successfully
+ *       400:
+ *         description: Invalid request (e.g., missing user ID or failed update)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */

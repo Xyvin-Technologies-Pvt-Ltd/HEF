@@ -723,3 +723,35 @@ exports.adminUserUnblock = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+exports.listUserIdName = async (req, res) => {
+  try {
+    const { pageNo = 1, limit = 10 } = req.query;
+    const skipCount = limit * (pageNo - 1);
+
+    const filter = {
+      _id: {
+        $ne: req.userId,
+      },
+    };
+
+    const totalCount = await User.countDocuments(filter);
+
+    const data = await User.find(filter)
+      .select("uid name")
+      .skip(skipCount)
+      .limit(Number(limit))
+      .sort({ createdAt: -1, _id: 1 })
+      .lean();
+
+    return responseHandler(
+      res,
+      200,
+      `Users fetched successfully!`,
+      data,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
