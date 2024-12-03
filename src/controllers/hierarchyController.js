@@ -605,14 +605,14 @@ exports.updateMember = async (req, res) => {
 
 exports.getLevels = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_view")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
+    // const check = await checkAccess(req.roleId, "permissions");
+    // if (!check || !check.includes("hierarchyManagement_view")) {
+    //   return responseHandler(
+    //     res,
+    //     403,
+    //     "You don't have permission to perform this action"
+    //   );
+    // }
     const { id, type } = req.params;
 
     if (!id) {
