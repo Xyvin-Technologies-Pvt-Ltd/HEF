@@ -1,0 +1,15 @@
+const express = require("express");
+const analyticControler = require("../controllers/analyticControler");
+const authVerify = require("../middlewares/authVerify");
+const analyticRoute = express.Router();
+
+
+analyticRoute.use(authVerify);
+
+analyticRoute
+  .route("/")
+  .post(analyticControler.sendRequest)
+  .get(analyticControler.viewAllRequests);
+
+
+module.exports = analyticRoute;

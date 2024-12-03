@@ -17,11 +17,7 @@ const eventSchema = mongoose.Schema(
     link: { type: String },
     venue: { type: String },
     organiserName: { type: String },
-    coordinator: [
-      {
-        name: { type: mongoose.Schema.Types.ObjectId, ref: "User"},
-      },
-    ],
+    coordinator: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     speakers: [
       {
         name: { type: String },

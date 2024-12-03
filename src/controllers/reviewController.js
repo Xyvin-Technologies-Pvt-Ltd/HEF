@@ -1,6 +1,5 @@
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
-const checkAccess = require("../helpers/checkAccess");
 const Review = require("../models/reviewModel");
 
 exports.createReview = async (req, res) => {
@@ -63,15 +62,6 @@ exports.editReviews = async (req, res) => {
 
 exports.deleteReviews = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("review_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-
     const { reviewId } = req.params;
     const deletedReview = await Review.findByIdAndDelete(reviewId);
     if (!deletedReview) {
