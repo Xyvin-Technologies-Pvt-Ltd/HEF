@@ -8,11 +8,6 @@ analyticRoute.use(authVerify);
 analyticRoute
   .route("/")
   .post(analyticControler.sendRequest)
-  .get(analyticControler.viewAllRequestSend);
-
-analyticRoute.get("/send", analyticControler.getSentRequests);
-analyticRoute.get("/received", analyticControler.getReceivedRequests);
-analyticRoute.get("/history", analyticControler.getHistory);
-// analyticRoute.get("/send/:id",analyticControler.getSentRequestById);
+  .get(analyticControler.getRequests);
 
 module.exports = analyticRoute;
