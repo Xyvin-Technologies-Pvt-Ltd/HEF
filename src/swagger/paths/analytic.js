@@ -136,3 +136,210 @@
  *       500:
  *         description: Internal server error
  */
+
+
+/**
+ * @swagger
+ * /analytic/send:
+ *   get:
+ *     summary: Retrieve a list of sent analytic requests
+ *     description: Fetches all analytic requests sent by the logged-in user.
+ *     tags:
+ *       - Analytic
+ *     responses:
+ *       200:
+ *         description: A list of sent analytic requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                     description: Type of the analytic request
+ *                     example: "Business"
+ *                   member:
+ *                     type: string
+ *                     description: ID of the member
+ *                     example: "64fa12b5d1234a1234567890"
+ *                   sender:
+ *                     type: string
+ *                     description: ID of the sender
+ *                     example: "64fa12b5d1234a1234567891"
+ *                   title:
+ *                     type: string
+ *                     description: Title of the request
+ *                     example: "Business Strategy Meeting"
+ *                   status:
+ *                     type: string
+ *                     description: Status of the request
+ *                     example: "pending"
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /analytic/received:
+ *   get:
+ *     summary: Retrieve a list of received analytic requests
+ *     description: Fetches all analytic requests received by the logged-in user.
+ *     tags:
+ *       - Analytic
+ *     responses:
+ *       200:
+ *         description: A list of received analytic requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                     description: Type of the analytic request
+ *                     example: "Business"
+ *                   member:
+ *                     type: string
+ *                     description: ID of the member
+ *                     example: "64fa12b5d1234a1234567890"
+ *                   sender:
+ *                     type: string
+ *                     description: ID of the sender
+ *                     example: "64fa12b5d1234a1234567891"
+ *                   title:
+ *                     type: string
+ *                     description: Title of the request
+ *                     example: "Team Collaboration Request"
+ *                   status:
+ *                     type: string
+ *                     description: Status of the request
+ *                     example: "accepted"
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /analytic/history:
+ *   get:
+ *     summary: Retrieve the history of analytic requests
+ *     description: Fetches a history of both sent and received analytic requests for the logged-in user.
+ *     tags:
+ *       - Analytic
+ *     responses:
+ *       200:
+ *         description: A combined list of sent and received analytic requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sentRequests:
+ *                   type: array
+ *                   description: List of requests sent by the user
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       type:
+ *                         type: string
+ *                         description: Type of the analytic request
+ *                         example: "Business"
+ *                       member:
+ *                         type: string
+ *                         description: ID of the member
+ *                         example: "64fa12b5d1234a1234567890"
+ *                       sender:
+ *                         type: string
+ *                         description: ID of the sender
+ *                         example: "64fa12b5d1234a1234567891"
+ *                       title:
+ *                         type: string
+ *                         description: Title of the request
+ *                         example: "Project Update"
+ *                       status:
+ *                         type: string
+ *                         description: Status of the request
+ *                         example: "pending"
+ *                 receivedRequests:
+ *                   type: array
+ *                   description: List of requests received by the user
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       type:
+ *                         type: string
+ *                         description: Type of the analytic request
+ *                         example: "Business"
+ *                       member:
+ *                         type: string
+ *                         description: ID of the member
+ *                         example: "64fa12b5d1234a1234567890"
+ *                       sender:
+ *                         type: string
+ *                         description: ID of the sender
+ *                         example: "64fa12b5d1234a1234567891"
+ *                       title:
+ *                         type: string
+ *                         description: Title of the request
+ *                         example: "Team Collaboration Request"
+ *                       status:
+ *                         type: string
+ *                         description: Status of the request
+ *                         example: "rejected"
+ *       500:
+ *         description: Internal server error
+ */
+
+
+// /**
+//  * @swagger
+//  * /analytic/send/{id}:
+//  *   get:
+//  *     summary: Retrieve a sent request by ID
+//  *     description: Fetches the details of a specific sent analytic request by its ID.
+//  *     tags:
+//  *       - Analytic
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *         description: The ID of the sent analytic request
+//  *     responses:
+//  *       200:
+//  *         description: Sent request details
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 type:
+//  *                   type: string
+//  *                   description: Type of the analytic request
+//  *                   example: "Business"
+//  *                 member:
+//  *                   type: string
+//  *                   description: ID of the member
+//  *                   example: "64fa12b5d1234a1234567890"
+//  *                 sender:
+//  *                   type: string
+//  *                   description: ID of the sender
+//  *                   example: "64fa12b5d1234a1234567891"
+//  *                 title:
+//  *                   type: string
+//  *                   description: Title of the request
+//  *                   example: "Business Strategy Meeting"
+//  *                 status:
+//  *                   type: string
+//  *                   description: Status of the request
+//  *                   example: "pending"
+//  *       404:
+//  *         description: Sent request not found
+//  *       500:
+//  *         description: Internal server error
+//  */

@@ -12,7 +12,6 @@ const analyticSchema = mongoose.Schema({
   referral: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   contact: { type: String },
   amount: { type: String },
-  discount: { type: String },
   date: { type: String },
   time: { type: String },
   meetingLink: { type: String },
