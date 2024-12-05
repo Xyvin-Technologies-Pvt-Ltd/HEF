@@ -95,7 +95,7 @@
  *         description: Internal server error
  */
 
-/**w
+/**
  * @swagger
  * /analytic:
  *   get:
@@ -114,73 +114,6 @@
  *     responses:
  *       200:
  *         description: Successfully fetched requests.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: integer
- *                   example: 200
- *                 message:
- *                   type: string
- *                   example: "Requests fetched successfully"
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                         description: ID of the analytic request
- *                         example: "64acfd273f0c123456789abc"
- *                       type:
- *                         type: string
- *                         description: Type of the analytic request
- *                         example: "Business"
- *                       member:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             description: ID of the member
- *                             example: "64fa12b5d1234a1234567890"
- *                           name:
- *                             type: string
- *                             description: Name of the member
- *                             example: "Jane Doe"
- *                           image:
- *                             type: string
- *                             description: URL of the member's image
- *                             example: "https://example.com/images/jane.jpg"
- *                       sender:
- *                         type: object
- *                         properties:
- *                           _id:
- *                             type: string
- *                             description: ID of the sender
- *                             example: "64fa12b5d1234a1234567891"
- *                           name:
- *                             type: string
- *                             description: Name of the sender
- *                             example: "John Smith"
- *                           image:
- *                             type: string
- *                             description: URL of the sender's image
- *                             example: "https://example.com/images/john.jpg"
- *                       title:
- *                         type: string
- *                         description: Title of the request
- *                         example: "Business Strategy Meeting"
- *                       status:
- *                         type: string
- *                         description: Status of the request
- *                         example: "pending"
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                         description: Creation date of the request
- *                         example: "2024-12-04T10:15:00.000Z"
  *       400:
  *         description: Invalid query parameter
  *       500:
@@ -188,3 +121,50 @@
  */
 
 
+/**
+ * @swagger
+ * /analytic/status:
+ *   post:
+ *     summary: Update the status of an analytic request
+ *     description: Updates the status of an analytic request based on the provided requestId and action (approve/reject).
+ *     tags:
+ *       - Analytic
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               requestId:
+ *                 type: string
+ *                 description: ID of the analytic request to update
+ *                 example: "64fa12b5d1234a1234567890"
+ *               action:
+ *                 type: string
+ *                 description: The action to perform on the request (approve or reject)
+ *                 enum:
+ *                   - accepted
+ *                   - rejected
+ *                 example: "accepted"
+ *     responses:
+ *       200:
+ *         description: Request status successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Request successfully approved."
+ *                 updatedRequest:
+ *                   type: object
+ *                   description: The updated analytic request object
+ *       400:
+ *         description: Invalid input - Missing requestId or invalid action
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Internal server error
+ */

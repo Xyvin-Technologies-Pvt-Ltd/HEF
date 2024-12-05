@@ -1,4 +1,3 @@
-// productController.js
 const responseHandler = require("../helpers/responseHandler");
 const Product = require("../models/productModel");
 const validations = require("../validations");
@@ -142,7 +141,6 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// Get all products with pagination, filtering, and sorting -admin
 exports.getAllProducts = async (req, res) => {
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -192,12 +190,8 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-//create product by - user
 exports.createProductByUser = async (req, res) => {
   try {
- 
-
-    // Validate the product creation payload
     const createProductValidator = validations.createProductSchema.validate(
       req.body,
       { abortEarly: true }
@@ -210,13 +204,11 @@ exports.createProductByUser = async (req, res) => {
       );
     }
 
-    // Include the user ID in the product payload
     const productData = {
       ...req.body,
-      seller: req.userId, // Associate the product with the authenticated user
+      seller: req.userId,
     };
 
-    // Create the product
     const newProduct = await Product.create(productData);
     if (!newProduct) {
       return responseHandler(res, 400, "Product creation failed!");
@@ -233,23 +225,19 @@ exports.createProductByUser = async (req, res) => {
   }
 };
 
-
 exports.getUserProducts = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10 } = req.query; // Default values for pagination
+    const { pageNo = 1, limit = 10 } = req.query;
     const filter = { status: "accepted" };
 
-    // Calculate skip and limit for pagination
     const skip = (pageNo - 1) * limit;
 
-    // Fetch products with pagination and sorting
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
       .lean();
 
-    // Fetch total count for pagination metadata
     const totalProducts = await Product.countDocuments(filter);
 
     const response = {
@@ -264,7 +252,6 @@ exports.getUserProducts = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 // exports.getAllProductsUser = async (req, res) => {
 //   try {

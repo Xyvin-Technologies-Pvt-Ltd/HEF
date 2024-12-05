@@ -10,4 +10,6 @@ analyticRoute
   .post(analyticControler.sendRequest)
   .get(analyticControler.getRequests);
 
+analyticRoute.post("/status", analyticControler.updateRequestStatus);
+
 module.exports = analyticRoute;

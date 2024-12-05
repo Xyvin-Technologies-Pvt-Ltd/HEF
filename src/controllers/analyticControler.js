@@ -39,7 +39,7 @@ exports.getRequests = async (req, res) => {
       .populate("sender", "name image")
       .populate("member", "name image");
 
-      console.log(filter);
+    console.log(filter);
 
     const mappedData = response.map((data) => {
       return {
@@ -48,16 +48,50 @@ exports.getRequests = async (req, res) => {
         title: data.title,
         status: data.status,
         time: data.createdAt,
-        description: data.description
+        description: data.description,
       };
     });
-
 
     return responseHandler(
       res,
       200,
       "Requests fetched successfully",
-      mappedData
+      response
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+
+exports.updateRequestStatus = async (req, res) => {
+  try {
+    const { requestId, action } = req.body;
+
+    if (!requestId || !["accepted", "rejected"].includes(action)) {
+      return responseHandler(
+        res,
+        400,
+        "Invalid input: Request ID and action (accepted/rejected) are required."
+      );
+    }
+
+ 
+    const updatedRequest = await Analytic.findByIdAndUpdate(
+      requestId,
+      { status: action }, 
+      { new: true } 
+    );
+
+    if (!updatedRequest) {
+      return responseHandler(res, 404, "Request not found.");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      `Request successfully ${action}.`,
+      updatedRequest
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);

@@ -343,19 +343,15 @@ exports.updateFeeds = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
 exports.getMyFeeds = async (req, res) => {
   try {
-    const findFeeds = await Feeds.find({ author: req.userId });
+    const findFeeds = await Feeds.find({ author: req.userId })
     
-    if (!findFeeds || findFeeds.length === 0) {
+    if (!findFeeds) {
       return responseHandler(res, 404, "Feeds not found");
     }
-    
-    const feedsCount = findFeeds.length; // Count the feeds
-    return responseHandler(res, 200, "Feeds found successfully..!", {
-      feeds: findFeeds,
-      count: feedsCount,
-    });
+    return responseHandler(res, 200, "Feeds found successfull..!", findFeeds);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }

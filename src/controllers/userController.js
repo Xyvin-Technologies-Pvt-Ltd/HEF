@@ -382,11 +382,11 @@ exports.fetchUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    // Fetch the user details
+
     const findUser = await User.findById(id);
 
     if (findUser) {
-      // Calculate profile completion
+     
       const fieldsToCheck = [
         findUser.name,
         findUser.role,
@@ -409,17 +409,16 @@ exports.fetchUser = async (req, res) => {
 
       findUser.profileCompletion = `${profileCompletionPercentage}%`;
 
-      // Fetch the feeds count
+
       const feedsCount = await Feeds.countDocuments({ author: id });
 
-      // Fetch the product count
       const productCount = await Products.countDocuments({ seller: id });
 
       const userResponse = {
-        ...findUser._doc, // Spread user data
+        ...findUser._doc, 
         profileCompletion: findUser.profileCompletion,
-        feedsCount, // Add feeds count
-        productCount, // Add product count
+        feedsCount, 
+        productCount, 
       };
 
       return responseHandler(res, 200, "User found successfully..!", userResponse);
