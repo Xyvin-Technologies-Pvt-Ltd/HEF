@@ -24,7 +24,6 @@ exports.getReviews = async (req, res) => {
     const { userId } = req.params;
 
     const reviews = await Review.find({ userId })
-      .populate("toUser", "name image")
       .populate("reviewer", "name image");
     return responseHandler(res, 200, "Reviews fetched successfully", reviews);
   } catch (error) {

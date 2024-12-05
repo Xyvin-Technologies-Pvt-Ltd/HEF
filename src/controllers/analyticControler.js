@@ -2,9 +2,6 @@ const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
 const Analytic = require("../models/analyticModel");
 
-
-
-
 exports.sendRequest = async (req, res) => {
   try {
     const { error } = validations.createAnalyticSchema.validate(req.body, {
@@ -13,7 +10,9 @@ exports.sendRequest = async (req, res) => {
     if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
+
     req.body.sender = req.userId;
+
     const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
   } catch (error) {
@@ -21,32 +20,44 @@ exports.sendRequest = async (req, res) => {
   }
 };
 
-
 exports.getRequests = async (req, res) => {
   try {
-    const userId = req.userId; 
-    const { filter } = req.query; 
+    const userId = req.userId;
+    const { filter } = req.query;
 
     let query;
 
-  
     if (filter === "sent") {
-      query = { sender: userId }; 
+      query = { sender: userId };
     } else if (filter === "received") {
       query = { member: userId };
     } else {
-      query = { $or: [{ sender: userId }, { member: userId }] }; 
+      query = { $or: [{ sender: userId }, { member: userId }] };
     }
 
-    const requests = await Analytic.find(query)
+    const response = await Analytic.find(query)
       .populate("sender", "name image")
-      .populate("member", "name image"); 
+      .populate("member", "name image");
+
+      console.log(filter);
+
+    const mappedData = response.map((data) => {
+      return {
+        username: filter === "sent" ? data.sender.name : data.member.name,
+        user_image: filter === "sent" ? data.sender.image : data.member.image,
+        title: data.title,
+        status: data.status,
+        time: data.createdAt,
+        description: data.description
+      };
+    });
+
 
     return responseHandler(
       res,
       200,
       "Requests fetched successfully",
-      requests
+      mappedData
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);

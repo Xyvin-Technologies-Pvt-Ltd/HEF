@@ -581,7 +581,7 @@
  *       - name: id
  *         in: path
  *         required: true
- *         description: The ID of the state, zone, or district.
+ *         description: The ID of the state, zone, district, user
  *         schema:
  *           type: string
  *           example: "6489b1fda32c1e123456789a"
@@ -591,7 +591,7 @@
  *         description: The type of level to fetch (state, zone, or district).
  *         schema:
  *           type: string
- *           enum: [state, zone, district]
+ *           enum: [state, zone, district,user]
  *           example: "state"
  *     responses:
  *       200:

@@ -380,7 +380,6 @@ exports.updateReviewSchema = Joi.object({
 exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
   member: Joi.string().required(),
-  sender: Joi.string().required(),
   title: Joi.string().required(),
   description: Joi.string(),
   referral: Joi.string(),
@@ -391,5 +390,4 @@ exports.createAnalyticSchema = Joi.object({
   time: Joi.string(),
   meetingLink: Joi.string(),
   location: Joi.string(),
-  status: Joi.string().required(),
 });

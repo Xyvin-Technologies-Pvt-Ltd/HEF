@@ -6,6 +6,7 @@ const District = require("../models/districtModel");
 const Zone = require("../models/zoneModel");
 const Chapter = require("../models/chapterModel");
 const Member = require("../models/memberModel");
+const User = require("../models/userModel");
 
 //state
 
@@ -612,7 +613,7 @@ exports.getLevels = async (req, res) => {
     //     403,
     //     "You don't have permission to perform this action"
     //   );
-    // }
+    // }                                                                   //todo check access for admin and psrt
     const { id, type } = req.params;
 
     if (!id) {
@@ -651,6 +652,16 @@ exports.getLevels = async (req, res) => {
           200,
           `Chapters found successfully..!`,
           findDistrict
+        );
+      }
+    } else if (type === "user") {
+      const findUsers = await User.find({ chapter: id });
+      if (findUsers) {
+        return responseHandler(
+          res,
+          200,
+          `Users found successfully..!`,
+          findUsers
         );
       }
     }
