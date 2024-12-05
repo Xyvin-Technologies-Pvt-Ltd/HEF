@@ -17,6 +17,8 @@ productRoute
   .get(productController.getProduct)
   .put(productController.updateProduct)
   .delete(productController.deleteProduct);
-productRoute.route("/user").post(productController.createProduct);
+
+
+productRoute.route("/user").post(productController.createProductByUser);
 
 module.exports = productRoute;

@@ -343,21 +343,25 @@ exports.updateFeeds = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
-
 exports.getMyFeeds = async (req, res) => {
   try {
-    const findFeeds = await Feeds.find({ author: req.userId }).populate(
-      "comment.user",
-      "name image"
-    );
-    if (!findFeeds) {
+    const findFeeds = await Feeds.find({ author: req.userId });
+    
+    if (!findFeeds || findFeeds.length === 0) {
       return responseHandler(res, 404, "Feeds not found");
     }
-    return responseHandler(res, 200, "Feeds found successfull..!", findFeeds);
+    
+    const feedsCount = findFeeds.length; // Count the feeds
+    return responseHandler(res, 200, "Feeds found successfully..!", {
+      feeds: findFeeds,
+      count: feedsCount,
+    });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+
 
 exports.notInterested = async (req, res) => {
   try {

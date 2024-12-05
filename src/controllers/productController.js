@@ -193,23 +193,11 @@ exports.getAllProducts = async (req, res) => {
 };
 
 //create product by - user
-
 exports.createProductByUser = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
+ 
 
-    if (
-      !check ||
-      (!check.includes("productManagement_modify") &&
-        !check.includes("product_create_user"))
-    ) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-
+    // Validate the product creation payload
     const createProductValidator = validations.createProductSchema.validate(
       req.body,
       { abortEarly: true }
@@ -222,13 +210,14 @@ exports.createProductByUser = async (req, res) => {
       );
     }
 
-    const newProductData = {
+    // Include the user ID in the product payload
+    const productData = {
       ...req.body,
-      createdBy: req.userId,
-      status: "pending",
+      seller: req.userId, // Associate the product with the authenticated user
     };
 
-    const newProduct = await Product.create(newProductData);
+    // Create the product
+    const newProduct = await Product.create(productData);
     if (!newProduct) {
       return responseHandler(res, 400, "Product creation failed!");
     }
@@ -236,13 +225,14 @@ exports.createProductByUser = async (req, res) => {
     return responseHandler(
       res,
       201,
-      "Product created successfully and awaiting approval!",
+      "New product created successfully!",
       newProduct
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
 
 exports.getUserProducts = async (req, res) => {
   try {

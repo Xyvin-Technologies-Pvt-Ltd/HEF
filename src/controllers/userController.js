@@ -7,6 +7,8 @@ const { generateOTP } = require("../utils/generateOTP");
 const { generateToken } = require("../utils/generateToken");
 const validations = require("../validations");
 const Setting = require("../models/settingsModel");
+const Feeds = require("../models/feedsModel");
+const Products = require("../models/productModel");
 const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
 const sendSelfMail = require("../utils/sendSelfMail");
 
@@ -380,10 +382,11 @@ exports.fetchUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
+    // Fetch the user details
     const findUser = await User.findById(id);
 
     if (findUser) {
-      // Fields to consider for profile completion
+      // Calculate profile completion
       const fieldsToCheck = [
         findUser.name,
         findUser.role,
@@ -398,10 +401,7 @@ exports.fetchUser = async (req, res) => {
         findUser.company?.address,
       ];
 
-      // Calculate the number of non-empty fields
       const filledFields = fieldsToCheck.filter((field) => field).length;
-
-      // Calculate the profile completion percentage
       const totalFields = fieldsToCheck.length;
       const profileCompletionPercentage = Math.round(
         (filledFields / totalFields) * 100
@@ -409,7 +409,20 @@ exports.fetchUser = async (req, res) => {
 
       findUser.profileCompletion = `${profileCompletionPercentage}%`;
 
-      return responseHandler(res, 200, "User found successfully..!", findUser);
+      // Fetch the feeds count
+      const feedsCount = await Feeds.countDocuments({ author: id });
+
+      // Fetch the product count
+      const productCount = await Products.countDocuments({ seller: id });
+
+      const userResponse = {
+        ...findUser._doc, // Spread user data
+        profileCompletion: findUser.profileCompletion,
+        feedsCount, // Add feeds count
+        productCount, // Add product count
+      };
+
+      return responseHandler(res, 200, "User found successfully..!", userResponse);
     } else {
       return responseHandler(res, 404, "User not found");
     }
@@ -417,6 +430,8 @@ exports.fetchUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+
 
 exports.loginUser = async (req, res) => {
   try {

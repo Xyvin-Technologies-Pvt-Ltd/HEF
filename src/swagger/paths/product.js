@@ -248,9 +248,11 @@
  *         description: Internal Server Error
  */
 
+
+
 /**
  * @swagger
- * /product:
+ * /product/user:
  *   post:
  *     summary: Create a new product by user
  *     description: Allows a user to create a new product with pending status, subject to approval.
@@ -261,14 +263,52 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Product'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the product
+ *                 example: "User Created Product"
+ *               seller:
+ *                 type: string
+ *                 description: seller name
+ *                 example: "ansha"
+ *               image:
+ *                 type: string
+ *                 description: URL of the product image
+ *                 example: "https://example.com/image.jpg"
+ *               price:
+ *                 type: number
+ *                 description: Original price of the product
+ *                 example: 49.99
+ *               offerPrice:
+ *                 type: number
+ *                 description: Discounted price of the product
+ *                 example: 39.99
+ *               description:
+ *                 type: string
+ *                 description: Description of the product
+ *                 example: "This is a user-created product."
+ *               moq:
+ *                 type: number
+ *                 description: Minimum order quantity
+ *                 example: 10
+ *               units:
+ *                 type: string
+ *                 description: Units of the product (e.g., "kg", "pcs")
+ *                 example: "pcs"
+ *               status:
+ *                 type: string
+ *                 description: Current status of the product
+ *                 enum:
+ *                   - pending
+ *                   - accepted
+ *                   - rejected
+ *                   - reported
+ *                 example: "pending"
  *     responses:
  *       201:
- *         description: Product created successfully and awaiting approval
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Product'
+ *         description: New product created successfully
  *       400:
  *         description: Invalid input
  *       403:
