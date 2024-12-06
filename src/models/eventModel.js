@@ -43,6 +43,7 @@ const eventSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    regCount:{type:Number}
   },
   { timestamps: true }
 );

@@ -261,19 +261,24 @@ exports.getAllEventsForAdmin = async (req, res) => {
     });
   }
 };
-
 exports.addRSVP = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return responseHandler(res, 400, "Event Id is required");
+    if (!id) return responseHandler(res, 400, "Event ID is required");
+
     const findEvent = await Event.findById(id);
     if (!findEvent) {
       return responseHandler(res, 404, "Event not found");
     }
+
     if (findEvent.rsvp.includes(req.userId)) {
       return responseHandler(res, 400, "You have already RSVPed to this event");
     }
+
     findEvent.rsvp.push(req.userId);
+
+    findEvent.regCount = (findEvent.regCount || 0) + 1;
+
     await findEvent.save();
 
     const user = await User.findById(req.userId).select("fcm");
@@ -281,9 +286,12 @@ exports.addRSVP = async (req, res) => {
     const topic = `event_${id}`;
     const fcmToken = user.fcm;
     await getMessaging().subscribeToTopic(fcmToken, topic);
-    return responseHandler(res, 200, "RSVP added successfully");
+
+    return responseHandler(res, 200, "RSVP added successfully", {
+      regCount: findEvent.regCount,
+    });
   } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
 
@@ -333,15 +341,15 @@ exports.markAttendance = async (req, res) => {
       },
     });
 
-    const mappedData =   {
-        username: user.name,
-        image: user.image,
-        email: user.email,
-        state: user.chapter.districtId.zoneId.stateId.name,
-        zone: user.chapter.districtId.zoneId.name,
-        district: user.chapter.districtId.name,
-        chapter: user.chapter.name,
-      };
+    const mappedData = {
+      username: user.name,
+      image: user.image,
+      email: user.email,
+      state: user.chapter.districtId.zoneId.stateId.name,
+      zone: user.chapter.districtId.zoneId.name,
+      district: user.chapter.districtId.name,
+      chapter: user.chapter.name,
+    };
 
     if (!user) {
       return responseHandler(res, 404, "User not found.");
@@ -378,8 +386,9 @@ exports.getAttendedUsers = async (req, res) => {
 
   try {
     const event = await Event.findById(eventId)
-      .populate("rsvp", "name email")
-      .populate("attented", "name email");
+      .populate("rsvp", "name email image ")
+      .populate("attented", "name email image")
+      .populate("rsvp", "regCount");
 
     if (!event) {
       return responseHandler(res, 404, "Event not found.");
@@ -391,6 +400,7 @@ exports.getAttendedUsers = async (req, res) => {
       "Registered and Attended users retrieved successfully.",
       {
         registeredUsers: event.rsvp,
+        regCount: event.regCount,
         attendedUsers: event.attented,
       }
     );
