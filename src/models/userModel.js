@@ -57,8 +57,12 @@ const userSchema = mongoose.Schema(
     videos: [linkSchema],
     certificates: [linkSchema],
     otp: { type: Number },
-
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    subscription: {
+      type: String,
+      enum: ["free", "premium"],
+      default: "premium",
+    },
   },
   { timestamps: true }
 );

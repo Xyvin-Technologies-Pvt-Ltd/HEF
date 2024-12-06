@@ -426,3 +426,12 @@ exports.createMemberSchema = Joi.object({
     phone: Joi.string(),
   }),
 });
+
+exports.createSubscriptionSchema = Joi.object({
+  user: Joi.string().required(),
+  expiryDate: Joi.date().required(),
+});
+
+exports.updateSubscriptionSchema = Joi.object({
+  expiryDate: Joi.date().required(),
+});
