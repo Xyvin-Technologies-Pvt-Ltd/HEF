@@ -63,6 +63,7 @@ const userSchema = mongoose.Schema(
       enum: ["free", "premium"],
       default: "premium",
     },
+    fcm: { type: String },
   },
   { timestamps: true }
 );

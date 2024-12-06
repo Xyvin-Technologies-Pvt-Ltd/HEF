@@ -435,3 +435,17 @@ exports.createSubscriptionSchema = Joi.object({
 exports.updateSubscriptionSchema = Joi.object({
   expiryDate: Joi.date().required(),
 });
+
+
+
+exports.createGroupSchame = Joi.object({
+  groupName: Joi.string().required(),
+  groupInfo: Joi.string().required(),
+  participantIds: Joi.array().required(),
+});
+
+exports.editGroupSchema = Joi.object({
+  groupName: Joi.string(),
+  groupInfo: Joi.string(),
+  participantIds: Joi.array(),
+});

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Real-Time Chat</title>
+  </head>
+  <body>
+    <h1>Socket.IO Real-Time Chat</h1>
+    <div id="messages"></div>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+      const socket = io("http://localhost:3000/api/v1/chat", {
+        transports: ["websocket"],
+      });
+
+      socket.on("connect", () => {
+        console.log("Connected to Socket.IO server");
+        socket.emit("joinRoom", "66d81435989a38b68a0e3926");
+      });
+
+      socket.on("message", (message) => {
+        console.log("Received message:", message);
+        const messagesDiv = document.getElementById("messages");
+        const newMessage = document.createElement("p");
+        newMessage.textContent = `New message: ${message.content}`;
+        messagesDiv.appendChild(newMessage);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from Socket.IO server");
+      });
+    </script>
+  </body>
+</html>
