@@ -234,7 +234,6 @@ exports.updateProductSchema = Joi.object({
 
 exports.createUserSchema = Joi.object({
   name: Joi.string().required(),
-  uid: Joi.string().required(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   role: Joi.string(),

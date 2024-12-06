@@ -22,7 +22,7 @@ exports.sendRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   try {
-    const userId = req.userId;
+    const { userId } = req;
     const { filter } = req.query;
 
     let query;
@@ -39,12 +39,20 @@ exports.getRequests = async (req, res) => {
       .populate("sender", "name image")
       .populate("member", "name image");
 
-    console.log(filter);
-
     const mappedData = response.map((data) => {
+      let username;
+      let user_image;
+      if (filter === "sent") {
+        username = data.member.name;
+        user_image = data.member.image;
+      } else if (filter === "received") {
+        username = data.sender.name;
+        user_image = data.sender.image;
+      }
+      
       return {
-        username: filter === "sent" ? data.sender.name : data.member.name,
-        user_image: filter === "sent" ? data.sender.image : data.member.image,
+        username,
+        user_image,
         title: data.title,
         status: data.status,
         time: data.createdAt,
@@ -56,13 +64,12 @@ exports.getRequests = async (req, res) => {
       res,
       200,
       "Requests fetched successfully",
-      response
+      mappedData
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 exports.updateRequestStatus = async (req, res) => {
   try {
@@ -76,11 +83,10 @@ exports.updateRequestStatus = async (req, res) => {
       );
     }
 
- 
     const updatedRequest = await Analytic.findByIdAndUpdate(
       requestId,
-      { status: action }, 
-      { new: true } 
+      { status: action },
+      { new: true }
     );
 
     if (!updatedRequest) {
