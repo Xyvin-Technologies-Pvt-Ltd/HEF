@@ -348,3 +348,115 @@
  *       500:
  *         description: Internal server error
  */
+/**
+ * @swagger
+ * /event/attend/{eventId}:
+ *   post:
+ *     summary: Mark attendance for an event
+ *     description: Allows marking attendance for a user in a specific event. If the user has already been marked as attended, an error is returned.
+ *     tags:
+ *       - Event
+ *     parameters:
+ *       - name: eventId
+ *         in: path
+ *         required: true
+ *         description: The ID of the event
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       description: The details of the user marking attendance
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the user attending the event
+ *                 example: "12345"
+ *             required:
+ *               - userId
+ *     responses:
+ *       200:
+ *         description: Attendance marked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Attendance marked successfully."
+ *                 attended:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: List of user IDs who have attended the event
+ *       400:
+ *         description: Event ID or user ID missing, or user already marked as attended
+ *       404:
+ *         description: Event or user not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /event/attend/{eventId}:
+ *   get:
+ *     summary: Get users who attended an event
+ *     description: Retrieve a list of registered and attended users for a specific event.
+ *     tags:
+ *       - Event
+ *     parameters:
+ *       - name: eventId
+ *         in: path
+ *         required: true
+ *         description: The ID of the event
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Registered and attended users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Registered and Attended users retrieved successfully."
+ *                 registeredUsers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         description: Name of the registered user
+ *                         example: "John Doe"
+ *                       email:
+ *                         type: string
+ *                         description: Email of the registered user
+ *                         example: "john.doe@example.com"
+ *                 attendedUsers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         description: Name of the attended user
+ *                         example: "Jane Smith"
+ *                       email:
+ *                         type: string
+ *                         description: Email of the attended user
+ *                         example: "jane.smith@example.com"
+ *       400:
+ *         description: Event ID is missing
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */

@@ -24,6 +24,7 @@ exports.createEventSchema = Joi.object({
   link: Joi.string(),
   venue: Joi.string(),
   organiserName: Joi.string().required(),
+  coordinator: Joi.array().items(Joi.string()),
   speakers: Joi.array()
     .items(
       Joi.object({
@@ -35,6 +36,7 @@ exports.createEventSchema = Joi.object({
     )
     .required(),
   status: Joi.string(),
+  attended: Joi.array().items(Joi.string()),
 });
 
 exports.editEventSchema = Joi.object({
@@ -50,6 +52,7 @@ exports.editEventSchema = Joi.object({
   link: Joi.string(),
   venue: Joi.string(),
   organiserName: Joi.string(),
+  coordinator: Joi.array().items(Joi.string()),
   speakers: Joi.array().items(
     Joi.object({
       name: Joi.string(),
@@ -59,6 +62,7 @@ exports.editEventSchema = Joi.object({
     })
   ),
   status: Joi.string(),
+  attended: Joi.array().items(Joi.string()),
 });
 
 exports.createRoleSchema = Joi.object({

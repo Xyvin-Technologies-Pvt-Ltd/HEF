@@ -19,5 +19,7 @@ eventRoute
 
 eventRoute.get("/reg-events", eventController.getRegEvents);
 
+eventRoute.post("/attend/:eventId", eventController.markAttendance);
+eventRoute.get("/attend/:eventId", eventController.getAttendedUsers);
 
 module.exports = eventRoute;

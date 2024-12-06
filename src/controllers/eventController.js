@@ -6,6 +6,7 @@ const Event = require("../models/eventModel");
 const User = require("../models/userModel");
 const e = require("express");
 const logActivity = require("../models/logActivityModel");
+const { populate } = require("../models/productModel");
 
 exports.createEvent = async (req, res) => {
   let status = "failure";
@@ -302,5 +303,98 @@ exports.getRegEvents = async (req, res) => {
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.markAttendance = async (req, res) => {
+  const { eventId } = req.params;
+  const { userId } = req.body;
+
+  if (!eventId || !userId) {
+    return responseHandler(res, 400, "Event ID and user ID are required.");
+  }
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found.");
+    }
+
+    const user = await User.findById(userId).populate({
+      path: "chapter",
+      populate: {
+        path: "districtId",
+        populate: {
+          path: "zoneId",
+          populate: {
+            path: "stateId",
+          },
+        },
+      },
+    });
+
+    const mappedData =   {
+        username: user.name,
+        image: user.image,
+        email: user.email,
+        state: user.chapter.districtId.zoneId.stateId.name,
+        zone: user.chapter.districtId.zoneId.name,
+        district: user.chapter.districtId.name,
+        chapter: user.chapter.name,
+      };
+
+    if (!user) {
+      return responseHandler(res, 404, "User not found.");
+    }
+
+    if (event.attented.includes(userId)) {
+      return responseHandler(
+        res,
+        400,
+        "User has already been marked as attended."
+      );
+    }
+
+    event.attented.push(userId);
+    await event.save();
+
+    return responseHandler(
+      res,
+      200,
+      "Attendance marked successfully.",
+      mappedData
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.getAttendedUsers = async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!eventId) {
+    return responseHandler(res, 400, "Event ID is required.");
+  }
+
+  try {
+    const event = await Event.findById(eventId)
+      .populate("rsvp", "name email")
+      .populate("attented", "name email");
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found.");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Registered and Attended users retrieved successfully.",
+      {
+        registeredUsers: event.rsvp,
+        attendedUsers: event.attented,
+      }
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
