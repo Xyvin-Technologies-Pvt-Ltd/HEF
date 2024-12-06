@@ -781,3 +781,49 @@ exports.listUserIdName = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+
+
+exports.createMember = async (req, res) => {
+  try {
+    const check = req.user
+    if (check.role == "member") {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { error } = validations.createMemberSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const checkExist = await User.findOne({
+      $or: [{ email: req.body.email }, { phone: req.body.phone }],
+    });
+
+    if (checkExist) {
+      return responseHandler(
+        res,
+        409,
+        `User with this email or phone already exists`
+      );
+    }
+
+    const newUser = await User.create(req.body);
+
+    if (newUser)
+      return responseHandler(
+        res,
+        201,
+        `New User created successfull..!`,
+        newUser
+      );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};

@@ -1,7 +1,6 @@
 const { array, string } = require("joi");
 const mongoose = require("mongoose");
 
-
 const linkSchema = new mongoose.Schema(
   {
     name: { type: String },
@@ -45,7 +44,7 @@ const userSchema = mongoose.Schema(
     },
     businessCatogary: { type: String },
     businessSubCatogary: { type: String },
-
+    file: [{ type: String }],
     social: [linkSchema],
     websites: [linkSchema],
     awards: [

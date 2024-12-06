@@ -165,6 +165,15 @@
  *                 type: string
  *                 description: URL of the user's profile image.
  *                 example: "https://example.com/image.jpg"
+ *               file:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   description: A string representing a file path or URL.
+ *                 description: An array of file paths or URLs associated with the member.
+ *                 example:
+ *                   - "https://example.com/file1.pdf"
+ *                   - "https://example.com/file2.jpg"
  *               email:
  *                 type: string
  *                 format: email
@@ -336,6 +345,8 @@
  *       500:
  *         description: Internal Server Error
  */
+
+
 /**
  * @swagger
  * /user/admin:
@@ -376,6 +387,15 @@
  *                 type: string
  *                 description: URL of the user's profile image.
  *                 example: "https://example.com/image.jpg"
+ *               file:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   description: A string representing a file path or URL.
+ *                 description: An array of file paths or URLs associated with the member.
+ *                 example:
+ *                   - "https://example.com/file1.pdf"
+ *                   - "https://example.com/file2.jpg"
  *               email:
  *                 type: string
  *                 description: Email address of the user.
@@ -578,6 +598,15 @@
  *                 type: string
  *                 description: URL of the user's profile image.
  *                 example: "https://example.com/image.jpg"
+ *               file:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   description: A string representing a file path or URL.
+ *                 description: An array of file paths or URLs associated with the member.
+ *                 example:
+ *                   - "https://example.com/file1.pdf"
+ *                   - "https://example.com/file2.jpg"
  *               email:
  *                 type: string
  *                 format: email
@@ -1100,4 +1129,97 @@
  *         description: User not found
  *       500:
  *         description: Internal server error
+ */
+
+
+/**
+ * @swagger
+ * /user/member:
+ *   post:
+ *     summary: Create a new member
+ *     description: Adds a new member with detailed profile and business information.
+ *     tags:
+ *       - User
+ *     requestBody:
+ *       description: Details of the member to be created
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Full name of the member.
+ *                 example: "Jane Doe"
+ *               bloodgroup:
+ *                 type: string
+ *                 description: Blood group of the member.
+ *                 example: "B+"
+ *               image:
+ *                 type: string
+ *                 description: URL of the member's profile image.
+ *                 example: "https://example.com/member.jpg"
+ *               email:
+ *                 type: string
+ *                 description: Email address of the member.
+ *                 example: "jane.doe@example.com"
+ *               phone:
+ *                 type: string
+ *                 description: Phone number of the member.
+ *                 example: "+9876543210"
+ *               bio:
+ *                 type: string
+ *                 description: Brief biography or description of the member.
+ *                 example: "Entrepreneur in the tech industry."
+ *               status:
+ *                 type: string
+ *                 description: Current status of the member.
+ *                 example: "active"
+ *               address:
+ *                 type: string
+ *                 description: Residential address of the member.
+ *                 example: "456 Elm St, City, Country"
+ *               businessCatogary:
+ *                 type: string
+ *                 description: Business category of the member.
+ *                 example: "Health & Wellness"
+ *               businessSubCatogary:
+ *                 type: string
+ *                 description: Business subcategory of the member.
+ *                 example: "Fitness Coaching"
+ *               company:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Name of the company.
+ *                     example: "Wellness Corp"
+ *                   designation:
+ *                     type: string
+ *                     description: Member's designation at the company.
+ *                     example: "CEO"
+ *                   email:
+ *                     type: string
+ *                     description: Company's email address.
+ *                     example: "info@wellnesscorp.com"
+ *                   websites:
+ *                     type: string
+ *                     description: Company's website.
+ *                     example: "https://wellnesscorp.com"
+ *                   phone:
+ *                     type: string
+ *                     description: Company's phone number.
+ *                     example: "+1239876543"
+ *     responses:
+ *       201:
+ *         description: Member created successfully
+ *       400:
+ *         description: Invalid input provided
+ *       403:
+ *         description: Forbidden, user lacks necessary permissions
+ *       409:
+ *         description: Conflict, member with this email or phone already exists
+ *       500:
+ *         description: Internal Server Error
  */
