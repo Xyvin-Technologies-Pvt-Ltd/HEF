@@ -19,7 +19,7 @@ const analyticSchema = mongoose.Schema(
     location: { type: String },
     status: {
       type: String,
-      enum: ["accepted", "pending", "rejected"],
+      enum: ["accepted", "pending", "meeting_scheduled", "rejected"],
       default: "pending",
     },
   },

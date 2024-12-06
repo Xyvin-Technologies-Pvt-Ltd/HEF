@@ -56,10 +56,6 @@
  *                 type: string
  *                 description: Amount involved in the session
  *                 example: 2000
- *               discount:
- *                 type: string
- *                 description: Discount applied as a percentage
- *                 example: "10%"
  *               date:
  *                 type: string
  *                 format: date

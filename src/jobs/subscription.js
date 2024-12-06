@@ -6,13 +6,13 @@ const sendInAppNotification = require("../utils/sendInAppNotification");
 const User = require("../models/userModel");
 require("dotenv").config();
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   const now = moment().tz("Asia/Kolkata");
 
   try {
     const tenDaysFromNow = now.clone().add(10, "days").toDate();
     const expiring = await Subscription.find({
-      status: "active",
+      status: { $in: ["active", "expiring"] },
       expiryDate: { $lte: tenDaysFromNow },
     }).populate("user");
 
