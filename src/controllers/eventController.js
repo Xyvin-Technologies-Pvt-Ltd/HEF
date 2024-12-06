@@ -386,9 +386,8 @@ exports.getAttendedUsers = async (req, res) => {
 
   try {
     const event = await Event.findById(eventId)
-      .populate("rsvp", "name email image ")
-      .populate("attented", "name email image")
-      .populate("rsvp", "regCount");
+      .populate("rsvp", "name email image regCount")
+      .populate("attented", "name email image");
 
     if (!event) {
       return responseHandler(res, 404, "Event not found.");
@@ -400,8 +399,8 @@ exports.getAttendedUsers = async (req, res) => {
       "Registered and Attended users retrieved successfully.",
       {
         registeredUsers: event.rsvp,
-        regCount: event.regCount,
         attendedUsers: event.attented,
+        regCount: event.regCount,
       }
     );
   } catch (error) {
