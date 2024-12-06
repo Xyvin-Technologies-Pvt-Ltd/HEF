@@ -25,7 +25,10 @@ const userSchema = mongoose.Schema(
     image: { type: String },
     email: { type: String },
     phone: { type: String, trim: true },
-    secondaryPhone: [{ type: String, trim: true }],
+    secondaryPhone: {
+      whatsapp: { type: String },
+      business: { type: String },
+    },
     bio: { type: String },
     status: {
       type: String,
@@ -42,6 +45,7 @@ const userSchema = mongoose.Schema(
     },
     businessCatogary: { type: String },
     businessSubCatogary: { type: String },
+
     social: [linkSchema],
     websites: [linkSchema],
     awards: [

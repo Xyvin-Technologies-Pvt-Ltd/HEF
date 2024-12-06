@@ -125,6 +125,7 @@
  *       500:
  *         description: Internal Server Error
  */
+
 /**
  * @swagger
  * /user/update:
@@ -147,10 +148,6 @@
  *                 type: string
  *                 description: Unique identifier for the user.
  *                 example: "UID123456"
- *               memberId:
- *                 type: string
- *                 description: Membership ID of the user.
- *                 example: "MEM123456"
  *               bloodgroup:
  *                 type: string
  *                 description: User's blood group.
@@ -178,11 +175,16 @@
  *                 description: Primary phone number of the user.
  *                 example: "+1234567890"
  *               secondaryPhone:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Additional phone numbers of the user.
- *                 example: ["+1234567891", "+1234567892"]
+ *                 type: object
+ *                 properties:
+ *                   whatsapp:
+ *                     type: string
+ *                     description: WhatsApp phone number of the user.
+ *                     example: "+1234567891"
+ *                   business:
+ *                     type: string
+ *                     description: Business phone number of the user.
+ *                     example: "+1234567892"
  *               bio:
  *                 type: string
  *                 description: Brief biography or description of the user.
@@ -357,10 +359,6 @@
  *                 type: string
  *                 description: Unique identifier for the user.
  *                 example: "UID123456"
- *               memberId:
- *                 type: string
- *                 description: Membership ID of the user.
- *                 example: "MEM123456"
  *               bloodgroup:
  *                 type: string
  *                 description: User's blood group.
@@ -387,11 +385,16 @@
  *                 description: Phone number of the user.
  *                 example: "+1234567890"
  *               secondaryPhone:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Additional phone numbers of the user.
- *                 example: ["+1234567891", "+1234567892"]
+ *                 type: object
+ *                 properties:
+ *                   whatsapp:
+ *                     type: string
+ *                     description: WhatsApp phone number of the user.
+ *                     example: "+1234567891"
+ *                   business:
+ *                     type: string
+ *                     description: Business phone number of the user.
+ *                     example: "+1234567892"
  *               bio:
  *                 type: string
  *                 description: Brief biography or description of the user.
@@ -554,10 +557,6 @@
  *                 type: string
  *                 description: Unique identifier for the user.
  *                 example: "UID123456"
- *               memberId:
- *                 type: string
- *                 description: Membership ID of the user.
- *                 example: "MEM123456"
  *               bloodgroup:
  *                 type: string
  *                 description: User's blood group.
@@ -568,6 +567,10 @@
  *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
  *                 example: "member"
  *               chapter:
+ *                 type: string
+ *                 description: Reference to the user's chapter ID.
+ *                 example: "63f9c6e4f3b17c00084b8b99"
+ *               districtId:
  *                 type: string
  *                 description: Reference to the user's chapter ID.
  *                 example: "63f9c6e4f3b17c00084b8b99"
@@ -585,11 +588,16 @@
  *                 description: Primary phone number of the user.
  *                 example: "+1234567890"
  *               secondaryPhone:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Additional phone numbers of the user.
- *                 example: ["+1234567891", "+1234567892"]
+ *                 type: object
+ *                 properties:
+ *                   whatsapp:
+ *                     type: string
+ *                     description: WhatsApp phone number of the user.
+ *                     example: "+1234567891"
+ *                   business:
+ *                     type: string
+ *                     description: Business phone number of the user.
+ *                     example: "+1234567892"
  *               bio:
  *                 type: string
  *                 description: Brief biography or description of the user.

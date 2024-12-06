@@ -496,14 +496,7 @@ exports.updateChapter = async (req, res) => {
 
 exports.createMember = async (req, res) => {
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
+    
     const createMemberValidator = validations.createMemberSchema.validate(
       req.body,
       {

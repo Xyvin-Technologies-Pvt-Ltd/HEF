@@ -11,6 +11,8 @@ const Feeds = require("../models/feedsModel");
 const Products = require("../models/productModel");
 const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
 const sendSelfMail = require("../utils/sendSelfMail");
+const Chapter = require("../models/chapterModel");
+const District = require("../models/districtModel");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -129,7 +131,17 @@ exports.createUser = async (req, res) => {
       );
     }
     const uniqueMemberId = await generateUniqueDigit();
-    req.body.memberId = `HEF-${uniqueMemberId}`;
+    const chapter = await Chapter.findById(req.body.chapter); 
+    const district = await District.findById(chapter.districtId);   
+    
+    const maxLength = 3;
+
+    const shortDistrictName = district.name.substring(0, maxLength);
+    const shortChapterName = chapter.name.substring(0, maxLength);
+
+    const memberId = `${shortDistrictName}${shortChapterName}${req.body.name}${uniqueMemberId}`;
+
+    req.body.memberId = memberId;
     const newUser = await User.create(req.body);
 
     if (newUser)
@@ -382,11 +394,9 @@ exports.fetchUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-
     const findUser = await User.findById(id);
 
     if (findUser) {
-     
       const fieldsToCheck = [
         findUser.name,
         findUser.role,
@@ -409,19 +419,23 @@ exports.fetchUser = async (req, res) => {
 
       findUser.profileCompletion = `${profileCompletionPercentage}%`;
 
-
       const feedsCount = await Feeds.countDocuments({ author: id });
 
       const productCount = await Products.countDocuments({ seller: id });
 
       const userResponse = {
-        ...findUser._doc, 
+        ...findUser._doc,
         profileCompletion: findUser.profileCompletion,
-        feedsCount, 
-        productCount, 
+        feedsCount,
+        productCount,
       };
 
-      return responseHandler(res, 200, "User found successfully..!", userResponse);
+      return responseHandler(
+        res,
+        200,
+        "User found successfully..!",
+        userResponse
+      );
     } else {
       return responseHandler(res, 404, "User not found");
     }
@@ -429,8 +443,6 @@ exports.fetchUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
-
 
 exports.loginUser = async (req, res) => {
   try {
