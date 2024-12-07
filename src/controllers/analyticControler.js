@@ -51,9 +51,15 @@ exports.getRequests = async (req, res) => {
       if (status) {
         filter.status = status;
       }
+
       if (type) {
-        filter.type = type;
+        if (type === "referrals") {
+          filter.referral = { $exists: true, $ne: null };
+        } else {
+          filter.type = type;
+        }
       }
+
       const totalCount = await Analytic.countDocuments(filter);
       const data = await Analytic.find(filter)
         .populate("sender", "name image")
