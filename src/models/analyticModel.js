@@ -4,7 +4,7 @@ const analyticSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["Business", "One v One Meeting", "Training Session"],
+      enum: ["Business", "One v One Meeting"],
     },
     member: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

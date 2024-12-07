@@ -337,13 +337,19 @@ exports.getAllUsers = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
-    const mappedData = data.map((user) => {
-      return {
-        ...user,
-        name: user.name || "",
-        companyName: user?.company?.name || "",
-      };
-    });
+    const mappedData = await Promise.all(
+      data.map(async (user) => {
+        const adminDetails = await isUserAdmin(user._id);
+        return {
+          ...user,
+          name: user.name || "",
+          companyName: user?.company?.name || "",
+          isAdmin: adminDetails ? true : false,
+          adminType: adminDetails?.type || null,
+          levelName: adminDetails?.name || null,
+        };
+      })
+    );
 
     return responseHandler(
       res,
