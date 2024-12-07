@@ -1227,3 +1227,23 @@
  *       500:
  *         description: Internal Server Error
  */
+
+
+/**
+ * @swagger
+ * /user/analytic-review:
+ *   patch:
+ *     summary: Get user stats
+ *     description: Retrieves the user's total products count, feeds count, and reviews, including reviewer details and comments.
+ *     tags:
+ *       - User
+ *     responses:
+ *       200:
+ *         description: User stats retrieved successfully
+ *       400:
+ *         description: Missing User ID
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal Server Error
+ */

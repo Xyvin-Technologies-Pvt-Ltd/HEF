@@ -22,7 +22,7 @@
  *             properties:
  *               type:
  *                 type: string
- *                 example: "Article"
+ *                 example: "Job"
  *               media:
  *                 type: string
  *                 example: "https://example.com/image.jpg"

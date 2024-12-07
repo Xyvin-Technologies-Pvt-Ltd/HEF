@@ -13,6 +13,7 @@ const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
 const sendSelfMail = require("../utils/sendSelfMail");
 const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
+const Review = require("../models/reviewModel");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -814,5 +815,41 @@ exports.createMember = async (req, res) => {
       );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.analyticReview = async (req, res) => {
+  try {
+    const id = req.userId;
+    if (!id) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    const findUser = await User.findById(id);
+    if (!findUser) {
+      return responseHandler(res, 404, "User not found");
+    }
+
+    const feedsCount = await Feeds.countDocuments({ author: id });
+    const productCount = await Products.countDocuments({ seller: id });
+
+    const reviews = await Review.find({ toUser: id })
+      .populate("reviewer", "name email")
+      .select("comment rating createdAt");
+
+    const userStats = {
+      feedsCount,
+      productCount,
+      reviews,
+    };
+
+    return responseHandler(
+      res,
+      200,
+      "User stats retrieved successfully",
+      userStats
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
