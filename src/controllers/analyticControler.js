@@ -35,8 +35,45 @@ exports.sendRequest = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
   try {
+    if (req.role === "admin") {
+      const check = await checkAccess(req.roleId, "permissions");
+      if (!check || !check.includes("activityManagement_view")) {
+        return responseHandler(
+          res,
+          403,
+          "You don't have permission to perform this action"
+        );
+      }
+
+      const { pageNo = 1, status, limit = 10, type } = req.query;
+      const skipCount = 10 * (pageNo - 1);
+      const filter = {};
+      if (status) {
+        filter.status = status;
+      }
+      if (type) {
+        filter.type = type;
+      }
+      const totalCount = await Analytic.countDocuments(filter);
+      const data = await Analytic.find(filter)
+        .populate("sender", "name image")
+        .populate("member", "name image")
+        .skip(skipCount)
+        .limit(limit)
+        .sort({ createdAt: -1, _id: 1 })
+        .lean();
+
+      return responseHandler(
+        res,
+        200,
+        "Requests fetched successfully",
+        data,
+        totalCount
+      );
+    }
+
     const { userId } = req;
-    const { filter } = req.query;
+    const { filter, type } = req.query;
 
     let query;
 
@@ -46,6 +83,10 @@ exports.getRequests = async (req, res) => {
       query = { member: userId };
     } else {
       query = { $or: [{ sender: userId }, { member: userId }] };
+    }
+
+    if (type) {
+      query.type = type;
     }
 
     const response = await Analytic.find(query)

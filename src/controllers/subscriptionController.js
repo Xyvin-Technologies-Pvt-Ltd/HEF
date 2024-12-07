@@ -17,6 +17,13 @@ exports.createSubscription = async (req, res) => {
       );
     }
 
+    const findSubscription = await Subscription.findOne({
+      user: req.body.user,
+    });
+    if (findSubscription) {
+      return responseHandler(res, 400, "Subscription already exists");
+    }
+
     const newSubscription = await Subscription.create(req.body);
 
     if (!newSubscription) {
