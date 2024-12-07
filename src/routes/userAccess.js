@@ -8,6 +8,6 @@ userAccessRoute
   .post(userAccessController.createAccess)
   .get(userAccessController.getAccess);
 
-  userAccessRoute.put("/:Id", userAccessController.unblockUser);
+  userAccessRoute.put("/:Id", userAccessController.editAccess);
 
 module.exports = userAccessRoute;

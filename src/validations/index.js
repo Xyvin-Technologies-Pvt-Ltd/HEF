@@ -448,3 +448,20 @@ exports.editGroupSchema = Joi.object({
   groupInfo: Joi.string(),
   participantIds: Joi.array(),
 });
+
+
+exports.createAccessSchema = Joi.object({
+  sendNotification: Joi.boolean().required(),
+  postRequirement: Joi.boolean().required(),
+  addReward: Joi.boolean().required(),
+  addCertificate: Joi.boolean().required(),
+  addSocialmedia: Joi.boolean().required(),
+});
+
+exports.editAccessSchema = Joi.object({
+  sendNotification: Joi.boolean(),
+  postRequirement: Joi.boolean(),
+  addReward: Joi.boolean(),
+  addCertificate: Joi.boolean(),
+  addSocialmedia: Joi.boolean(),
+});
