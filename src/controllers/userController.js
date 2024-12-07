@@ -131,9 +131,9 @@ exports.createUser = async (req, res) => {
       );
     }
     const uniqueMemberId = await generateUniqueDigit();
-    const chapter = await Chapter.findById(req.body.chapter); 
-    const district = await District.findById(chapter.districtId);   
-    
+    const chapter = await Chapter.findById(req.body.chapter);
+    const district = await District.findById(chapter.districtId);
+
     const maxLength = 3;
 
     const shortDistrictName = district.name.substring(0, maxLength);
@@ -458,19 +458,10 @@ exports.loginUser = async (req, res) => {
       .then(async (decodedToken) => {
         user = await User.findOne({ phone: decodedToken.phone_number });
         if (!user) {
-          const uniqueMemberId = await generateUniqueDigit();
-          const newUser = await User.create({
-            uid: decodedToken.uid,
-            phone: decodedToken.phone_number,
-            memberId: `HEF-${uniqueMemberId}`,
-            fcm,
-          });
-          const token = generateToken(newUser._id);
           return responseHandler(
             res,
-            200,
-            "User logged in successfully",
-            token
+            400,
+            "User with this phone number does not exist"
           );
         } else if (user.uid !== null) {
           user.fcm = fcm;
@@ -782,11 +773,9 @@ exports.listUserIdName = async (req, res) => {
   }
 };
 
-
-
 exports.createMember = async (req, res) => {
   try {
-    const check = req.user
+    const check = req.user;
     if (check.role == "member") {
       return responseHandler(
         res,

@@ -28,6 +28,7 @@ cron.schedule("* * * * *", async () => {
         content: `The event ${event.eventName} has started. Join now!`,
         link: event.type === "Online" ? event.link : event.venue,
         type: "in-app",
+        senderModel: "Cronjob",
       });
 
       const topic = `event_${event._id}`;
@@ -85,6 +86,7 @@ cron.schedule("* * * * *", async () => {
         subject: `Event ${event.eventName} is now completed!`,
         content: `The event ${event.eventName} has ended. Thank you for participating!`,
         type: "in-app",
+        senderModel: "Cronjob",
       });
 
       const topic = `event_${event._id}`;

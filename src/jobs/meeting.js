@@ -2,7 +2,6 @@ const cron = require("node-cron");
 const moment = require("moment-timezone");
 const Notification = require("../models/notificationModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
-const User = require("../models/userModel");
 const Analytic = require("../models/analyticModel");
 require("dotenv").config();
 
@@ -25,6 +24,7 @@ cron.schedule("0 0 * * *", async () => {
         subject: `Meeting is expired`,
         content: `Meeting is expired. Please finish the meeting or reject the meeting.`,
         type: "in-app",
+        senderModel: "Cronjob",
       });
 
       await sendInAppNotification(

@@ -76,6 +76,9 @@ exports.createNotification = async (req, res) => {
       );
     }
 
+    req.body.senderModel = "Admin";
+    req.body.sender = req.userId;
+
     const createNotification = await Notification.create(req.body);
     return responseHandler(
       res,
