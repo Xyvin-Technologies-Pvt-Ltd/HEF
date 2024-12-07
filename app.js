@@ -24,6 +24,7 @@ const feedsRoute = require("./src/routes/feeds");
 const reviewRoute = require("./src/routes/review");
 const analyticRoute = require("./src/routes/analytic");
 const chatRoute = require("./src/routes/chat");
+const subscriptionRoute = require("./src/routes/subscription");
 
 //! Create an instance of the Express application
 const app = express();
@@ -72,6 +73,7 @@ app.use(`${BASE_PATH}/user`, userRoute);
 app.use(`${BASE_PATH}/review`, reviewRoute);
 app.use(`${BASE_PATH}/analytic`, analyticRoute);
 app.use(`${BASE_PATH}/chat`, chatRoute);
+app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
 
 
 //* Handle all unmatched routes with a 404 error
