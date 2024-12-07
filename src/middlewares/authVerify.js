@@ -20,6 +20,7 @@ const authVerify = async (req, res, next) => {
 
     if (user) {
       req.user = user;
+      req.role = "user";
       return next();
     }
 
@@ -27,6 +28,7 @@ const authVerify = async (req, res, next) => {
 
     if (admin) {
       req.user = admin;
+      req.role = "admin";
       return next();
     }
 
