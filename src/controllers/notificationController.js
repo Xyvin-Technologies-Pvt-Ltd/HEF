@@ -168,6 +168,7 @@ exports.createLevelNotification = async (req, res) => {
 
     req.body.senderModel = "User";
     req.body.sender = req.userId;
+    let userFCM = [];
 
     if (users.length > 0) {
       for (let i = 0; i < users.length; i++) {
