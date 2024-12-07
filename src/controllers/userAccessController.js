@@ -66,8 +66,8 @@ exports.editAccess = async (req, res) => {
       return responseHandler(res, 403, "Permission denied!");
     }
 
-    const { Id } = req.params;
-    if (!Id) {
+    const { id } = req.params;
+    if (!id) {
       return responseHandler(res, 400, "Access ID is required!");
     }
 
@@ -78,7 +78,7 @@ exports.editAccess = async (req, res) => {
       return responseHandler(res, 400, `Validation Error: ${error.message}`);
     }
 
-    const updatedAccess = await UserAccess.findByIdAndUpdate(Id, req.body, {
+    const updatedAccess = await UserAccess.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 

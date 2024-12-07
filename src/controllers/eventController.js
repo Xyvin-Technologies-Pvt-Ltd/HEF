@@ -283,8 +283,6 @@ exports.addRSVP = async (req, res) => {
 
     findEvent.rsvp.push(req.userId);
 
-    findEvent.regCount = (findEvent.regCount || 0) + 1;
-
     await findEvent.save();
 
     const user = await User.findById(req.userId).select("fcm");
@@ -424,7 +422,6 @@ exports.getAttendedUsers = async (req, res) => {
       {
         registeredUsers: event.rsvp,
         attendedUsers: event.attented,
-        regCount: event.regCount,
       }
     );
   } catch (error) {

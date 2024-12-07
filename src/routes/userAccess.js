@@ -1,5 +1,5 @@
 const express = require("express");
-const userController = require("../controllers/userController");
+const userAccessController = require("../controllers/userAccessController");
 const authVerify = require("../middlewares/authVerify");
 const userAccessRoute = express.Router();
 
@@ -8,6 +8,6 @@ userAccessRoute
   .post(userAccessController.createAccess)
   .get(userAccessController.getAccess);
 
-  userAccessRoute.put("/:Id", userAccessController.editAccess);
+  userAccessRoute.put("/:id", userAccessController.editAccess);
 
 module.exports = userAccessRoute;
