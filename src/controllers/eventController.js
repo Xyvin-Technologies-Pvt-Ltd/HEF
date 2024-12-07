@@ -154,25 +154,26 @@ exports.deleteEvent = async (req, res) => {
 
 exports.getSingleEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id).populate(
-      "rsvp",
-      "name phone memberId"
-    );
+    const event = await Event.findById(req.params.id)
+      .populate("rsvp", "name phone memberId")
+      .populate("attented", "name phone memberId")
+      .populate("coordinator", "name phone memberId image role");
     const mappedData = {
       ...event._doc,
       rsvpCount: event.rsvp.length,
       rsvp: event.rsvp.map((rsvp) => {
-        let fullName = rsvp.name.first;
-        if (rsvp.name.middle) {
-          fullName += ` ${rsvp.name.middle}`;
-        }
-        if (rsvp.name.last) {
-          fullName += ` ${rsvp.name.last}`;
-        }
         return {
-          name: fullName,
+          name: rsvp.name,
           phone: rsvp.phone,
           memberId: rsvp.memberId,
+        };
+      }),
+      attendedCount: event.attented.length,
+      attented: event.attented.map((attented) => {
+        return {
+          name: attented.name,
+          phone: attented.phone,
+          memberId: attented.memberId,
         };
       }),
     };
@@ -232,7 +233,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
         rsvp: event.rsvp.map((rsvp) => {
           return {
             _id: rsvp._id,
-            name: `${rsvp.name?.first} ${rsvp.name?.middle} ${rsvp.name?.last}`,
+            name: rsvp.name,
             memberId: rsvp.memberId,
           };
         }),
@@ -289,7 +290,7 @@ exports.addRSVP = async (req, res) => {
 
     const topic = `event_${id}`;
     const fcmToken = user.fcm;
-    await getMessaging().subscribeToTopic(fcmToken, topic);
+    // await getMessaging().subscribeToTopic(fcmToken, topic);
 
     return responseHandler(res, 200, "RSVP added successfully", {
       regCount: findEvent.regCount,
@@ -408,8 +409,16 @@ exports.getAttendedUsers = async (req, res) => {
 
   try {
     const event = await Event.findById(eventId)
-      .populate("rsvp", "name email image regCount")
+      .populate("rsvp", "name email image")
       .populate("attented", "name email image");
+
+    const rsvpUserIds = new Set(event.rsvp.map((user) => user._id.toString()));
+
+    const newlyReg = event.attented.filter(
+      (user) => !rsvpUserIds.has(user._id.toString())
+    );
+
+    const uniqueUsersCount = newlyReg.length;
 
     if (!event) {
       return responseHandler(res, 404, "Event not found.");
@@ -422,6 +431,7 @@ exports.getAttendedUsers = async (req, res) => {
       {
         registeredUsers: event.rsvp,
         attendedUsers: event.attented,
+        uniqueUsersCount,
       }
     );
   } catch (error) {
