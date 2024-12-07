@@ -8,7 +8,6 @@ const notificationSchema = mongoose.Schema(
         read: { type: Boolean, default: false },
       },
     ],
-    admin : { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
     subject: { type: String },
     content: { type: String },
     media: { type: String },

@@ -12,4 +12,6 @@ notificationRoute
 
 notificationRoute.get("/user", notificationController.getUserNotifications);
 
+notificationRoute.post("/level", notificationController.createLevelNotification);
+
 module.exports = notificationRoute;
