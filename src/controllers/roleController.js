@@ -4,6 +4,8 @@ const Role = require("../models/roleModel");
 const validations = require("../validations");
 
 exports.createRole = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("roleManagement_modify")) {
@@ -27,6 +29,7 @@ exports.createRole = async (req, res) => {
       );
     }
     const newRole = await Role.create(req.body);
+    status = "success";
     if (!newRole) {
       return responseHandler(res, 400, `Role creation failed...!`);
     }
@@ -37,11 +40,26 @@ exports.createRole = async (req, res) => {
       newRole
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "role",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.editRole = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("roleManagement_modify")) {
@@ -74,6 +92,7 @@ exports.editRole = async (req, res) => {
     const updateRole = await Role.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+    status = "success";
     if (updateRole) {
       return responseHandler(
         res,
@@ -85,11 +104,26 @@ exports.editRole = async (req, res) => {
       return responseHandler(res, 400, `Role update failed...!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "role",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getRole = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("roleManagement_view")) {
@@ -108,13 +142,29 @@ exports.getRole = async (req, res) => {
     if (!findRole) {
       return responseHandler(res, 404, "Role not found");
     }
+    status = "success";
     return responseHandler(res, 200, "Role found", findRole);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "role",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.deleteRole = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("roleManagement_modify")) {
@@ -136,13 +186,27 @@ exports.deleteRole = async (req, res) => {
     }
 
     const deleteRole = await Role.findByIdAndDelete(id);
+    status = "success";
     if (deleteRole) {
       return responseHandler(res, 200, `Role deleted successfullyy..!`);
     } else {
       return responseHandler(res, 400, `Role deletion failed...!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "role",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 

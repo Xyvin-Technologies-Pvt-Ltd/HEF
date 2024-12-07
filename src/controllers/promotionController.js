@@ -5,6 +5,8 @@ const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 
 exports.createPromotion = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("promotionManagement_modify")) {
@@ -30,6 +32,7 @@ exports.createPromotion = async (req, res) => {
     }
 
     const newPromotion = await Promotion.create(req.body);
+    status = "success";
     if (!newPromotion) {
       return responseHandler(res, 400, `Promotion creation failed...!`);
     }
@@ -40,11 +43,26 @@ exports.createPromotion = async (req, res) => {
       newPromotion
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "promition",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getPromotion = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("promotionManagement_view")) {
@@ -61,6 +79,7 @@ exports.getPromotion = async (req, res) => {
     }
 
     const findPromotion = await Promotion.findById(id);
+    status = "success";
     if (findPromotion) {
       return responseHandler(
         res,
@@ -70,11 +89,26 @@ exports.getPromotion = async (req, res) => {
       );
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "promotion",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.updatePromotion = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("promotionManagement_modify")) {
@@ -101,6 +135,7 @@ exports.updatePromotion = async (req, res) => {
     const updatePromotion = await Promotion.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+    status = "success";
     if (this.updatePromotion) {
       return responseHandler(
         res,
@@ -110,11 +145,26 @@ exports.updatePromotion = async (req, res) => {
       );
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "promotion",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.deletePromotion = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("promotionManagement_modify")) {
@@ -140,6 +190,8 @@ exports.deletePromotion = async (req, res) => {
 };
 
 exports.getAllPromotion = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("promotionManagement_view")) {
@@ -161,7 +213,7 @@ exports.getAllPromotion = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-
+    status = "success";
     return responseHandler(
       res,
       200,
@@ -170,7 +222,20 @@ exports.getAllPromotion = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "promotion",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 

@@ -159,6 +159,8 @@ exports.createUser = async (req, res) => {
 };
 
 exports.editUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_modify")) {
@@ -192,13 +194,29 @@ exports.editUser = async (req, res) => {
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
+    status = "success";
     return responseHandler(res, 200, `User updated successfully`, editUser);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_view")) {
@@ -215,12 +233,25 @@ exports.getUser = async (req, res) => {
     }
 
     const findUser = await User.findById(id);
-
+    status = "success";
     if (findUser) {
       return responseHandler(res, 200, `User found successfull..!`, findUser);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -241,6 +272,8 @@ exports.getSingleUser = async (req, res) => {
 };
 
 exports.deleteUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_modify")) {
@@ -257,6 +290,7 @@ exports.deleteUser = async (req, res) => {
     }
 
     const findUser = await User.findById(id);
+    status = "success";
     if (!findUser) {
       return responseHandler(res, 404, "User not found");
     }
@@ -268,11 +302,26 @@ exports.deleteUser = async (req, res) => {
         new: true,
       }
     );
+    
+    status = "success";
     if (deleteUser) {
       return responseHandler(res, 200, `User deleted successfully..!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -307,6 +356,9 @@ exports.updateUser = async (req, res) => {
   }
 };
 exports.getAllUsers = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_view")) {
@@ -350,7 +402,7 @@ exports.getAllUsers = async (req, res) => {
         };
       })
     );
-
+    status = "success";
     return responseHandler(
       res,
       200,
@@ -359,7 +411,20 @@ exports.getAllUsers = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -698,6 +763,9 @@ exports.unblockUser = async (req, res) => {
 };
 
 exports.adminUserBlock = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+
   try {
     const { id } = req.params;
     if (!id) {
@@ -719,16 +787,32 @@ exports.adminUserBlock = async (req, res) => {
       },
       { new: true }
     );
+    status = "success";
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
     return responseHandler(res, 200, `User blocked successfully`);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.adminUserUnblock = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const { id } = req.params;
     if (!id) {
@@ -745,12 +829,27 @@ exports.adminUserUnblock = async (req, res) => {
       },
       { new: true }
     );
+    
+    status = "success";
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
     return responseHandler(res, 200, `User unblocked successfully`);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
