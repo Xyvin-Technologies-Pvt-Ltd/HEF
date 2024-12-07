@@ -4,6 +4,16 @@ const User = require("../models/userModel");
 const Admin = require("../models/adminModel");
 
 const authVerify = async (req, res, next) => {
+  // const api_key = req.headers["api-key"];
+
+  // if (!api_key) {
+  //   return responseHandler(res, 401, `No API key provided...!`);
+  // }
+
+  // if (api_key !== process.env.API_KEY) {
+  //   return responseHandler(res, 401, `Invalid API key...!`);
+  // }
+
   const header = req.headers["authorization"];
   const jwtToken = header && header.split(" ")[1];
 

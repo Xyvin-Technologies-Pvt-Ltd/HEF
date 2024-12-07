@@ -395,6 +395,7 @@ exports.updateReviewSchema = Joi.object({
 exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
   member: Joi.string().required(),
+  semder: Joi.string(),
   title: Joi.string().required(),
   description: Joi.string().required(),
   referral: Joi.string(),
@@ -417,7 +418,7 @@ exports.createMemberSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
-  chapter:Joi.string().required(),
+  chapter: Joi.string().required(),
   company: Joi.object({
     name: Joi.string(),
     designation: Joi.string(),

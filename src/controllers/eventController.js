@@ -4,9 +4,7 @@ const validations = require("../validations");
 const Event = require("../models/eventModel");
 // const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
-const e = require("express");
 const logActivity = require("../models/logActivityModel");
-const { populate } = require("../models/productModel");
 
 exports.createEvent = async (req, res) => {
   let status = "failure";
@@ -55,6 +53,8 @@ exports.createEvent = async (req, res) => {
       description: "Event creation",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -106,6 +106,8 @@ exports.editEvent = async (req, res) => {
       description: "Event update",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -142,6 +144,8 @@ exports.deleteEvent = async (req, res) => {
       description: "Event deletion",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -256,6 +260,8 @@ exports.getAllEventsForAdmin = async (req, res) => {
       description: "Event list",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status: Status,
       errorMessage,
     });

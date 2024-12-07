@@ -89,6 +89,8 @@ exports.createAdmin = async (req, res) => {
       description: "Admin creation",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -122,6 +124,8 @@ exports.getAdmin = async (req, res) => {
       description: "Get admin details",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -171,6 +175,8 @@ exports.getAllAdmins = async (req, res) => {
       description: "Get all admins",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status: Status,
       errorMessage,
     });
@@ -214,6 +220,8 @@ exports.fetchAdmin = async (req, res) => {
       description: "Get admin details",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -281,6 +289,8 @@ exports.updateAdmin = async (req, res) => {
       description: "Admin update",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -326,6 +336,8 @@ exports.deleteAdmin = async (req, res) => {
       description: "Admin deletion",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });

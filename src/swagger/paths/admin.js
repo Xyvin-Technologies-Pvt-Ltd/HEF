@@ -43,6 +43,7 @@
  *       - Admin
  *     security:
  *       - BearerAuth: []
+//  *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:

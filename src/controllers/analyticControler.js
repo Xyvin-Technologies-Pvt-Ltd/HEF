@@ -4,6 +4,17 @@ const Analytic = require("../models/analyticModel");
 
 exports.sendRequest = async (req, res) => {
   try {
+    if (req.role === "admin") {
+      const check = await checkAccess(req.roleId, "permissions");
+      if (!check || !check.includes("activityManagement_modify")) {
+        return responseHandler(
+          res,
+          403,
+          "You don't have permission to perform this action"
+        );
+      }
+    }
+
     const { error } = validations.createAnalyticSchema.validate(req.body, {
       abortEarly: true,
     });
@@ -11,7 +22,9 @@ exports.sendRequest = async (req, res) => {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
 
-    req.body.sender = req.userId;
+    if (req.role !== "admin") {
+      req.body.sender = req.userId;
+    }
 
     const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
@@ -49,7 +62,7 @@ exports.getRequests = async (req, res) => {
         username = data.sender.name;
         user_image = data.sender.image;
       }
-      
+
       return {
         username,
         user_image,
