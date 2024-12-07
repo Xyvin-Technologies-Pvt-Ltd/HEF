@@ -820,7 +820,7 @@ exports.createMember = async (req, res) => {
 
 exports.analyticReview = async (req, res) => {
   try {
-    const id = req.userId;
+    const id = req.params.userId;
     if (!id) {
       return responseHandler(res, 400, "User ID is required");
     }

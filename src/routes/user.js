@@ -35,6 +35,6 @@ userRoute.put("/unblock/:id", userController.unblockUser);
 userRoute.patch("/admin/block-user/:id", userController.adminUserBlock);
 userRoute.patch("/admin/unblock-user/:id", userController.adminUserUnblock);
 
-userRoute.patch("/analytic-review", userController.analyticReview);
+userRoute.patch("/analytic-review/:userId", userController.analyticReview);
 
 module.exports = userRoute;

@@ -1231,12 +1231,20 @@
 
 /**
  * @swagger
- * /user/analytic-review:
+ * /user/analytic-review/{userId}:
  *   patch:
  *     summary: Get user stats
  *     description: Retrieves the user's total products count, feeds count, and reviews, including reviewer details and comments.
  *     tags:
  *       - User
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the admin to retrieve
+ *         schema:
+ *           type: string
+ *           example: "6123abc456def7890ghi1234"
  *     responses:
  *       200:
  *         description: User stats retrieved successfully
