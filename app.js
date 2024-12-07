@@ -25,6 +25,7 @@ const reviewRoute = require("./src/routes/review");
 const analyticRoute = require("./src/routes/analytic");
 const chatRoute = require("./src/routes/chat");
 const subscriptionRoute = require("./src/routes/subscription");
+const userAccessRoute = require("./src/routes/userAccess");
 
 //! Create an instance of the Express application
 const app = express();
@@ -74,6 +75,7 @@ app.use(`${BASE_PATH}/review`, reviewRoute);
 app.use(`${BASE_PATH}/analytic`, analyticRoute);
 app.use(`${BASE_PATH}/chat`, chatRoute);
 app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
+app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 
 app.all("*", (req, res) => {
   return responseHandler(res, 404, "No API Found..!");
