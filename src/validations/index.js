@@ -417,6 +417,7 @@ exports.createMemberSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
+  chapter:Joi.string().required(),
   company: Joi.object({
     name: Joi.string(),
     designation: Joi.string(),

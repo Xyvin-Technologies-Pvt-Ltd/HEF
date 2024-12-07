@@ -315,6 +315,15 @@ exports.getRegEvents = async (req, res) => {
 };
 
 exports.markAttendance = async (req, res) => {
+  const check = req.user;
+  if (check.role == "member") {
+    return responseHandler(
+      res,
+      403,
+      "You don't have permission to perform this action"
+    );
+  }
+
   const { eventId } = req.params;
   const { userId } = req.body;
 
@@ -378,6 +387,15 @@ exports.markAttendance = async (req, res) => {
 };
 
 exports.getAttendedUsers = async (req, res) => {
+  const check = req.user;
+  if (check.role == "member") {
+    return responseHandler(
+      res,
+      403,
+      "You don't have permission to perform this action"
+    );
+  }
+
   const { eventId } = req.params;
 
   if (!eventId) {

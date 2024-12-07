@@ -1188,6 +1188,10 @@
  *                 type: string
  *                 description: Business subcategory of the member.
  *                 example: "Fitness Coaching"
+ *               chapter:
+ *                 type: string
+ *                 description: chapter id.
+ *                 example: "673daf5791ec0506dccd130c" 
  *               company:
  *                 type: object
  *                 properties:

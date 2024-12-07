@@ -131,9 +131,9 @@ exports.createUser = async (req, res) => {
       );
     }
     const uniqueMemberId = await generateUniqueDigit();
-    const chapter = await Chapter.findById(req.body.chapter); 
-    const district = await District.findById(chapter.districtId);   
-    
+    const chapter = await Chapter.findById(req.body.chapter);
+    const district = await District.findById(chapter.districtId);
+
     const maxLength = 3;
 
     const shortDistrictName = district.name.substring(0, maxLength);
@@ -782,11 +782,9 @@ exports.listUserIdName = async (req, res) => {
   }
 };
 
-
-
 exports.createMember = async (req, res) => {
   try {
-    const check = req.user
+    const check = req.user;
     if (check.role == "member") {
       return responseHandler(
         res,
