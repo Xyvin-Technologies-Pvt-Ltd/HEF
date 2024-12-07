@@ -363,3 +363,22 @@
  *       500:
  *         description: Internal Server Error
  */
+
+/**
+ * @swagger
+ * /product/myproducts:
+ *   get:
+ *     summary: Fetch products created by the logged-in user
+ *     description: Retrieves a list of products associated with the authenticated user.
+ *     tags:
+ *       - Product
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *       400:
+ *         description: Missing User ID
+ *       404:
+ *         description: No products found
+ *       500:
+ *         description: Internal Server Error
+ */

@@ -297,3 +297,31 @@ exports.getUserProducts = async (req, res) => {
 //     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
 //   }
 // };
+
+
+exports.fetchMyProducts = async (req, res) => {
+  try {
+    const id = req.userId;
+    if (!id) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    
+    const products = await Product.find({ seller: id })
+      .populate("seller", "name email phone")
+      .sort({ createdAt: -1 }); 
+
+    if (!products.length) {
+      return responseHandler(res, 404, "No products found");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Products fetched successfully!",
+      products
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
