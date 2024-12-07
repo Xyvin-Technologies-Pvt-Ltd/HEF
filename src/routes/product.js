@@ -12,6 +12,7 @@ productRoute
 productRoute.get("/", productController.getUserProducts);
 
 productRoute.get("/myproducts", productController.fetchMyProducts);
+productRoute.get("/admin/:userId", productController.fetchUserProducts);
 
 productRoute
   .route("/single/:id")

@@ -172,8 +172,8 @@ exports.updateFeeds = async (req, res) => {
       return responseHandler(res, 404, "Feeds not found");
     }
 
-    const toUser = await User.findById(findFeeds.author).select("fcm");
-    const fcmUser = [toUser.fcm];
+    // const toUser = await User.findById(findFeeds.author).select("fcm");
+    // const fcmUser = [toUser.fcm];
 
     // await sendInAppNotification(
     //   fcmUser,
