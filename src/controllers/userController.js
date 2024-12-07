@@ -14,6 +14,7 @@ const sendSelfMail = require("../utils/sendSelfMail");
 const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const Review = require("../models/reviewModel");
+const { isUserAdmin } = require("../utils/adminCheck");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -424,11 +425,16 @@ exports.fetchUser = async (req, res) => {
 
       const productCount = await Products.countDocuments({ seller: id });
 
+      const adminDetails = await isUserAdmin(id);
+
       const userResponse = {
         ...findUser._doc,
         profileCompletion: findUser.profileCompletion,
         feedsCount,
         productCount,
+        isAdmin: adminDetails ? true : false,
+        adminType: adminDetails?.type || null,
+        levelName: adminDetails?.name || null,
       };
 
       return responseHandler(

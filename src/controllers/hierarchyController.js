@@ -492,121 +492,28 @@ exports.updateChapter = async (req, res) => {
   }
 };
 
-//member
-
-exports.createMember = async (req, res) => {
-  try {
-    
-    const createMemberValidator = validations.createMemberSchema.validate(
-      req.body,
-      {
-        abortEarly: true,
-      }
-    );
-
-    if (createMemberValidator.error) {
-      return responseHandler(
-        res,
-        400,
-        `Invalid input: ${createMemberValidator.error}`
-      );
-    }
-
-    const newMember = await Member.create(req.body);
-    if (!newMember) {
-      return responseHandler(res, 400, `member creation failed...!`);
-    }
-    return responseHandler(
-      res,
-      201,
-      `New member created successfullyy..!`,
-      newMember
-    );
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-  }
-};
-
-exports.getMember = async (req, res) => {
-  try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_view")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-    const { id } = req.params;
-
-    if (!id) {
-      return responseHandler(res, 400, "member with this Id is required");
-    }
-
-    const findMember = await Member.findById(id);
-    if (findMember) {
-      return responseHandler(
-        res,
-        200,
-        `zone found successfully..!`,
-        findMember
-      );
-    }
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-  }
-};
-
-exports.updateMember = async (req, res) => {
-  try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("hierarchyManagement_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
-    const { id } = req.params;
-
-    if (!id) {
-      return responseHandler(res, 400, "member Id is required");
-    }
-
-    const { error } = validations.editMemberSchema.validate(req.body, {
-      abortEarly: true,
-    });
-
-    if (error) {
-      return responseHandler(res, 400, `Invalid input: ${error.message}`);
-    }
-
-    const updateMember = await Member.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (this.updateMember) {
-      return responseHandler(
-        res,
-        200,
-        `member updated successfully..!`,
-        updateMember
-      );
-    }
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
-  }
-};
-
 exports.getLevels = async (req, res) => {
   try {
-    // const check = await checkAccess(req.roleId, "permissions");
-    // if (!check || !check.includes("hierarchyManagement_view")) {
-    //   return responseHandler(
-    //     res,
-    //     403,
-    //     "You don't have permission to perform this action"
-    //   );
-    // }                                                                   //todo check access for admin and psrt
+    if (req.role == "admin") {
+      const check = await checkAccess(req.roleId, "permissions");
+      if (!check || !check.includes("hierarchyManagement_view")) {
+        return responseHandler(
+          res,
+          403,
+          "You don't have permission to perform this action"
+        );
+      }
+    } else if (req.role == "user") {
+      const check = req.user;
+      if (check.role == "member") {
+        return responseHandler(
+          res,
+          403,
+          "You don't have permission to perform this action"
+        );
+      }
+    }
+
     const { id, type } = req.params;
 
     if (!id) {
