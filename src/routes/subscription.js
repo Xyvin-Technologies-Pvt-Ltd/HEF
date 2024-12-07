@@ -15,4 +15,6 @@ subscriptionRoute
   .put(subscriptionController.updateSubscription)
   .get(subscriptionController.getSubscriptionByUser);
 
+subscriptionRoute.get("/user", subscriptionController.getUserSubscription);
+
 module.exports = subscriptionRoute;
