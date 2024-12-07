@@ -124,10 +124,6 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     const totalCount = await Feeds.countDocuments(filter);
     const data = await Feeds.find(filter)
       .populate("author", "name")
-      .populate({
-        path: "comment.user",
-        select: "name image",
-      })
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
