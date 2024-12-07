@@ -11,10 +11,13 @@ adminRoute
   .route("/")
   .post(adminController.createAdmin)
   .get(adminController.getAdmin);
-adminRoute.put("/:id", adminController.updateAdmin);
-adminRoute.delete("/:id", adminController.deleteAdmin);
-adminRoute.route("/single/:id").get(adminController.fetchAdmin);
 
 adminRoute.get("/list", adminController.getAllAdmins);
+
+adminRoute
+  .route("/profile/:id")
+  .get(adminController.fetchAdmin)
+  .put(adminController.updateAdmin)
+  .delete(adminController.deleteAdmin);
 
 module.exports = adminRoute;
