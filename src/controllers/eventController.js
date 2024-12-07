@@ -222,6 +222,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
     }
     const events = await Event.find(filter)
       .populate("rsvp", "name phone memberId")
+      .populate("coordinator", "name phone memberId image role")
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
