@@ -147,6 +147,15 @@ exports.getUserNotifications = async (req, res) => {
 
 exports.createLevelNotification = async (req, res) => {
   try {
+    const check = req.user;
+    if (check.role == "member") {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
     const { error } = validations.createNotificationSchema.validate(req.body, {
       abortEarly: true,
     });
