@@ -219,7 +219,7 @@ exports.createProductSchema = Joi.object({
 });
 
 exports.updateProductSchema = Joi.object({
-  seller: Joi.string().required(),
+  seller: Joi.string(),
   name: Joi.string(),
   image: Joi.string(),
   price: Joi.number(),

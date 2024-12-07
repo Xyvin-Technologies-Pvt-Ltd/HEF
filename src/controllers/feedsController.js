@@ -109,6 +109,8 @@ exports.getAllFeeds = async (req, res) => {
 };
 
 exports.getAllFeedsForAdmin = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const { pageNo = 1, status, limit = 10, search } = req.query;
     const skipCount = 10 * (pageNo - 1);
@@ -132,6 +134,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
         authorName: user.author.name || "",
       };
     });
+    status = "success";
     return responseHandler(
       res,
       200,
@@ -140,7 +143,20 @@ exports.getAllFeedsForAdmin = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "feed",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
