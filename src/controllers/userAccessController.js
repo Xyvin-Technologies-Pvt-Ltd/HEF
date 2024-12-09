@@ -7,7 +7,7 @@ const logActivity = require("../models/logActivityModel");
 
 
 exports.createAccess = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -26,7 +26,7 @@ exports.createAccess = async (req, res) => {
     if (!newAccess) {
       return responseHandler(res, 400, "Access creation failed!");
     }
-    status = "success";
+    Status = "success";
 
     return responseHandler(res, 201, "Access created successfully!", newAccess);
   } catch (error) {
@@ -41,14 +41,14 @@ exports.createAccess = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status:Status,
       errorMessage,
     });
   }
 };
 
 exports.getAccess = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -60,7 +60,7 @@ exports.getAccess = async (req, res) => {
     if (!accessList.length) {
       return responseHandler(res, 404, "No access entries found!");
     }
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -79,7 +79,7 @@ exports.getAccess = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status:Status,
       errorMessage,
     });
   }

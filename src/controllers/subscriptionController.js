@@ -42,20 +42,36 @@ exports.createSubscription = async (req, res) => {
 
 exports.getSubscriptions = async (req, res) => {
   try {
-    const subscription = await Subscription.find();
-    if (!subscription) {
-      return responseHandler(res, 400, `Subscription not found...!`);
+    const subscriptions = await Subscription.find()
+      .populate("user", "name image")
+      .sort({ createdAt: -1, _id: 1 })
+      .lean();
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return responseHandler(res, 400, `Subscriptions not found...!`);
     }
+
+
+    const result = subscriptions.map((sub) => ({
+      _id: sub._id,
+      status: sub.status,
+      createdAt: sub.createdAt,
+      updatedAt: sub.updatedAt,
+      userName: sub.user?.name || "",
+      userImage: sub.user?.image || "",
+    }));
+
     return responseHandler(
       res,
       200,
-      `Subscription found successfully`,
-      subscription
+      `Subscriptions found successfully`,
+      result
     );
   } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
 
 exports.updateSubscription = async (req, res) => {
   try {
