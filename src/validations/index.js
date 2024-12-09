@@ -322,7 +322,7 @@ exports.editUserSchema = Joi.object({
 
 exports.updateUserSchema = Joi.object({
   name: Joi.string().required(),
-  uid: Joi.string().required(),
+  uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   role: Joi.string(),
