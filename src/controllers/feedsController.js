@@ -110,7 +110,7 @@ exports.getAllFeeds = async (req, res) => {
 };
 
 exports.getAllFeedsForAdmin = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const { pageNo = 1, status, limit = 10, search } = req.query;
@@ -135,7 +135,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
         authorName: user.author.name || "",
       };
     });
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -155,7 +155,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status:Status,
       errorMessage,
     });
   }
