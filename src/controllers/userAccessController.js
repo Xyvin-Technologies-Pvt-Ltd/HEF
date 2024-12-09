@@ -54,8 +54,7 @@ exports.getAccess = async (req, res) => {
 };
 
 exports.editAccess = async (req, res) => {
-  let status = "failure";
-  let errorMessage = null;
+
   try {
     
 
@@ -78,7 +77,7 @@ exports.editAccess = async (req, res) => {
     if (!updatedAccess) {
       return responseHandler(res, 404, "Access entry not found!");
     }
-    status = "success";
+
     return responseHandler(
       res,
       200,
@@ -86,19 +85,7 @@ exports.editAccess = async (req, res) => {
       updatedAccess
     );
   } catch (error) {
-    errorMessage = error.message;
+
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
-  } finally {
-    await logActivity.create({
-      admin: req.user,
-      type: "userAccess",
-      description: "Admin creation",
-      apiEndpoint: req.originalUrl,
-      httpMethod: req.method,
-      host: req.headers.host,
-      agent: req.headers["user-agent"],
-      status,
-      errorMessage,
-    });
-  }
+  } 
 };
