@@ -2,6 +2,7 @@ const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const Role = require("../models/roleModel");
 const validations = require("../validations");
+const logActivity = require("../models/logActivityModel");
 
 exports.createRole = async (req, res) => {
   let status = "failure";

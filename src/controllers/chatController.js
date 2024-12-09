@@ -7,6 +7,7 @@ const { getReceiverSocketId, chatNamespace, io } = require("../socket");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
+
 exports.sendMessage = async (req, res) => {
   const { content, isGroup, feed } = req.body;
   const to = req.params.id;

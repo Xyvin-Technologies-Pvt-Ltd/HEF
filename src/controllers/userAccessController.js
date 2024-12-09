@@ -2,6 +2,9 @@ const responseHandler = require("../helpers/responseHandler");
 const UserAccess = require("../models/userAccessModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
+const logActivity = require("../models/logActivityModel");
+
+
 
 exports.createAccess = async (req, res) => {
   let status = "failure";

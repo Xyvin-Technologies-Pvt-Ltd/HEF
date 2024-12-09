@@ -1,7 +1,6 @@
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
 const Analytic = require("../models/analyticModel");
-const checkAccess = require("../helpers/checkAccess");
 
 exports.sendRequest = async (req, res) => {
   try {
