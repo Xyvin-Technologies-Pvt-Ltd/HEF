@@ -1,5 +1,6 @@
 const responseHandler = require("../helpers/responseHandler");
 const Feeds = require("../models/feedsModel");
+const logActivity = require("../models/logActivityModel");
 const User = require("../models/userModel");
 // const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");

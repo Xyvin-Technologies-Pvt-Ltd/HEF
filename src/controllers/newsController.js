@@ -4,6 +4,7 @@ const News = require("../models/newsModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
+const logActivity = require("../models/logActivityModel");
 
 exports.createNews = async (req, res) => {
   let status = "failure";

@@ -2,7 +2,7 @@ const responseHandler = require("../helpers/responseHandler");
 const Product = require("../models/productModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
-
+const logActivity = require("../models/logActivityModel");
 // Create a new product - admin
 exports.createProduct = async (req, res) => {
   let status = "failure";
