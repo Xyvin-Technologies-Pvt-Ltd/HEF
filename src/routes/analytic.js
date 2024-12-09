@@ -11,6 +11,7 @@ analyticRoute
   .get(analyticControler.getRequests);
 
 analyticRoute.post("/status", analyticControler.updateRequestStatus);
-analyticRoute.delete("/:id", analyticControler.deleteRequestById);
+analyticRoute.delete("/:requestId", analyticControler.deleteRequestById);
+
 
 module.exports = analyticRoute;
