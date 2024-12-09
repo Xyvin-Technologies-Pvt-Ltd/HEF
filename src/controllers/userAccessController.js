@@ -10,10 +10,7 @@ exports.createAccess = async (req, res) => {
   let Status = "failure";
   let errorMessage = null;
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("accessManagement_modify")) {
-      return responseHandler(res, 403, "Permission denied!");
-    }
+    
 
     const { error } = validations.createAccessSchema.validate(req.body, {
       abortEarly: true,
@@ -51,10 +48,7 @@ exports.getAccess = async (req, res) => {
   let Status = "failure";
   let errorMessage = null;
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("accessManagement_view")) {
-      return responseHandler(res, 403, "Permission denied!");
-    }
+    
 
     const accessList = await UserAccess.find();
     if (!accessList.length) {
@@ -89,10 +83,7 @@ exports.editAccess = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("accessManagement_modify")) {
-      return responseHandler(res, 403, "Permission denied!");
-    }
+    
 
     const { id } = req.params;
     if (!id) {
