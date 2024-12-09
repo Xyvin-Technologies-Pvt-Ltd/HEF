@@ -68,12 +68,18 @@ exports.getRequests = async (req, res) => {
         .limit(limit)
         .sort({ createdAt: -1, _id: 1 })
         .lean();
-
+      const adminData = data.map((user) => {
+        return {
+          ...user,
+          senderName: user.sender.name || "",
+          memberName: user.member.name || "",
+        };
+      });
       return responseHandler(
         res,
         200,
         "Requests fetched successfully",
-        data,
+        adminData,
         totalCount
       );
     }
