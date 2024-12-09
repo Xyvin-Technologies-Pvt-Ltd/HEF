@@ -51,27 +51,25 @@ exports.getSubscriptions = async (req, res) => {
       return responseHandler(res, 400, `Subscriptions not found...!`);
     }
 
-
-    const result = subscriptions.map((sub) => ({
+    const data = subscriptions.map((sub) => ({
       _id: sub._id,
       status: sub.status,
-      createdAt: sub.createdAt,
-      updatedAt: sub.updatedAt,
       userName: sub.user?.name || "",
       userImage: sub.user?.image || "",
+      createdAt: sub.createdAt,
+      updatedAt: sub.updatedAt,
     }));
 
     return responseHandler(
       res,
       200,
       `Subscriptions found successfully`,
-      result
+      data
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 exports.updateSubscription = async (req, res) => {
   try {
