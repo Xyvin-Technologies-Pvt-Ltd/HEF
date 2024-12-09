@@ -9,15 +9,16 @@ productRoute
   .route("/admin")
   .post(productController.createProduct)
   .get(productController.getAllProducts);
-productRoute
-  .route("/")
-  .get(productController.getUserProducts);
+productRoute.get("/", productController.getUserProducts);
+
+productRoute.get("/myproducts", productController.fetchMyProducts);
+productRoute.get("/admin/:userId", productController.fetchUserProducts);
+
 productRoute
   .route("/single/:id")
   .get(productController.getProduct)
   .put(productController.updateProduct)
-  .delete(productController.deleteProduct);
-
+  .delete(productController.deleteProduct);  //admin
 
 productRoute.route("/user").post(productController.createProductByUser);
 

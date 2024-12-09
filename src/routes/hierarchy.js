@@ -27,11 +27,6 @@ hierarchyRoute.post("/chapter", hierarchyController.createChapter);
 hierarchyRoute.get("/chapter/:id", hierarchyController.getChapter);
 hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 
-// Member Routes
-hierarchyRoute.post("/member", hierarchyController.createMember);
-hierarchyRoute.get("/member/:id", hierarchyController.getMember);
-hierarchyRoute.put("/member/:id", hierarchyController.updateMember);
-
 hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
 hierarchyRoute.get("/list/:type", hierarchyController.getHierarchyList);
 

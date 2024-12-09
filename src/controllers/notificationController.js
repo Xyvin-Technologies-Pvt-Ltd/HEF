@@ -71,10 +71,12 @@ exports.createNotification = async (req, res) => {
         userFCM,
         req.body.subject,
         req.body.content,
-        media,
-        "https://hef.page.link/notifications_page"
+        media
       );
     }
+
+    req.body.senderModel = "Admin";
+    req.body.sender = req.userId;
 
     const createNotification = await Notification.create(req.body);
     return responseHandler(
@@ -137,6 +139,60 @@ exports.getUserNotifications = async (req, res) => {
       200,
       `Notifications fetched successfullyy..!`,
       notifications
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.createLevelNotification = async (req, res) => {
+  try {
+    const check = req.user;
+    if (check.role == "member") {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { error } = validations.createNotificationSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const { users, media } = req.body;
+
+    req.body.senderModel = "User";
+    req.body.sender = req.userId;
+    let userFCM = [];
+
+    if (users.length > 0) {
+      for (let i = 0; i < users.length; i++) {
+        const id = users[i].user;
+        const findUser = await User.findById(id);
+        if (findUser) {
+          if (!findUser.fcm) continue;
+          userFCM.push(findUser.fcm);
+        }
+      }
+    }
+    await sendInAppNotification(
+      userFCM,
+      req.body.subject,
+      req.body.content,
+      media
+    );
+
+    const createNotification = await Notification.create(req.body);
+    return responseHandler(
+      res,
+      200,
+      `Notification created successfullyy..!`,
+      createNotification
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);

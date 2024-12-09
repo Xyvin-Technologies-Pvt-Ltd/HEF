@@ -119,7 +119,7 @@
 
 /**
  * @swagger
- * /admin/single/{id}:
+ * /admin/profile/{id}:
  *   get:
  *     summary: Get a Admin by ID
  *     description: Retrieves a admin's details based on the provided admin ID. Access is restricted based on permissions.
@@ -148,7 +148,7 @@
 
 /**
  * @swagger
- * /admin/{id}:
+ * /admin/profile/{id}:
  *   put:
  *     summary: Update an existing admin
  *     description: API endpoint to update an existing admin
@@ -193,9 +193,10 @@
  *       404:
  *         description: Admin not found
  */
+
 /**
  * @swagger
- * /admin/{id}:
+ * /admin/profile/{id}:
  *   delete:
  *     summary: Delete an existing admin
  *     description: API endpoint to delete an existing admin by their unique identifier

@@ -17,6 +17,13 @@ exports.createSubscription = async (req, res) => {
       );
     }
 
+    const findSubscription = await Subscription.findOne({
+      user: req.body.user,
+    });
+    if (findSubscription) {
+      return responseHandler(res, 400, "Subscription already exists");
+    }
+
     const newSubscription = await Subscription.create(req.body);
 
     if (!newSubscription) {
@@ -103,6 +110,27 @@ exports.getSubscriptionByUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
     const findSubscription = await Subscription.findOne({ user: id });
+    if (!findSubscription) {
+      return responseHandler(res, 404, "Subscription not found");
+    }
+    return responseHandler(
+      res,
+      200,
+      `Subscription found successfully`,
+      findSubscription
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getUserSubscription = async (req, res) => {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+    const findSubscription = await Subscription.findOne({ user: userId });
     if (!findSubscription) {
       return responseHandler(res, 404, "Subscription not found");
     }

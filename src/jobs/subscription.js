@@ -28,6 +28,7 @@ cron.schedule("0 0 * * *", async () => {
         subject: `Your subscription is expiring soon!`,
         content: `Your subscription to our app is expiring soon. Please renew your subscription to continue using our app.`,
         type: "in-app",
+        senderModel: "Cronjob",
       });
 
       await sendInAppNotification(
@@ -55,6 +56,7 @@ cron.schedule("0 0 * * *", async () => {
         subject: `Your subscription has expired!`,
         content: `Your subscription to our app has expired. Please renew your subscription to continue using our app.`,
         type: "in-app",
+        senderModel: "Cronjob",
       });
 
       await sendInAppNotification(

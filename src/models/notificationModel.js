@@ -16,6 +16,14 @@ const notificationSchema = mongoose.Schema(
       type: String,
       enum: ["email", "in-app"],
     },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "senderModel",
+    },
+    senderModel: {
+      type: String,
+      enum: ["User", "Admin", "Cronjob"],
+    },
   },
   { timestamps: true }
 );

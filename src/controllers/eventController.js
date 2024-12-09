@@ -4,9 +4,7 @@ const validations = require("../validations");
 const Event = require("../models/eventModel");
 // const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
-const e = require("express");
 const logActivity = require("../models/logActivityModel");
-const { populate } = require("../models/productModel");
 
 exports.createEvent = async (req, res) => {
   let status = "failure";
@@ -55,6 +53,8 @@ exports.createEvent = async (req, res) => {
       description: "Event creation",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -106,6 +106,8 @@ exports.editEvent = async (req, res) => {
       description: "Event update",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -142,6 +144,8 @@ exports.deleteEvent = async (req, res) => {
       description: "Event deletion",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status,
       errorMessage,
     });
@@ -150,25 +154,26 @@ exports.deleteEvent = async (req, res) => {
 
 exports.getSingleEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id).populate(
-      "rsvp",
-      "name phone memberId"
-    );
+    const event = await Event.findById(req.params.id)
+      .populate("rsvp", "name phone memberId")
+      .populate("attented", "name phone memberId")
+      .populate("coordinator", "name phone memberId image role");
     const mappedData = {
       ...event._doc,
       rsvpCount: event.rsvp.length,
       rsvp: event.rsvp.map((rsvp) => {
-        let fullName = rsvp.name.first;
-        if (rsvp.name.middle) {
-          fullName += ` ${rsvp.name.middle}`;
-        }
-        if (rsvp.name.last) {
-          fullName += ` ${rsvp.name.last}`;
-        }
         return {
-          name: fullName,
+          name: rsvp.name,
           phone: rsvp.phone,
           memberId: rsvp.memberId,
+        };
+      }),
+      attendedCount: event.attented.length,
+      attented: event.attented.map((attented) => {
+        return {
+          name: attented.name,
+          phone: attented.phone,
+          memberId: attented.memberId,
         };
       }),
     };
@@ -217,6 +222,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
     }
     const events = await Event.find(filter)
       .populate("rsvp", "name phone memberId")
+      .populate("coordinator", "name phone memberId image role")
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
@@ -228,7 +234,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
         rsvp: event.rsvp.map((rsvp) => {
           return {
             _id: rsvp._id,
-            name: `${rsvp.name?.first} ${rsvp.name?.middle} ${rsvp.name?.last}`,
+            name: rsvp.name,
             memberId: rsvp.memberId,
           };
         }),
@@ -256,6 +262,8 @@ exports.getAllEventsForAdmin = async (req, res) => {
       description: "Event list",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
       status: Status,
       errorMessage,
     });
@@ -277,15 +285,13 @@ exports.addRSVP = async (req, res) => {
 
     findEvent.rsvp.push(req.userId);
 
-    findEvent.regCount = (findEvent.regCount || 0) + 1;
-
     await findEvent.save();
 
     const user = await User.findById(req.userId).select("fcm");
 
     const topic = `event_${id}`;
     const fcmToken = user.fcm;
-    await getMessaging().subscribeToTopic(fcmToken, topic);
+    // await getMessaging().subscribeToTopic(fcmToken, topic);
 
     return responseHandler(res, 200, "RSVP added successfully", {
       regCount: findEvent.regCount,
@@ -315,6 +321,15 @@ exports.getRegEvents = async (req, res) => {
 };
 
 exports.markAttendance = async (req, res) => {
+  const check = req.user;
+  if (check.role == "member") {
+    return responseHandler(
+      res,
+      403,
+      "You don't have permission to perform this action"
+    );
+  }
+
   const { eventId } = req.params;
   const { userId } = req.body;
 
@@ -378,6 +393,15 @@ exports.markAttendance = async (req, res) => {
 };
 
 exports.getAttendedUsers = async (req, res) => {
+  const check = req.user;
+  if (check.role == "member") {
+    return responseHandler(
+      res,
+      403,
+      "You don't have permission to perform this action"
+    );
+  }
+
   const { eventId } = req.params;
 
   if (!eventId) {
@@ -386,8 +410,16 @@ exports.getAttendedUsers = async (req, res) => {
 
   try {
     const event = await Event.findById(eventId)
-      .populate("rsvp", "name email image regCount")
+      .populate("rsvp", "name email image")
       .populate("attented", "name email image");
+
+    const rsvpUserIds = new Set(event.rsvp.map((user) => user._id.toString()));
+
+    const newlyReg = event.attented.filter(
+      (user) => !rsvpUserIds.has(user._id.toString())
+    );
+
+    const uniqueUsersCount = newlyReg.length;
 
     if (!event) {
       return responseHandler(res, 404, "Event not found.");
@@ -400,7 +432,7 @@ exports.getAttendedUsers = async (req, res) => {
       {
         registeredUsers: event.rsvp,
         attendedUsers: event.attented,
-        regCount: event.regCount,
+        uniqueUsersCount,
       }
     );
   } catch (error) {

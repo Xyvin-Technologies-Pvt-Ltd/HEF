@@ -23,6 +23,8 @@ const logActivitySchema = mongoose.Schema(
       type: String,
       enum: ["success", "failure"],
     },
+    host: { type: String },
+    agent: { type: String },
     errorMessage: {
       type: String,
       default: null,

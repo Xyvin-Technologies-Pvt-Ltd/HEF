@@ -2,9 +2,11 @@ const responseHandler = require("../helpers/responseHandler");
 const Product = require("../models/productModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
-
+const logActivity = require("../models/logActivityModel");
 // Create a new product - admin
 exports.createProduct = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("productManagement_modify")) {
@@ -31,7 +33,7 @@ exports.createProduct = async (req, res) => {
     if (!newProduct) {
       return responseHandler(res, 400, "Product creation failed!");
     }
-
+    status = "success";
     return responseHandler(
       res,
       201,
@@ -39,12 +41,27 @@ exports.createProduct = async (req, res) => {
       newProduct
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "product",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 // Get a single product by ID - admin
 exports.getProduct = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("productManagement_view")) {
@@ -61,18 +78,35 @@ exports.getProduct = async (req, res) => {
     }
 
     const product = await Product.findById(id);
+    status = "success";
     if (product) {
+
       return responseHandler(res, 200, "Product found successfully!", product);
     } else {
       return responseHandler(res, 404, "Product not found");
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "product",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 // Update a product by ID - admin
 exports.updateProduct = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("productManagement_modify")) {
@@ -98,7 +132,9 @@ exports.updateProduct = async (req, res) => {
     const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+    status = "success";
     if (updatedProduct) {
+
       return responseHandler(
         res,
         200,
@@ -109,12 +145,27 @@ exports.updateProduct = async (req, res) => {
       return responseHandler(res, 404, "Product not found");
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "product",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 // Delete a product by ID - admin
 exports.deleteProduct = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("productManagement_modify")) {
@@ -126,18 +177,33 @@ exports.deleteProduct = async (req, res) => {
     }
 
     const { id } = req.params;
+
     if (!id) {
       return responseHandler(res, 400, "Product ID is required");
     }
 
     const deletedProduct = await Product.findByIdAndDelete(id);
+    status = "success";
     if (deletedProduct) {
       return responseHandler(res, 200, "Product deleted successfully!");
     } else {
       return responseHandler(res, 404, "Product not found");
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "product",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -297,3 +363,55 @@ exports.getUserProducts = async (req, res) => {
 //     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
 //   }
 // };
+
+exports.fetchMyProducts = async (req, res) => {
+  try {
+    const id = req.userId;
+    if (!id) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    const products = await Product.find({ seller: id })
+      .populate("seller", "name email phone")
+      .sort({ createdAt: -1 });
+
+    if (!products.length) {
+      return responseHandler(res, 404, "No products found");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Products fetched successfully!",
+      products
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.fetchUserProducts = async (req, res) => {
+  try {
+    const id = req.params.userId;
+    if (!id) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    const products = await Product.find({ seller: id })
+      .populate("seller", "name email phone")
+      .sort({ createdAt: -1 });
+
+    if (!products.length) {
+      return responseHandler(res, 404, "No products found");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Products fetched successfully!",
+      products
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

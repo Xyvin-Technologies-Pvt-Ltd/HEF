@@ -1188,6 +1188,10 @@
  *                 type: string
  *                 description: Business subcategory of the member.
  *                 example: "Fitness Coaching"
+ *               chapter:
+ *                 type: string
+ *                 description: chapter id.
+ *                 example: "673daf5791ec0506dccd130c" 
  *               company:
  *                 type: object
  *                 properties:
@@ -1220,6 +1224,34 @@
  *         description: Forbidden, user lacks necessary permissions
  *       409:
  *         description: Conflict, member with this email or phone already exists
+ *       500:
+ *         description: Internal Server Error
+ */
+
+
+/**
+ * @swagger
+ * /user/analytic-review/{userId}:
+ *   patch:
+ *     summary: Get user stats
+ *     description: Retrieves the user's total products count, feeds count, and reviews, including reviewer details and comments.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the admin to retrieve
+ *         schema:
+ *           type: string
+ *           example: "6123abc456def7890ghi1234"
+ *     responses:
+ *       200:
+ *         description: User stats retrieved successfully
+ *       400:
+ *         description: Missing User ID
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Internal Server Error
  */

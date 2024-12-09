@@ -18,12 +18,14 @@ const notificationRoute = require("./src/routes/notification");
 const reportRoute = require("./src/routes/report");
 const hierarchyRoute = require("./src/routes/hierarchy");
 
-const productRoute = require ("./src/routes/product")
-const userRoute = require ("./src/routes/user")
+const productRoute = require("./src/routes/product");
+const userRoute = require("./src/routes/user");
 const feedsRoute = require("./src/routes/feeds");
 const reviewRoute = require("./src/routes/review");
 const analyticRoute = require("./src/routes/analytic");
 const chatRoute = require("./src/routes/chat");
+const subscriptionRoute = require("./src/routes/subscription");
+const userAccessRoute = require("./src/routes/userAccess");
 
 //! Create an instance of the Express application
 const app = express();
@@ -62,24 +64,23 @@ app.use(`${BASE_PATH}/event`, eventRoute);
 app.use(`${BASE_PATH}/news`, newsRoute);
 app.use(`${BASE_PATH}/admin`, adminRoute);
 app.use(`${BASE_PATH}/role`, roleRoute);
-app.use(`${BASE_PATH}/promotion`,promotionRoute)
-app.use(`${BASE_PATH}/Notification`,notificationRoute)
-app.use(`${BASE_PATH}/report`,reportRoute)
-app.use(`${BASE_PATH}/hierarchy`,hierarchyRoute)
+app.use(`${BASE_PATH}/promotion`, promotionRoute);
+app.use(`${BASE_PATH}/notification`, notificationRoute);
+app.use(`${BASE_PATH}/report`, reportRoute);
+app.use(`${BASE_PATH}/hierarchy`, hierarchyRoute);
 app.use(`${BASE_PATH}/feeds`, feedsRoute);
 app.use(`${BASE_PATH}/product`, productRoute);
 app.use(`${BASE_PATH}/user`, userRoute);
 app.use(`${BASE_PATH}/review`, reviewRoute);
 app.use(`${BASE_PATH}/analytic`, analyticRoute);
 app.use(`${BASE_PATH}/chat`, chatRoute);
+app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
+app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 
-
-//* Handle all unmatched routes with a 404 error
 app.all("*", (req, res) => {
   return responseHandler(res, 404, "No API Found..!");
 });
 
-//! Start the server and listen on the specified port from environment variable
 app.listen(PORT, () => {
   const portMessage = clc.redBright(`✓ App is running on port: ${PORT}`);
   const envMessage = clc.yellowBright(

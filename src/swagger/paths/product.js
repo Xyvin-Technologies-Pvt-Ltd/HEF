@@ -363,3 +363,51 @@
  *       500:
  *         description: Internal Server Error
  */
+
+/**
+ * @swagger
+ * /product/myproducts:
+ *   get:
+ *     summary: Fetch products created by the logged-in user
+ *     description: Retrieves a list of products associated with the authenticated user.
+ *     tags:
+ *       - Product
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *       400:
+ *         description: Missing User ID
+ *       404:
+ *         description: No products found
+ *       500:
+ *         description: Internal Server Error
+ */
+
+
+/**
+ * @swagger
+ * /product/admin/{userId}:
+ *   get:
+ *     summary: Fetch products by user Id
+ *     description: Retrieves a list of products associated with the authenticated user.
+ *     tags:
+ *       - Product
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: The ID of the admin to retrieve
+ *         schema:
+ *           type: string
+ *           example: "6123abc456def7890ghi1234"
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ *       400:
+ *         description: Missing User ID
+ *       404:
+ *         description: No products found
+ *       500:
+ *         description: Internal Server Error
+ */
+

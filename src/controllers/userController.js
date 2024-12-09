@@ -13,6 +13,9 @@ const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
 const sendSelfMail = require("../utils/sendSelfMail");
 const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
+const Review = require("../models/reviewModel");
+const { isUserAdmin } = require("../utils/adminCheck");
+const logActivity = require("../models/logActivityModel");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -131,9 +134,9 @@ exports.createUser = async (req, res) => {
       );
     }
     const uniqueMemberId = await generateUniqueDigit();
-    const chapter = await Chapter.findById(req.body.chapter); 
-    const district = await District.findById(chapter.districtId);   
-    
+    const chapter = await Chapter.findById(req.body.chapter);
+    const district = await District.findById(chapter.districtId);
+
     const maxLength = 3;
 
     const shortDistrictName = district.name.substring(0, maxLength);
@@ -157,6 +160,8 @@ exports.createUser = async (req, res) => {
 };
 
 exports.editUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_modify")) {
@@ -190,13 +195,29 @@ exports.editUser = async (req, res) => {
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
+    status = "success";
     return responseHandler(res, 200, `User updated successfully`, editUser);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_view")) {
@@ -213,12 +234,25 @@ exports.getUser = async (req, res) => {
     }
 
     const findUser = await User.findById(id);
-
+    status = "success";
     if (findUser) {
       return responseHandler(res, 200, `User found successfull..!`, findUser);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Admin creation",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -239,6 +273,8 @@ exports.getSingleUser = async (req, res) => {
 };
 
 exports.deleteUser = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_modify")) {
@@ -255,6 +291,7 @@ exports.deleteUser = async (req, res) => {
     }
 
     const findUser = await User.findById(id);
+    status = "success";
     if (!findUser) {
       return responseHandler(res, 404, "User not found");
     }
@@ -266,11 +303,26 @@ exports.deleteUser = async (req, res) => {
         new: true,
       }
     );
+
+    status = "success";
     if (deleteUser) {
       return responseHandler(res, 200, `User deleted successfully..!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -305,6 +357,9 @@ exports.updateUser = async (req, res) => {
   }
 };
 exports.getAllUsers = async (req, res) => {
+  let Status = "failure";
+  let errorMessage = null;
+
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("memberManagement_view")) {
@@ -335,14 +390,20 @@ exports.getAllUsers = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
-    const mappedData = data.map((user) => {
-      return {
-        ...user,
-        name: user.name || "",
-        companyName: user?.company?.name || "",
-      };
-    });
-
+    const mappedData = await Promise.all(
+      data.map(async (user) => {
+        const adminDetails = await isUserAdmin(user._id);
+        return {
+          ...user,
+          name: user.name || "",
+          companyName: user?.company?.name || "",
+          isAdmin: adminDetails ? true : false,
+          adminType: adminDetails?.type || null,
+          levelName: adminDetails?.name || null,
+        };
+      })
+    );
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -351,7 +412,20 @@ exports.getAllUsers = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status: Status,
+      errorMessage,
+    });
   }
 };
 
@@ -423,11 +497,16 @@ exports.fetchUser = async (req, res) => {
 
       const productCount = await Products.countDocuments({ seller: id });
 
+      const adminDetails = await isUserAdmin(id);
+
       const userResponse = {
         ...findUser._doc,
         profileCompletion: findUser.profileCompletion,
         feedsCount,
         productCount,
+        isAdmin: adminDetails ? true : false,
+        adminType: adminDetails?.type || null,
+        levelName: adminDetails?.name || null,
       };
 
       return responseHandler(
@@ -458,19 +537,10 @@ exports.loginUser = async (req, res) => {
       .then(async (decodedToken) => {
         user = await User.findOne({ phone: decodedToken.phone_number });
         if (!user) {
-          const uniqueMemberId = await generateUniqueDigit();
-          const newUser = await User.create({
-            uid: decodedToken.uid,
-            phone: decodedToken.phone_number,
-            memberId: `HEF-${uniqueMemberId}`,
-            fcm,
-          });
-          const token = generateToken(newUser._id);
           return responseHandler(
             res,
-            200,
-            "User logged in successfully",
-            token
+            400,
+            "User with this phone number does not exist"
           );
         } else if (user.uid !== null) {
           user.fcm = fcm;
@@ -694,6 +764,9 @@ exports.unblockUser = async (req, res) => {
 };
 
 exports.adminUserBlock = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+
   try {
     const { id } = req.params;
     if (!id) {
@@ -715,16 +788,32 @@ exports.adminUserBlock = async (req, res) => {
       },
       { new: true }
     );
+    status = "success";
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
     return responseHandler(res, 200, `User blocked successfully`);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.adminUserUnblock = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const { id } = req.params;
     if (!id) {
@@ -741,12 +830,27 @@ exports.adminUserUnblock = async (req, res) => {
       },
       { new: true }
     );
+
+    status = "success";
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
     }
     return responseHandler(res, 200, `User unblocked successfully`);
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "user",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -782,11 +886,9 @@ exports.listUserIdName = async (req, res) => {
   }
 };
 
-
-
 exports.createMember = async (req, res) => {
   try {
-    const check = req.user
+    const check = req.user;
     if (check.role == "member") {
       return responseHandler(
         res,
@@ -825,5 +927,41 @@ exports.createMember = async (req, res) => {
       );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.analyticReview = async (req, res) => {
+  try {
+    const id = req.params.userId;
+    if (!id) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    const findUser = await User.findById(id);
+    if (!findUser) {
+      return responseHandler(res, 404, "User not found");
+    }
+
+    const feedsCount = await Feeds.countDocuments({ author: id });
+    const productCount = await Products.countDocuments({ seller: id });
+
+    const reviews = await Review.find({ toUser: id })
+      .populate("reviewer", "name email")
+      .select("comment rating createdAt");
+
+    const userStats = {
+      feedsCount,
+      productCount,
+      reviews,
+    };
+
+    return responseHandler(
+      res,
+      200,
+      "User stats retrieved successfully",
+      userStats
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };

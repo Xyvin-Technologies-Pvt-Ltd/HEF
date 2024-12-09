@@ -4,8 +4,11 @@ const News = require("../models/newsModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
+const logActivity = require("../models/logActivityModel");
 
 exports.createNews = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("newsManagement_modify")) {
@@ -50,6 +53,7 @@ exports.createNews = async (req, res) => {
     if (!newNews) {
       return responseHandler(res, 400, `news creation failed...!`);
     }
+    status = "success";
     return responseHandler(
       res,
       201,
@@ -57,11 +61,26 @@ exports.createNews = async (req, res) => {
       newNews
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "news",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getNews = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("newsManagement_view")) {
@@ -79,14 +98,30 @@ exports.getNews = async (req, res) => {
 
     const findNews = await News.findById(id);
     if (findNews) {
+      status = "success";
       return responseHandler(res, 200, `news found successfully..!`, findNews);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "news",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.updateNews = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("newsManagement_modify")) {
@@ -114,6 +149,7 @@ exports.updateNews = async (req, res) => {
       new: true,
     });
     if (this.updateNews) {
+      status = "success";
       return responseHandler(
         res,
         200,
@@ -122,11 +158,26 @@ exports.updateNews = async (req, res) => {
       );
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "news",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.deleteNews = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("newsManagement_modify")) {
@@ -144,14 +195,30 @@ exports.deleteNews = async (req, res) => {
 
     const deleteNews = await News.findByIdAndDelete(id);
     if (deleteNews) {
+      status = "success";
       return responseHandler(res, 200, `news deleted successfully..!`);
     }
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "news",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
 exports.getAllNews = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("newsManagement_view")) {
@@ -184,7 +251,7 @@ exports.getAllNews = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-
+    status = "success";
     return responseHandler(
       res,
       200,
@@ -193,7 +260,20 @@ exports.getAllNews = async (req, res) => {
       totalCount
     );
   } catch (error) {
+    errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "news",
+      description: "Get admin details",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers.host,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 

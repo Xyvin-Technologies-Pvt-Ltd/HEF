@@ -21,15 +21,23 @@ const swaggerDefinition = {
         scheme: "bearer",
         bearerFormat: "JWT",
       },
+      // ApiKeyAuth: {
+      //   type: "apiKey",
+      //   in: "header",
+      //   name: "api-key",
+      //   description: "API Key for accessing protected endpoints",
+      // },
     },
   },
   security: [
     {
       BearerAuth: [],
     },
+    // {
+    //   ApiKeyAuth: [],
+    // },
   ],
 };
-
 const options = {
   swaggerDefinition,
   apis: ["./src/swagger/paths/*.js"],

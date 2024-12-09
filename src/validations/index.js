@@ -6,9 +6,7 @@ const linkSchema = Joi.object({
 });
 
 exports.createFeedsSchema = Joi.object({
-  type: Joi.string().required(),
   media: Joi.string(),
-  link: Joi.string(),
   content: Joi.string().required(),
 });
 exports.createEventSchema = Joi.object({
@@ -221,6 +219,7 @@ exports.createProductSchema = Joi.object({
 });
 
 exports.updateProductSchema = Joi.object({
+  seller: Joi.string(),
   name: Joi.string(),
   image: Joi.string(),
   price: Joi.number(),
@@ -395,6 +394,7 @@ exports.updateReviewSchema = Joi.object({
 exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
   member: Joi.string().required(),
+  semder: Joi.string(),
   title: Joi.string().required(),
   description: Joi.string().required(),
   referral: Joi.string(),
@@ -417,6 +417,7 @@ exports.createMemberSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
+  chapter: Joi.string().required(),
   company: Joi.object({
     name: Joi.string(),
     designation: Joi.string(),
@@ -432,10 +433,9 @@ exports.createSubscriptionSchema = Joi.object({
 });
 
 exports.updateSubscriptionSchema = Joi.object({
+  user: Joi.string().required(),
   expiryDate: Joi.date().required(),
 });
-
-
 
 exports.createGroupSchame = Joi.object({
   groupName: Joi.string().required(),
@@ -447,4 +447,22 @@ exports.editGroupSchema = Joi.object({
   groupName: Joi.string(),
   groupInfo: Joi.string(),
   participantIds: Joi.array(),
+});
+
+
+
+exports.createAccessSchema = Joi.object({
+  sendNotification: Joi.boolean().required(),
+  postRequirement: Joi.boolean().required(),
+  addReward: Joi.boolean().required(),
+  addCertificate: Joi.boolean().required(),
+  addSocialmedia: Joi.boolean().required(),
+});
+
+exports.editAccessSchema = Joi.object({
+  sendNotification: Joi.boolean(),
+  postRequirement: Joi.boolean(),
+  addReward: Joi.boolean(),
+  addCertificate: Joi.boolean(),
+  addSocialmedia: Joi.boolean(),
 });
