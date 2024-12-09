@@ -394,7 +394,7 @@ exports.updateReviewSchema = Joi.object({
 exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
   member: Joi.string().required(),
-  semder: Joi.string(),
+  sender: Joi.string(),
   title: Joi.string().required(),
   description: Joi.string().required(),
   referral: Joi.string(),
