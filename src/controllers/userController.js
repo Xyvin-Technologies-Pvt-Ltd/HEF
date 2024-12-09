@@ -15,6 +15,7 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const Review = require("../models/reviewModel");
 const { isUserAdmin } = require("../utils/adminCheck");
+const logActivity = require("../models/logActivityModel");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -302,7 +303,7 @@ exports.deleteUser = async (req, res) => {
         new: true,
       }
     );
-    
+
     status = "success";
     if (deleteUser) {
       return responseHandler(res, 200, `User deleted successfully..!`);
@@ -356,7 +357,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 exports.getAllUsers = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
 
   try {
@@ -402,7 +403,7 @@ exports.getAllUsers = async (req, res) => {
         };
       })
     );
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -422,7 +423,7 @@ exports.getAllUsers = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status: Status,
       errorMessage,
     });
   }
@@ -829,7 +830,7 @@ exports.adminUserUnblock = async (req, res) => {
       },
       { new: true }
     );
-    
+
     status = "success";
     if (!editUser) {
       return responseHandler(res, 400, `User update failed...!`);
