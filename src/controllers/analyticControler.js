@@ -170,3 +170,28 @@ exports.updateRequestStatus = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+exports.deleteRequestById = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+
+    if (!requestId) {
+      return responseHandler(res, 400, "Request ID is required.");
+    }
+
+    const deletedRequest = await Analytic.findByIdAndDelete(requestId);
+
+    if (!deletedRequest) {
+      return responseHandler(res, 404, "Request not found.");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Request successfully deleted.",
+      deletedRequest
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

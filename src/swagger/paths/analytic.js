@@ -164,3 +164,41 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /analytic/{requestId}:
+ *   delete:
+ *     summary: Delete an analytic request by ID
+ *     description: Deletes an analytic request based on the provided request ID.
+ *     tags:
+ *       - Analytic
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         description: ID of the analytic request to delete
+ *         schema:
+ *           type: string
+ *           example: "64fa12b5d1234a1234567890"
+ *     responses:
+ *       200:
+ *         description: Request successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Request successfully deleted."
+ *                 deletedRequest:
+ *                   type: object
+ *                   description: The deleted analytic request object
+ *       400:
+ *         description: Invalid input - Missing or incorrect request ID
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Internal server error
+ */
