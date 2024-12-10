@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const volleyball = require("volleyball");
 const clc = require("cli-color");
+const admin = require("firebase-admin");
 const responseHandler = require("./src/helpers/responseHandler");
 const {
   swaggerUi,
@@ -17,7 +18,6 @@ const promotionRoute = require("./src/routes/promotion");
 const notificationRoute = require("./src/routes/notification");
 const reportRoute = require("./src/routes/report");
 const hierarchyRoute = require("./src/routes/hierarchy");
-
 const productRoute = require("./src/routes/product");
 const userRoute = require("./src/routes/user");
 const feedsRoute = require("./src/routes/feeds");
@@ -26,12 +26,20 @@ const analyticRoute = require("./src/routes/analytic");
 const chatRoute = require("./src/routes/chat");
 const subscriptionRoute = require("./src/routes/subscription");
 const userAccessRoute = require("./src/routes/userAccess");
+const { serviceAccount } = require("./src/config/firebase");
 
 //! Create an instance of the Express application
 const app = express();
 
 //* Define the PORT & API version based on environment variable
 const { PORT, API_VERSION, NODE_ENV } = process.env;
+
+//* Initialize Firebase
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: process.env.BUCKET_URL,
+});
+
 //* Use volleyball for request logging
 app.use(volleyball);
 //* Enable Cross-Origin Resource Sharing (CORS) middleware

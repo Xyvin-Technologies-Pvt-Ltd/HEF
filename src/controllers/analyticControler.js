@@ -51,10 +51,9 @@ exports.getRequests = async (req, res) => {
       const filter = {};
 
       if (user) {
-        filter.sender = user;
-        filter.member = user;
+        filter.$or = [{ sender: user }, { member: user }];
       }
-
+      
       if (status) {
         filter.status = status;
       }
