@@ -53,7 +53,7 @@ exports.getRequests = async (req, res) => {
       if (user) {
         filter.$or = [{ sender: user }, { member: user }];
       }
-      
+
       if (status) {
         filter.status = status;
       }
@@ -123,6 +123,7 @@ exports.getRequests = async (req, res) => {
       }
 
       return {
+        _id: data._id,
         username,
         user_image,
         title: data.title,

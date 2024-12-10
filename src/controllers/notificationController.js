@@ -3,7 +3,7 @@ const Notification = require("../models/notificationModel");
 const validations = require("../validations");
 const User = require("../models/userModel");
 const sendMail = require("../utils/sendMail");
-//const sendInAppNotification = require("../utils/sendInAppNotification");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 
 exports.createNotification = async (req, res) => {
   try {

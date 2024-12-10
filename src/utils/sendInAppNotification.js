@@ -1,4 +1,4 @@
-// const { getMessaging } = require("firebase-admin/messaging");
+const { getMessaging } = require("firebase-admin/messaging");
 
 const sendInAppNotification = async (
   fcmTokens,

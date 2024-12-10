@@ -1,5 +1,5 @@
-// const admin = require("firebase-admin");
-// const { getMessaging } = require("firebase-admin/messaging");
+const admin = require("firebase-admin");
+const { getMessaging } = require("firebase-admin/messaging");
 const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const User = require("../models/userModel");
@@ -10,7 +10,6 @@ const Setting = require("../models/settingsModel");
 const Feeds = require("../models/feedsModel");
 const Products = require("../models/productModel");
 const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
-const sendSelfMail = require("../utils/sendSelfMail");
 const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const Review = require("../models/reviewModel");

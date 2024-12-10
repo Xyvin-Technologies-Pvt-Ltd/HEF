@@ -2,7 +2,7 @@ const responseHandler = require("../helpers/responseHandler");
 const Feeds = require("../models/feedsModel");
 const logActivity = require("../models/logActivityModel");
 const User = require("../models/userModel");
-// const sendInAppNotification = require("../utils/sendInAppNotification");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.createFeeds = async (req, res) => {
@@ -189,14 +189,14 @@ exports.updateFeeds = async (req, res) => {
       return responseHandler(res, 404, "Feeds not found");
     }
 
-    // const toUser = await User.findById(findFeeds.author).select("fcm");
-    // const fcmUser = [toUser.fcm];
+    const toUser = await User.findById(findFeeds.author).select("fcm");
+    const fcmUser = [toUser.fcm];
 
-    // await sendInAppNotification(
-    //   fcmUser,
-    //   `Your Feed request has been ${action}`,
-    //   `Your Feed request has been ${action} for ${findFeeds.content}`,
-    // );
+    await sendInAppNotification(
+      fcmUser,
+      `Your Feed request has been ${action}`,
+      `Your Feed request has been ${action} for ${findFeeds.content}`,
+    );
 
     if (action === "accept") {
       const updateFeeds = await Feeds.findByIdAndUpdate(

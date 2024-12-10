@@ -80,7 +80,6 @@ exports.getProduct = async (req, res) => {
     const product = await Product.findById(id);
     status = "success";
     if (product) {
-
       return responseHandler(res, 200, "Product found successfully!", product);
     } else {
       return responseHandler(res, 404, "Product not found");
@@ -134,7 +133,6 @@ exports.updateProduct = async (req, res) => {
     });
     status = "success";
     if (updatedProduct) {
-
       return responseHandler(
         res,
         200,
@@ -371,9 +369,7 @@ exports.fetchMyProducts = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const products = await Product.find({ seller: id })
-      .populate("seller", "name email phone")
-      .sort({ createdAt: -1 });
+    const products = await Product.find({ seller: id }).sort({ createdAt: -1 });
 
     if (!products.length) {
       return responseHandler(res, 404, "No products found");

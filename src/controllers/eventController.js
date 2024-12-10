@@ -2,7 +2,7 @@ const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
 const Event = require("../models/eventModel");
-// const { getMessaging } = require("firebase-admin/messaging");
+const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
 const logActivity = require("../models/logActivityModel");
 
@@ -291,7 +291,7 @@ exports.addRSVP = async (req, res) => {
 
     const topic = `event_${id}`;
     const fcmToken = user.fcm;
-    // await getMessaging().subscribeToTopic(fcmToken, topic);
+    await getMessaging().subscribeToTopic(fcmToken, topic);
 
     return responseHandler(res, 200, "RSVP added successfully", {
       regCount: findEvent.regCount,
