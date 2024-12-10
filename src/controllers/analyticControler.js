@@ -46,9 +46,15 @@ exports.getRequests = async (req, res) => {
         );
       }
 
-      const { pageNo = 1, status, limit = 10, type } = req.query;
+      const { pageNo = 1, status, limit = 10, type, user } = req.query;
       const skipCount = 10 * (pageNo - 1);
       const filter = {};
+
+      if (user) {
+        filter.sender = user;
+        filter.member = user;
+      }
+
       if (status) {
         filter.status = status;
       }
@@ -170,8 +176,6 @@ exports.updateRequestStatus = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
-
 
 exports.deleteRequestById = async (req, res) => {
   try {
