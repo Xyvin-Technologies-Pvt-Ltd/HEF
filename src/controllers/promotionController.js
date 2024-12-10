@@ -3,7 +3,7 @@ const responseHandler = require("../helpers/responseHandler");
 const Promotion = require("../models/promotionModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
-
+const logActivity = require("../models/logActivityModel");
 exports.createPromotion = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
@@ -190,7 +190,7 @@ exports.deletePromotion = async (req, res) => {
 };
 
 exports.getAllPromotion = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -213,7 +213,7 @@ exports.getAllPromotion = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -233,7 +233,7 @@ exports.getAllPromotion = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status: Status,
       errorMessage,
     });
   }
