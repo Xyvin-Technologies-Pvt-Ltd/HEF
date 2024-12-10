@@ -217,7 +217,7 @@ exports.deleteNews = async (req, res) => {
 };
 
 exports.getAllNews = async (req, res) => {
-  let status = "failure";
+  let Status = "failure";
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
@@ -251,7 +251,7 @@ exports.getAllNews = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-    status = "success";
+    Status = "success";
     return responseHandler(
       res,
       200,
@@ -271,7 +271,7 @@ exports.getAllNews = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status,
+      status: Status,
       errorMessage,
     });
   }
