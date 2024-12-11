@@ -222,7 +222,6 @@
  *         description: Internal server error
  */
 
-
 /**
  * @swagger
  * /admin/list:
@@ -255,7 +254,6 @@
  *       500:
  *         description: Internal Server Error
  */
-
 
 /**
  * @swagger
@@ -292,13 +290,12 @@
  *         description: Internal Server Error
  */
 
-
 /**
  * @swagger
  * /admin/log-activities/{id}:
  *   get:
  *     summary: Fetch a specific log activity by its ID
- *     tags: 
+ *     tags:
  *       - Admin
  *     parameters:
  *       - in: path

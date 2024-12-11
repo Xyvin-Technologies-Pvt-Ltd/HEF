@@ -232,7 +232,6 @@ exports.updateAdmin = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
- 
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("adminManagement_modify")) {
       return responseHandler(
@@ -242,7 +241,6 @@ exports.updateAdmin = async (req, res) => {
       );
     }
 
-  
     const { error } = validations.editAdminSchema.validate(req.body, {
       abortEarly: true,
     });
@@ -257,14 +255,13 @@ exports.updateAdmin = async (req, res) => {
       return responseHandler(res, 404, `Admin not found`);
     }
 
-  
     if (req.body.password) {
       req.body.password = await hashPassword(req.body.password);
     }
 
     const updatedAdmin = await Admin.findByIdAndUpdate(adminId, req.body, {
       new: true,
-      runValidators: true, 
+      runValidators: true,
     });
 
     status = "success";
@@ -282,7 +279,6 @@ exports.updateAdmin = async (req, res) => {
     errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   } finally {
-
     await logActivity.create({
       admin: req.user,
       type: "admin",
@@ -301,7 +297,6 @@ exports.deleteAdmin = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-
     const check = await checkAccess(req.roleId, "permissions");
     if (!check || !check.includes("adminManagement_modify")) {
       return responseHandler(
@@ -329,7 +324,6 @@ exports.deleteAdmin = async (req, res) => {
     errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   } finally {
-
     await logActivity.create({
       admin: req.user,
       type: "admin",
@@ -344,36 +338,41 @@ exports.deleteAdmin = async (req, res) => {
   }
 };
 
-
-
 exports.fetchLogActivity = async (req, res) => {
   try {
     const { page = 1, limit = 10, date, status, method } = req.query;
 
-    const filter =  {};
+    const filter = {};
 
-    if(date){
+    if (date) {
       filter.createdAt = date;
     }
 
-    if(status){
+    if (status) {
       filter.status = status;
     }
 
-    if(method){
+    if (method) {
       filter.httpMethod = method;
     }
 
     const skipCount = 10 * (page - 1);
 
-    const logs = await logActivity.find(filter)
-    .skip(skipCount)
-    .limit(limit)
-    .sort({ createdAt: -1, _id: 1 })
+    const logs = await logActivity
+      .find(filter)
+      .skip(skipCount)
+      .limit(limit)
+      .sort({ createdAt: -1, _id: 1 });
 
     const totalLogs = await logActivity.countDocuments(filter);
 
-    return responseHandler(res, 200, 'Log activities fetched successfully', logs, totalLogs);
+    return responseHandler(
+      res,
+      200,
+      "Log activities fetched successfully",
+      logs,
+      totalLogs
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
@@ -389,12 +388,7 @@ exports.fetchLogActivityById = async (req, res) => {
       return responseHandler(res, 404, "Log activity not found");
     }
 
-    return responseHandler(
-      res,
-      200,
-      'Log activity fetched successfully',
-      log
-    );
+    return responseHandler(res, 200, "Log activity fetched successfully", log);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
