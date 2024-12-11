@@ -4,6 +4,9 @@ const validations = require("../validations");
 const User = require("../models/userModel");
 const sendMail = require("../utils/sendMail");
 const sendInAppNotification = require("../utils/sendInAppNotification");
+const District = require("../models/districtModel");
+const Zone = require("../models/zoneModel");
+const Chapter = require("../models/chapterModel");
 
 exports.createNotification = async (req, res) => {
   try {
@@ -164,7 +167,37 @@ exports.createLevelNotification = async (req, res) => {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
 
-    const { users, media } = req.body;
+    const { media, level, id } = req.body;
+
+    let users = [];
+
+    if (level === "state") {
+      const zone = await Zone.findById(id);
+      const districts = await District.findOne({ zoneId: zone._id });
+      const chapters = await Chapter.findOne({ districtId: districts._id });
+      users = await User.find({
+        chapterId: chapters._id,
+        status: "active",
+      });
+    } else if (level === "zone") {
+      const districts = await District.findOne({ zoneId: id });
+      const chapters = await Chapter.findOne({ districtId: districts._id });
+      users = await User.find({
+        chapterId: chapters._id,
+        status: "active",
+      });
+    } else if (level === "district") {
+      const chapters = await Chapter.findOne({ districtId: id });
+      users = await User.find({
+        chapterId: chapters._id,
+        status: "active",
+      });
+    } else if (level === "chapter") {
+      users = await User.find({
+        chapterId: id,
+        status: "active",
+      });
+    }
 
     req.body.senderModel = "User";
     req.body.sender = req.userId;
@@ -172,11 +205,11 @@ exports.createLevelNotification = async (req, res) => {
 
     if (users.length > 0) {
       for (let i = 0; i < users.length; i++) {
-        const id = users[i].user;
-        const findUser = await User.findById(id);
-        if (findUser) {
-          if (!findUser.fcm) continue;
-          userFCM.push(findUser.fcm);
+        const id = users[i].fcm;
+        if (id) {
+          userFCM.push(findUser.id);
+        } else {
+          continue;
         }
       }
     }
