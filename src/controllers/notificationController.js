@@ -151,7 +151,7 @@ exports.getUserNotifications = async (req, res) => {
 exports.createLevelNotification = async (req, res) => {
   try {
     const check = req.user;
-    if (check.role == "member") {
+    if (check.role === "member") {
       return responseHandler(
         res,
         403,
@@ -171,63 +171,85 @@ exports.createLevelNotification = async (req, res) => {
 
     let users = [];
 
-    if (level === "state") {
-      const zone = await Zone.findById(id);
-      const districts = await District.findOne({ zoneId: zone._id });
-      const chapters = await Chapter.findOne({ districtId: districts._id });
-      users = await User.find({
-        chapterId: chapters._id,
-        status: "active",
-      });
-    } else if (level === "zone") {
-      const districts = await District.findOne({ zoneId: id });
-      const chapters = await Chapter.findOne({ districtId: districts._id });
-      users = await User.find({
-        chapterId: chapters._id,
-        status: "active",
-      });
-    } else if (level === "district") {
-      const chapters = await Chapter.findOne({ districtId: id });
-      users = await User.find({
-        chapterId: chapters._id,
-        status: "active",
-      });
-    } else if (level === "chapter") {
-      users = await User.find({
-        chapterId: id,
-        status: "active",
-      });
-    }
-
-    req.body.senderModel = "User";
-    req.body.sender = req.userId;
-    let userFCM = [];
-
-    if (users.length > 0) {
-      for (let i = 0; i < users.length; i++) {
-        const id = users[i].fcm;
-        if (id) {
-          userFCM.push(findUser.id);
-        } else {
-          continue;
+    if (Array.isArray(id)) {
+      for (const singleId of id) {
+        if (level === "state") {
+          const zone = await Zone.findById(singleId);
+          const districts = await District.find({ zoneId: zone._id });
+          for (const district of districts) {
+            const chapters = await Chapter.find({ districtId: district._id });
+            for (const chapter of chapters) {
+              const chapterUsers = await User.find({
+                chapterId: chapter._id,
+                status: "active",
+              });
+              users.push(...chapterUsers);
+            }
+          }
+        } else if (level === "zone") {
+          const districts = await District.find({ zoneId: singleId });
+          for (const district of districts) {
+            const chapters = await Chapter.find({ districtId: district._id });
+            for (const chapter of chapters) {
+              const chapterUsers = await User.find({
+                chapterId: chapter._id,
+                status: "active",
+              });
+              users.push(...chapterUsers);
+            }
+          }
+        } else if (level === "district") {
+          const chapters = await Chapter.find({ districtId: singleId });
+          for (const chapter of chapters) {
+            const chapterUsers = await User.find({
+              chapterId: chapter._id,
+              status: "active",
+            });
+            users.push(...chapterUsers);
+          }
+        } else if (level === "chapter") {
+          const chapterUsers = await User.find({
+            chapterId: singleId,
+            status: "active",
+          });
+          users.push(...chapterUsers);
         }
       }
     }
-    await sendInAppNotification(
-      userFCM,
-      req.body.subject,
-      req.body.content,
-      media
+
+    users = users.filter(
+      (user, index, self) =>
+        index === self.findIndex((u) => u._id.equals(user._id))
     );
+
+    req.body.senderModel = "User";
+    req.body.sender = req.userId;
+
+    let userFCM = [];
+
+    for (const user of users) {
+      if (user.fcm) {
+        userFCM.push(user.fcm);
+      }
+    }
+
+    if (userFCM.length > 0) {
+      await sendInAppNotification(
+        userFCM,
+        req.body.subject,
+        req.body.content,
+        media
+      );
+    }
 
     const createNotification = await Notification.create(req.body);
     return responseHandler(
       res,
       200,
-      `Notification created successfullyy..!`,
+      "Notification created successfully!",
       createNotification
     );
   } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
