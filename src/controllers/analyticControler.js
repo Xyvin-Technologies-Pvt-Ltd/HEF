@@ -148,11 +148,11 @@ exports.updateRequestStatus = async (req, res) => {
   try {
     const { requestId, action } = req.body;
 
-    if (!requestId || !["accepted", "rejected"].includes(action)) {
+    if (!requestId || !["accepted", "rejected", "meeting_scheduled"].includes(action)) {
       return responseHandler(
         res,
         400,
-        "Invalid input: Request ID and action (accepted/rejected) are required."
+        "Invalid input: Request ID and action (accepted/rejected/meeting_scheduled) are required."
       );
     }
 
