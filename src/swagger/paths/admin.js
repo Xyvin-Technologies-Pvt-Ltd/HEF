@@ -278,11 +278,6 @@
  *           type: integer
  *           default: 10
  *         description: The number of log activities per page (defaults to 10)
- *       - in: query
- *         name: filter
- *         schema:
- *           type: string
- *         description: JSON string to filter log activities
  *     responses:
  *       200:
  *         description: Successfully retrieved the list of log activities
