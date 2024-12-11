@@ -343,3 +343,28 @@ exports.deleteAdmin = async (req, res) => {
     });
   }
 };
+
+
+
+exports.fetchLogActivity = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, filter = {} } = req.query;
+
+    const parsedFilter = typeof filter === 'string' ? JSON.parse(filter) : filter;
+
+    const logs = await logActivity.find(parsedFilter)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const totalLogs = await logActivity.countDocuments(parsedFilter);
+
+    return responseHandler(res, 200, 'Log activities fetched successfully', {
+      logs,
+      totalLogs,
+      totalPages: Math.ceil(totalLogs / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

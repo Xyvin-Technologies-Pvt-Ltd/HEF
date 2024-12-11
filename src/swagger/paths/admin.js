@@ -221,3 +221,71 @@
  *       500:
  *         description: Internal server error
  */
+
+
+/**
+ * @swagger
+ * /admin/list:
+ *   get:
+ *     summary: Get a list of admins
+ *     description: Retrieves a paginated list of admins with optional filtering by status.
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: query
+ *         name: pageNo
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: The page number for pagination (defaults to 1)
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter admins by status
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: The number of admins per page (defaults to 10)
+ *     responses:
+ *       200:
+ *         description: successfullyy retrieved the list of admins
+ *       500:
+ *         description: Internal Server Error
+ */
+
+
+/**
+ * @swagger
+ * /admin/log-activities:
+ *   get:
+ *     summary: Get a list of log activities
+ *     description: Retrieves a paginated list of log activities with optional filtering.
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: The page number for pagination (defaults to 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: The number of log activities per page (defaults to 10)
+ *       - in: query
+ *         name: filter
+ *         schema:
+ *           type: string
+ *         description: JSON string to filter log activities
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of log activities
+ *       500:
+ *         description: Internal Server Error
+ */
