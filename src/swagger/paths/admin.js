@@ -261,8 +261,8 @@
  * @swagger
  * /admin/log-activities:
  *   get:
- *     summary: Get a list of log activities
- *     description: Retrieves a paginated list of log activities with optional filtering.
+ *     summary: Fetch and print log activities
+ *     description: Retrieves and prints a paginated list of log activities with optional filtering.
  *     tags:
  *       - Admin
  *     parameters:
@@ -278,9 +278,16 @@
  *           type: integer
  *           default: 10
  *         description: The number of log activities per page (defaults to 10)
+ *       - in: query
+ *         name: filter
+ *         schema:
+ *           type: string
+ *         description: JSON string to filter log activities
  *     responses:
  *       200:
- *         description: Successfully retrieved the list of log activities
+ *         description: Successfully retrieved and printed the list of log activities
+ *       404:
+ *         description: No log activities found
  *       500:
  *         description: Internal Server Error
  */

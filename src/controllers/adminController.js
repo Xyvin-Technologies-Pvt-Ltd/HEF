@@ -348,22 +348,32 @@ exports.deleteAdmin = async (req, res) => {
 
 exports.fetchLogActivity = async (req, res) => {
   try {
-    const { page = 1, limit = 10, filter = {} } = req.query;
+    const { page = 1, limit = 10, date, status, method } = req.query;
 
-    const parsedFilter = typeof filter === 'string' ? JSON.parse(filter) : filter;
+    const filter =  {};
 
-    const logs = await logActivity.find(parsedFilter)
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+    if(date){
+      filter.createdAt = date;
+    }
 
-    const totalLogs = await logActivity.countDocuments(parsedFilter);
+    if(status){
+      filter.status = status;
+    }
 
-    return responseHandler(res, 200, 'Log activities fetched successfully', {
-      logs,
-      totalLogs,
-      totalPages: Math.ceil(totalLogs / limit),
-      currentPage: page,
-    });
+    if(method){
+      filter.httpMethod = method;
+    }
+
+    const skipCount = 10 * (page - 1);
+
+    const logs = await logActivity.find(filter)
+    .skip(skipCount)
+    .limit(limit)
+    .sort({ createdAt: -1, _id: 1 })
+
+    const totalLogs = await logActivity.countDocuments(filter);
+
+    return responseHandler(res, 200, 'Log activities fetched successfully', logs, totalLogs);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
