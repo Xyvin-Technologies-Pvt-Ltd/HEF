@@ -378,3 +378,24 @@ exports.fetchLogActivity = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+exports.fetchLogActivityById = async (req, res) => {
+  try {
+    const logActivityId = req.params.id;
+
+    const log = await logActivity.findById(logActivityId);
+
+    if (!log) {
+      return responseHandler(res, 404, "Log activity not found");
+    }
+
+    return responseHandler(
+      res,
+      200,
+      'Log activity fetched successfully',
+      log
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

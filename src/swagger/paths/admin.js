@@ -291,3 +291,41 @@
  *       500:
  *         description: Internal Server Error
  */
+
+
+/**
+ * @swagger
+ * /admin/log-activities/{id}:
+ *   get:
+ *     summary: Fetch a specific log activity by its ID
+ *     tags: 
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the log activity
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully fetched the log activity
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 status:
+ *                   type: string
+ *                 httpMethod:
+ *                   type: string
+ *       404:
+ *         description: Log activity not found
+ *       500:
+ *         description: Internal Server Error
+ */

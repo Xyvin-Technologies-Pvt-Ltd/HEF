@@ -20,5 +20,6 @@ adminRoute
   .put(adminController.updateAdmin)
   .delete(adminController.deleteAdmin);
 adminRoute.get("/log-activities", adminController.fetchLogActivity);
+adminRoute.get("/log-activities/:id", adminController.fetchLogActivityById);
 
 module.exports = adminRoute;
