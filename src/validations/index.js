@@ -138,6 +138,8 @@ exports.createNotificationSchema = Joi.object({
   media: Joi.string(),
   link: Joi.string(),
   type: Joi.string().required(),
+  level: Joi.string(),
+  id: Joi.string(),
 });
 
 exports.createReport = Joi.object({
