@@ -549,7 +549,11 @@ exports.loginUser = async (req, res) => {
             res,
             200,
             "User logged in successfully",
-            token
+            {
+              token: token,
+              userId: user._id,
+            }
+         
           );
         } else {
           user.uid = decodedToken.uid;
@@ -560,7 +564,12 @@ exports.loginUser = async (req, res) => {
             res,
             200,
             "User logged in successfully",
-            token
+            {
+              token: token,
+              userId: user._id,
+            }
+         
+         
           );
         }
       });
