@@ -132,7 +132,7 @@ exports.editPromotionSchema = Joi.object({
 });
 
 exports.createNotificationSchema = Joi.object({
-  users: Joi.array().required(),
+  users: Joi.array(),
   subject: Joi.string().required(),
   content: Joi.string().required(),
   media: Joi.string().required(),
