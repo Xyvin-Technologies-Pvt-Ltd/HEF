@@ -135,7 +135,7 @@ exports.createNotificationSchema = Joi.object({
   users: Joi.array(),
   subject: Joi.string().required(),
   content: Joi.string().required(),
-  media: Joi.string().required(),
+  media: Joi.string(),
   link: Joi.string(),
   type: Joi.string().required(),
 });
