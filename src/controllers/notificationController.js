@@ -169,6 +169,14 @@ exports.createLevelNotification = async (req, res) => {
 
     const { media, level, id } = req.body;
 
+    if (!id) {
+      return responseHandler(res, 400, "Id is required");
+    }
+
+    if (!level) {
+      return responseHandler(res, 400, "Level is required");
+    }
+
     let users = [];
 
     if (Array.isArray(id)) {
