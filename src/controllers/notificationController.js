@@ -174,16 +174,21 @@ exports.createLevelNotification = async (req, res) => {
     if (Array.isArray(id)) {
       for (const singleId of id) {
         if (level === "state") {
-          const zone = await Zone.findById(singleId);
-          const districts = await District.find({ zoneId: zone._id });
-          for (const district of districts) {
-            const chapters = await Chapter.find({ districtId: district._id });
-            for (const chapter of chapters) {
-              const chapterUsers = await User.find({
-                chapterId: chapter._id,
-                status: "active",
-              });
-              users.push(...chapterUsers);
+          const zones = await Zone.find({ stateId: singleId });
+
+          for (const zone of zones) {
+            const districts = await District.find({ zoneId: zone._id });
+
+            for (const district of districts) {
+              const chapters = await Chapter.find({ districtId: district._id });
+              const chapterUserPromises = chapters.map((chapter) =>
+                User.find({ chapterId: chapter._id, status: "active" })
+              );
+
+              const chapterUsersArrays = await Promise.all(chapterUserPromises);
+              for (const chapterUsers of chapterUsersArrays) {
+                users.push(...chapterUsers);
+              }
             }
           }
         } else if (level === "zone") {
