@@ -55,8 +55,8 @@ jobs:
           LIGHTSAIL_INSTANCE_IP: ${{ secrets.LIGHTSAIL_INSTANCE_IP }}
           SSH_KEY: ${{ secrets.LIGHTSAIL_PRIVATE_KEY }}
           USERNAME: ubuntu
-          PORT: 3000
-          CONTAINER_NAME: hef_BACKEND
+          PORT: 3003
+          CONTAINER_NAME: HEF_BACKEND
           ENV_FILE_PATH: /home/ubuntu/hef/.env/.env.production
 
         uses: appleboy/ssh-action@master
