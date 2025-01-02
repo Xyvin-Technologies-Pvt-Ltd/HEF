@@ -2,6 +2,7 @@ const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
 const Analytic = require("../models/analyticModel");
 const checkAccess = require("../helpers/checkAccess");
+const User = require("../models/userModel");
 
 exports.sendRequest = async (req, res) => {
   try {
@@ -148,7 +149,10 @@ exports.updateRequestStatus = async (req, res) => {
   try {
     const { requestId, action } = req.body;
 
-    if (!requestId || !["accepted", "rejected", "meeting_scheduled"].includes(action)) {
+    if (
+      !requestId ||
+      !["accepted", "rejected", "meeting_scheduled"].includes(action)
+    ) {
       return responseHandler(
         res,
         400,
@@ -196,6 +200,56 @@ exports.deleteRequestById = async (req, res) => {
       200,
       "Request successfully deleted.",
       deletedRequest
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.getRequestsByChapter = async (req, res) => {
+  try {
+    const { chapterId } = req.params;
+
+    if (!chapterId) {
+      return responseHandler(res, 400, "Chapter ID is required.");
+    }
+
+    const requests = await Analytic.find({
+      $or: [
+        {
+          member: {
+            $in: await User.find({ chapter: chapterId }).select("_id"),
+          },
+        },
+        {
+          sender: {
+            $in: await User.find({ chapter: chapterId }).select("_id"),
+          },
+        },
+      ],
+    })
+      .populate({
+        path: "member",
+        select: "name email role chapter",
+      })
+      .populate({
+        path: "sender",
+        select: "name email role chapter",
+      });
+
+    if (requests.length === 0) {
+      return responseHandler(
+        res,
+        404,
+        "No requests found for the specified chapter."
+      );
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Requests retrieved successfully.",
+      requests
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);

@@ -202,3 +202,30 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /analytic/chapter/{chapterId}:
+ *   get:
+ *     summary: Fetch analytic requests by chapter
+ *     description: Retrieves analytic requests where either the sender or member belongs to the specified chapter.
+ *     tags:
+ *       - Analytic
+ *     parameters:
+ *       - in: path
+ *         name: chapterId
+ *         required: true
+ *         description: ID of the chapter for which to fetch analytic requests
+ *         schema:
+ *           type: string
+ *           example: "64fa12b5d1234a1234567890"
+ *     responses:
+ *       200:
+ *         description: Successfully fetched analytic requests for the chapter.
+ *       400:
+ *         description: Missing or invalid chapter ID.
+ *       404:
+ *         description: No requests found for the specified chapter.
+ *       500:
+ *         description: Internal server error.
+ */
