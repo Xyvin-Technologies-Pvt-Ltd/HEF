@@ -864,8 +864,6 @@ exports.adminUserUnblock = async (req, res) => {
 
 exports.listUserIdName = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10 } = req.query;
-    const skipCount = limit * (pageNo - 1);
 
     const filter = {
       _id: {
@@ -877,8 +875,6 @@ exports.listUserIdName = async (req, res) => {
 
     const data = await User.find(filter)
       .select("uid name")
-      .skip(skipCount)
-      .limit(Number(limit))
       .sort({ createdAt: -1, _id: 1 })
       .lean();
 
