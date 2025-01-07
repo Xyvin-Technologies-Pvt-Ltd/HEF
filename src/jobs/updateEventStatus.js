@@ -32,12 +32,12 @@ cron.schedule("* * * * *", async () => {
       });
 
       const topic = `event_${event._id}`;
+
       const message = {
         notification: {
-          title: `Event ${event.eventName} is now live!`,
-          body: `The event ${event.eventName} has started. Join now!`,
+          title: `Event ${event.name} is now live!`,
+          body: `The event ${event.name} has started. Join now!`,
         },
-        topic: topic,
         android: {
           notification: {
             imageUrl: event.image,
@@ -50,9 +50,10 @@ cron.schedule("* * * * *", async () => {
             },
           },
           fcm_options: {
-            imageUrl: event.image,
+            image: event.image,
           },
         },
+        topic: topic,
       };
 
       try {
