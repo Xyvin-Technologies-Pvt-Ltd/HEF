@@ -51,6 +51,9 @@ const BASE_PATH = `/api/${API_VERSION}`;
 //* Import database connection module
 require("./src/helpers/connection");
 
+//* Start the cron job
+require("./src/jobs"); 
+
 //? Define a route for the API root
 app.get(BASE_PATH, (req, res) => {
   return responseHandler(
