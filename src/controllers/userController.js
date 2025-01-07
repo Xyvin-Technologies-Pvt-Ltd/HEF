@@ -864,7 +864,6 @@ exports.adminUserUnblock = async (req, res) => {
 
 exports.listUserIdName = async (req, res) => {
   try {
-
     const filter = {
       _id: {
         $ne: req.userId,
