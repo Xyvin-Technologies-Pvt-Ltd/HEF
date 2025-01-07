@@ -406,6 +406,7 @@ exports.createAnalyticSchema = Joi.object({
   time: Joi.string(),
   meetingLink: Joi.string(),
   location: Joi.string(),
+  status: Joi.string(),
 });
 
 exports.createMemberSchema = Joi.object({
