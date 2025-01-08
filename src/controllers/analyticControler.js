@@ -74,13 +74,15 @@ exports.getRequests = async (req, res) => {
         .limit(limit)
         .sort({ createdAt: -1, _id: 1 })
         .lean();
+
       const adminData = data.map((user) => {
         return {
           ...user,
-          senderName: user.sender.name || "",
-          memberName: user.member.name || "",
+          senderName: user.sender?.name || "",
+          memberName: user.member?.name || "",
         };
       });
+
       return responseHandler(
         res,
         200,
@@ -94,7 +96,6 @@ exports.getRequests = async (req, res) => {
     const { filter, type } = req.query;
 
     let query;
-
     if (filter === "sent") {
       query = { sender: userId };
     } else if (filter === "received") {
@@ -114,12 +115,16 @@ exports.getRequests = async (req, res) => {
     const mappedData = response.map((data) => {
       let username;
       let user_image;
+
       if (filter === "sent") {
-        username = data.member.name;
-        user_image = data.member.image;
+        username = data.member?.name || "";
+        user_image = data.member?.image || "";
       } else if (filter === "received") {
-        username = data.sender.name;
-        user_image = data.sender.image;
+        username = data.sender?.name || "";
+        user_image = data.sender?.image || "";
+      } else {
+        username = data.member?.name || data.sender?.name || "";
+        user_image = data.member?.image || data.sender?.image || "";
       }
 
       return {
@@ -143,6 +148,7 @@ exports.getRequests = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
 
 exports.updateRequestStatus = async (req, res) => {
   try {
