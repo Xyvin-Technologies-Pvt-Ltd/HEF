@@ -4,6 +4,7 @@ const Promotion = require("../models/promotionModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const logActivity = require("../models/logActivityModel");
+
 exports.createPromotion = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
