@@ -25,6 +25,7 @@ const logActivitySchema = mongoose.Schema(
     },
     host: { type: String },
     agent: { type: String },
+    
     errorMessage: {
       type: String,
       default: null,
