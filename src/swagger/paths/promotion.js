@@ -4,7 +4,6 @@
  *   - name: Promotion
  *     description: Promotion related endpoints
  */
-
 /**
  * @swagger
  * /promotion:
@@ -30,8 +29,9 @@
  *                 description: "Details about the promotion."
  *               type:
  *                 type: string
- *                 example: "Discount"
- *                 description: "Type of the promotion (e.g., Discount, Cashback)."
+ *                 enum: ["banner", "video", "poster", "notice"]
+ *                 example: "banner"
+ *                 description: "Type of the promotion (e.g., banner, video, poster, notice)."
  *               startDate:
  *                 type: string
  *                 format: date
@@ -50,13 +50,18 @@
  *                 type: string
  *                 example: "https://example.com/promotion"
  *                 description: "A link to the promotion details."
+ *               status:
+ *                 type: string
+ *                 enum: ["active", "expired"]
+ *                 example: "active"
+ *                 description: "The status of the promotion."
  *     responses:
  *       201:
- *         description: Promotion created successfullyy
+ *         description: Promotion created successfully.
  *       400:
- *         description: Invalid input
+ *         description: Invalid input. Please check the required fields and data formats.
  *       500:
- *         description: Internal Server Error
+ *         description: Internal Server Error. Please try again later.
  */
 
 /**
@@ -84,36 +89,50 @@
  *               title:
  *                 type: string
  *                 example: "Updated Summer Sale"
+ *                 description: "The updated title of the promotion."
  *               description:
  *                 type: string
  *                 example: "Updated details about the promotion."
+ *                 description: "The updated description of the promotion."
  *               type:
  *                 type: string
- *                 example: "Discount"
+ *                 enum: ["banner", "video", "poster", "notice"]
+ *                 example: "poster"
+ *                 description: "The updated type of the promotion."
  *               startDate:
  *                 type: string
  *                 format: date
  *                 example: "2024-09-01"
+ *                 description: "The updated start date of the promotion."
  *               endDate:
  *                 type: string
  *                 format: date
  *                 example: "2024-09-20"
+ *                 description: "The updated end date of the promotion."
  *               media:
  *                 type: string
  *                 example: "updated-image.png"
+ *                 description: "The updated media associated with the promotion."
  *               link:
  *                 type: string
  *                 example: "https://example.com/updated-promotion"
+ *                 description: "The updated link to the promotion details."
+ *               status:
+ *                 type: string
+ *                 enum: ["active", "expired"]
+ *                 example: "active"
+ *                 description: "The updated status of the promotion."
  *     responses:
  *       200:
- *         description: Promotion updated successfullyy
+ *         description: Promotion updated successfully.
  *       400:
- *         description: Invalid input
+ *         description: Invalid input. Please check the required fields and data formats.
  *       404:
- *         description: Promotion not found
+ *         description: Promotion not found. The provided ID does not match any promotion.
  *       500:
- *         description: Internal Server Error
+ *         description: Internal Server Error. Please try again later.
  */
+
 
 /**
  * @swagger
