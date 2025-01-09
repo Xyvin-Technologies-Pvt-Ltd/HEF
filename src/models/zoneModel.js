@@ -1,5 +1,16 @@
 const mongoose = require("mongoose");
 
+const roleSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    role: {
+      type: String,
+      enum: ["president", "secretary", "treasurer"],
+    },
+  },
+  { _id: false }
+);
+
 const zoneSchema = new mongoose.Schema(
   {
     name: { type: String },
@@ -7,7 +18,7 @@ const zoneSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "State",
     },
-    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    admins: [roleSchema],
   },
   { timestamps: true }
 );

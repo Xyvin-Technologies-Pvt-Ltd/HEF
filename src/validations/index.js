@@ -144,7 +144,7 @@ exports.createNotificationSchema = Joi.object({
 
 exports.createReport = Joi.object({
   content: Joi.string().required(),
-  reportType: Joi.string().valid("Post", "Chat", "User", "Message").required(),
+  reportType: Joi.string().required(),
 });
 
 exports.createStateSchema = Joi.object({
@@ -237,7 +237,6 @@ exports.createUserSchema = Joi.object({
   name: Joi.string().required(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
-  role: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
@@ -266,7 +265,6 @@ exports.editUserSchema = Joi.object({
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
-  role: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
@@ -326,7 +324,6 @@ exports.updateUserSchema = Joi.object({
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
-  role: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
