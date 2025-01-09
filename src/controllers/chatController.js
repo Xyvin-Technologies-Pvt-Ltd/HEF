@@ -6,7 +6,6 @@ const { getReceiverSocketId, chatNamespace, io } = require("../socket");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
-
 exports.sendMessage = async (req, res) => {
   const { content, isGroup, feed } = req.body;
   const to = req.params.id;
@@ -127,7 +126,8 @@ exports.getBetweenUsers = async (req, res) => {
       .populate({
         path: "feed",
         select: "media",
-      });
+      })
+      .populate("product", "name image price");
 
     await Message.updateMany(
       { from: userId, to: id, status: { $ne: "seen" } },
