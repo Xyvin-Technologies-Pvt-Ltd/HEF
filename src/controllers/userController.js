@@ -278,9 +278,16 @@ exports.getSingleUser = async (req, res) => {
         },
       },
     });
-    
+
+    const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
+
+    const mappedData = {
+      ...findUser._doc,
+      level,
+    };
+
     if (findUser) {
-      return responseHandler(res, 200, `User found successfull..!`, findUser);
+      return responseHandler(res, 200, `User found successfull..!`, mappedData);
     }
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
