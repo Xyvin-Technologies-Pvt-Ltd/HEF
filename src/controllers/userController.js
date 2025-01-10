@@ -262,7 +262,23 @@ exports.getSingleUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const findUser = await User.findById(id);
+    const findUser = await User.findById(id).populate({
+      path: "chapter",
+      select: "name",
+      populate: {
+        path: "districtId",
+        select: "name",
+        populate: {
+          path: "zoneId",
+          select: "name",
+          populate: {
+            path: "stateId",
+            select: "name",
+          },
+        },
+      },
+    });
+    
     if (findUser) {
       return responseHandler(res, 200, `User found successfull..!`, findUser);
     }
@@ -545,32 +561,19 @@ exports.loginUser = async (req, res) => {
           user.fcm = fcm;
           user.save();
           const token = generateToken(user._id);
-          return responseHandler(
-            res,
-            200,
-            "User logged in successfully",
-            {
-              token: token,
-              userId: user._id,
-            }
-         
-          );
+          return responseHandler(res, 200, "User logged in successfully", {
+            token: token,
+            userId: user._id,
+          });
         } else {
           user.uid = decodedToken.uid;
           user.fcm = fcm;
           user.save();
           const token = generateToken(user._id);
-          return responseHandler(
-            res,
-            200,
-            "User logged in successfully",
-            {
-              token: token,
-              userId: user._id,
-            }
-         
-         
-          );
+          return responseHandler(res, 200, "User logged in successfully", {
+            token: token,
+            userId: user._id,
+          });
         }
       });
   } catch (error) {
