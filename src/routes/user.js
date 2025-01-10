@@ -9,6 +9,7 @@ userRoute.post("/login", userController.loginUser);
 userRoute.get("/app-version", userController.getVersion);
 
 userRoute.use(authVerify);
+
 userRoute.get("/", userController.fetchUser);
 userRoute.get("/users", userController.getUsers);
 userRoute.get("/single/:id", userController.getSingleUser);
