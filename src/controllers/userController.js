@@ -262,9 +262,32 @@ exports.getSingleUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const findUser = await User.findById(id);
+    const findUser = await User.findById(id).populate({
+      path: "chapter",
+      select: "name",
+      populate: {
+        path: "districtId",
+        select: "name",
+        populate: {
+          path: "zoneId",
+          select: "name",
+          populate: {
+            path: "stateId",
+            select: "name",
+          },
+        },
+      },
+    });
+
+    const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
+
+    const mappedData = {
+      ...findUser._doc,
+      level,
+    };
+
     if (findUser) {
-      return responseHandler(res, 200, `User found successfull..!`, findUser);
+      return responseHandler(res, 200, `User found successfull..!`, mappedData);
     }
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
@@ -545,32 +568,19 @@ exports.loginUser = async (req, res) => {
           user.fcm = fcm;
           user.save();
           const token = generateToken(user._id);
-          return responseHandler(
-            res,
-            200,
-            "User logged in successfully",
-            {
-              token: token,
-              userId: user._id,
-            }
-         
-          );
+          return responseHandler(res, 200, "User logged in successfully", {
+            token: token,
+            userId: user._id,
+          });
         } else {
           user.uid = decodedToken.uid;
           user.fcm = fcm;
           user.save();
           const token = generateToken(user._id);
-          return responseHandler(
-            res,
-            200,
-            "User logged in successfully",
-            {
-              token: token,
-              userId: user._id,
-            }
-         
-         
-          );
+          return responseHandler(res, 200, "User logged in successfully", {
+            token: token,
+            userId: user._id,
+          });
         }
       });
   } catch (error) {

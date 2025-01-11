@@ -9,6 +9,7 @@ const messageModel = mongoose.Schema(
     },
     content: { type: String, required: true },
     feed: { type: mongoose.Schema.Types.ObjectId, ref: "Feeds" },
+    product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
     status: {
       type: String,
       enum: ["sent", "delivered", "seen"],

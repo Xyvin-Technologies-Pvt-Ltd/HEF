@@ -1,12 +1,10 @@
 const responseHandler = require("../helpers/responseHandler");
 const Chat = require("../models/chatModel");
 const Message = require("../models/messageModel");
-const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
 const { getReceiverSocketId, chatNamespace, io } = require("../socket");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
-
 
 exports.sendMessage = async (req, res) => {
   const { content, isGroup, feed } = req.body;
@@ -128,7 +126,8 @@ exports.getBetweenUsers = async (req, res) => {
       .populate({
         path: "feed",
         select: "media",
-      });
+      })
+      .populate("product", "name image price");
 
     await Message.updateMany(
       { from: userId, to: id, status: { $ne: "seen" } },
@@ -239,7 +238,7 @@ exports.getGroupMessage = async (req, res) => {
 exports.getGroupList = async (req, res) => {
   try {
     const { pageNo = 1, limit = 10 } = req.query;
-    // const skipCount = 10 * (pageNo - 1);
+    const skipCount = 10 * (pageNo - 1);
     const group = await Chat.find({ isGroup: true })
       .populate("lastMessage")
       .sort({ createdAt: -1, _id: 1 })

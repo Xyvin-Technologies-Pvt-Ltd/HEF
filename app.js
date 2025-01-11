@@ -27,9 +27,7 @@ const chatRoute = require("./src/routes/chat");
 const subscriptionRoute = require("./src/routes/subscription");
 const userAccessRoute = require("./src/routes/userAccess");
 const { serviceAccount } = require("./src/config/firebase");
-
-//! Create an instance of the Express application
-const app = express();
+const { app, server } = require("./src/socket"); //! Import server and io from socket file
 
 //* Define the PORT & API version based on environment variable
 const { PORT, API_VERSION, NODE_ENV } = process.env;
@@ -92,7 +90,8 @@ app.all("*", (req, res) => {
   return responseHandler(res, 404, "No API Found..!");
 });
 
-app.listen(PORT, () => {
+//! Start the server and listen on the specified port from environment variable
+server.listen(PORT, () => {
   const portMessage = clc.redBright(`✓ App is running on port: ${PORT}`);
   const envMessage = clc.yellowBright(
     `✓ Environment: ${NODE_ENV || "development"}`
