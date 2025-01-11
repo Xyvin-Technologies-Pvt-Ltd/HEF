@@ -17,6 +17,7 @@ const analyticSchema = mongoose.Schema(
     time: { type: String },
     meetingLink: { type: String },
     location: { type: String },
+    supportingDocuments: { type: String },
     status: {
       type: String,
       enum: ["accepted", "pending", "meeting_scheduled", "rejected"],
