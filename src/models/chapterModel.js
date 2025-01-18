@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+const adminSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  role: {
+    type: String,
+    enum: ["president", "secretary", "treasurer"],
+  },
+});
+
 const chapterSchema = new mongoose.Schema(
   {
     name: { type: String },
@@ -7,7 +15,7 @@ const chapterSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "District",
     },
-    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    admins: [adminSchema],
   },
   { timestamps: true }
 );
