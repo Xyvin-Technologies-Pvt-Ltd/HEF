@@ -277,7 +277,7 @@ exports.getSingleUser = async (req, res) => {
           },
         },
       },
-    });
+    }).lean();
 
     const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
 
