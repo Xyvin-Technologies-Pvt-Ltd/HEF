@@ -274,7 +274,7 @@ exports.getUser = async (req, res) => {
     };
 
     const mappedData = {
-      ...findUser._doc,
+      ...findUser,
       level,
       state,
       zone,
