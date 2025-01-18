@@ -12,6 +12,11 @@ const promotionSchema = mongoose.Schema(
     endDate: { type: Date },
     media: { type: String },
     link: { type: String },
+    status:{
+      type: String,
+      enum: ["active","experied"],
+      default: "active",
+    }
   },
   { timestamps: true }
 );

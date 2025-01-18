@@ -137,6 +137,7 @@ exports.getAllAdmins = async (req, res) => {
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
+    console.log(req.roleId);
     if (!check || !check.includes("adminManagement_view")) {
       return responseHandler(
         res,
