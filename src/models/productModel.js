@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     moq: { type: Number },
     units: { type: String },
+    tags: [{ type: String }],
     status: {
       type: String,
       default: "pending",

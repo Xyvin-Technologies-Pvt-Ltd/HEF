@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const linkSchema = new mongoose.Schema(
@@ -15,11 +14,6 @@ const userSchema = mongoose.Schema(
     uid: { type: String },
     memberId: { type: String },
     bloodgroup: { type: String },
-    role: {
-      type: String,
-      enum: ["president", "secretary", "treasurer", "rep", "member"],
-      default: "member",
-    },
     chapter: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     image: { type: String },
     email: { type: String },
@@ -35,13 +29,16 @@ const userSchema = mongoose.Schema(
       default: "inactive",
     },
     address: { type: String },
-    company: {
-      name: { type: String },
-      designation: { type: String },
-      email: { type: String },
-      websites: { type: String },
-      phone: { type: String, trim: true },
-    },
+    company: [
+      {
+        name: { type: String, trim: true },
+        designation: { type: String, trim: true },
+        email: { type: String, trim: true },
+        websites: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        tags: [{ type: String, trim: true }],
+      },
+    ],
     businessCatogary: { type: String },
     businessSubCatogary: { type: String },
     file: [{ type: String }],
