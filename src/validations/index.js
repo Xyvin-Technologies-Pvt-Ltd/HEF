@@ -217,6 +217,7 @@ exports.createProductSchema = Joi.object({
   price: Joi.number().required(),
   offerPrice: Joi.number().required(),
   description: Joi.string().required(),
+  tags: Joi.array(),
   moq: Joi.number().required(),
   units: Joi.string().required(),
   status: Joi.string(),
@@ -229,6 +230,7 @@ exports.updateProductSchema = Joi.object({
   price: Joi.number(),
   offerPrice: Joi.number(),
   description: Joi.string(),
+  tags: Joi.array(),
   moq: Joi.number(),
   units: Joi.string(),
   status: Joi.string(),
@@ -254,13 +256,16 @@ exports.createUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
-  company: Joi.object({
-    name: Joi.string(),
-    designation: Joi.string(),
-    email: Joi.string().email(),
-    websites: Joi.string(),
-    phone: Joi.string(),
-  }),
+  company: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      designation: Joi.string(),
+      email: Joi.string().email(),
+      websites: Joi.string(),
+      phone: Joi.string(),
+      tags: Joi.array(),
+    })
+  ),
 });
 
 exports.editUserSchema = Joi.object({
@@ -283,13 +288,16 @@ exports.editUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
-  company: Joi.object({
-    name: Joi.string(),
-    designation: Joi.string(),
-    email: Joi.string().email(),
-    websites: Joi.string(),
-    phone: Joi.string(),
-  }),
+  company: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      designation: Joi.string(),
+      email: Joi.string().email(),
+      websites: Joi.string(),
+      phone: Joi.string(),
+      tags: Joi.array(),
+    })
+  ),
   social: Joi.array().items(
     Joi.object({
       name: Joi.string(),
@@ -343,13 +351,16 @@ exports.updateUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
-  company: Joi.object({
-    name: Joi.string(),
-    designation: Joi.string(),
-    email: Joi.string().email(),
-    websites: Joi.string(),
-    phone: Joi.string(),
-  }),
+  company: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      designation: Joi.string(),
+      email: Joi.string().email(),
+      websites: Joi.string(),
+      phone: Joi.string(),
+      tags: Joi.array(),
+    })
+  ),
   social: Joi.array().items(
     Joi.object({
       name: Joi.string(),
@@ -453,8 +464,6 @@ exports.editGroupSchema = Joi.object({
   groupInfo: Joi.string(),
   participantIds: Joi.array(),
 });
-
-
 
 exports.createAccessSchema = Joi.object({
   sendNotification: Joi.boolean().required(),
