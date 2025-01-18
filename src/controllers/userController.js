@@ -281,9 +281,33 @@ exports.getSingleUser = async (req, res) => {
 
     const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
 
+    const state = {
+      _id: findUser?.chapter?.districtId?.zoneId?.stateId?._id,
+      name: findUser?.chapter?.districtId?.zoneId?.stateId?.name,
+    };
+
+    const zone = {
+      _id: findUser?.chapter?.districtId?.zoneId?._id,
+      name: findUser?.chapter?.districtId?.zoneId?.name,
+    };
+
+    const district = {
+      _id: findUser?.chapter?.districtId?._id,
+      name: findUser?.chapter?.districtId?.name,
+    };
+
+    const chapter = {
+      _id: findUser?.chapter?._id,
+      name: findUser?.chapter?.name,
+    };
+
     const mappedData = {
       ...findUser._doc,
       level,
+      state,
+      zone,
+      district,
+      chapter,
     };
 
     if (findUser) {
