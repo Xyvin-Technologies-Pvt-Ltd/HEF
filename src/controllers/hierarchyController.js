@@ -630,3 +630,122 @@ exports.getHierarchyList = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error`, []);
   }
 };
+
+exports.createLevel = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { type } = req.params;
+
+    if (!type) {
+      return responseHandler(res, 400, "Type is required");
+    }
+
+    if (type === "state") {
+      const createStateValidator = validations.createStateSchema.validate(
+        req.body,
+        {
+          abortEarly: true,
+        }
+      );
+
+      if (createStateValidator.error) {
+        return responseHandler(
+          res,
+          400,
+          `Invalid input: ${createStateValidator.error}`
+        );
+      }
+      const createState = await State.create(req.body);
+      if (createState) {
+        return responseHandler(
+          res,
+          200,
+          "State created successfully",
+          createState
+        );
+      }
+    } else if (type === "zone") {
+      const createZoneValidator = validations.createZoneSchema.validate(
+        req.body,
+        {
+          abortEarly: true,
+        }
+      );
+
+      if (createZoneValidator.error) {
+        return responseHandler(
+          res,
+          400,
+          `Invalid input: ${createZoneValidator.error}`
+        );
+      }
+      const createZone = await Zone.create(req.body);
+      if (createZone) {
+        return responseHandler(
+          res,
+          200,
+          "Zone created successfully",
+          createZone
+        );
+      }
+    } else if (type === "district") {
+      const createDistrictValidator = validations.createDistrictSchema.validate(
+        req.body,
+        {
+          abortEarly: true,
+        }
+      );
+
+      if (createDistrictValidator.error) {
+        return responseHandler(
+          res,
+          400,
+          `Invalid input: ${createDistrictValidator.error}`
+        );
+      }
+      const createDistrict = await District.create(req.body);
+      if (createDistrict) {
+        return responseHandler(
+          res,
+          200,
+          "District created successfully",
+          createDistrict
+        );
+      }
+    } else if (type === "chapter") {
+      const createChapterValidator = validations.createChapterSchema.validate(
+        req.body,
+        {
+          abortEarly: true,
+        }
+      );
+
+      if (createChapterValidator.error) {
+        return responseHandler(
+          res,
+          400,
+          `Invalid input: ${createChapterValidator.error}`
+        );
+      }
+      const createChapter = await Chapter.create(req.body);
+      if (createChapter) {
+        return responseHandler(
+          res,
+          200,
+          "Chapter created successfully",
+          createChapter
+        );
+      }
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error`);
+  }
+};

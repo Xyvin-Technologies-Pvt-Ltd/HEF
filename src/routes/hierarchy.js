@@ -29,5 +29,6 @@ hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 
 hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
 hierarchyRoute.get("/list/:type", hierarchyController.getHierarchyList);
+hierarchyRoute.post("/level/create/:type", hierarchyController.createLevel);
 
 module.exports = hierarchyRoute;
