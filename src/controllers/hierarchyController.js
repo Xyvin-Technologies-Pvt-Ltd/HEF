@@ -582,7 +582,7 @@ exports.getHierarchyList = async (req, res) => {
 
     const mapData = (items, category) =>
       items.map((item) => ({
-        id: item._id,
+        _id: item._id,
         name: item.name,
         admins: item.admins || [],
         category,
