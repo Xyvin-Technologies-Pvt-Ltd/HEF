@@ -148,7 +148,7 @@ exports.getAllAdmins = async (req, res) => {
     const { pageNo = 1, status, limit = 10 } = req.query;
     const skipCount = 10 * (pageNo - 1);
     const filter = {
-      _id: { $ne: "66cef136282563d7bb086e30" },
+      _id: { $nin: ["677e0e68b53dc8a4f2675f00", req.userId] },
     };
     const totalCount = await Admin.countDocuments(filter);
     const data = await Admin.find(filter)
