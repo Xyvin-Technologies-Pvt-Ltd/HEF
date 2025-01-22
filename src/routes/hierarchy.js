@@ -11,7 +11,6 @@ hierarchyRoute.post("/state", hierarchyController.createState);
 hierarchyRoute.get("/state/:id", hierarchyController.getState);
 hierarchyRoute.put("/state/:id", hierarchyController.updateState);
 
-
 // Zone Routes
 hierarchyRoute.post("/zone", hierarchyController.createZone);
 hierarchyRoute.get("/zone/:id", hierarchyController.getZone);
@@ -28,7 +27,10 @@ hierarchyRoute.get("/chapter/:id", hierarchyController.getChapter);
 hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 
 hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
-hierarchyRoute.get("/list/:type", hierarchyController.getHierarchyList);
-hierarchyRoute.post("/level/create/:type", hierarchyController.createLevel);
+
+hierarchyRoute
+  .route("/level/:type")
+  .post(hierarchyController.createLevel)
+  .get(hierarchyController.getHierarchyList);
 
 module.exports = hierarchyRoute;
