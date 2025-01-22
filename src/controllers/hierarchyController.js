@@ -749,3 +749,84 @@ exports.createLevel = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error`);
   }
 };
+
+exports.updateLevel = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { type } = req.params;
+
+    if (!type) {
+      return responseHandler(res, 400, "Type is required");
+    }
+
+    const { levelId } = req.query;
+
+    if (!levelId) {
+      return responseHandler(res, 400, "Level ID is required");
+    }
+
+    if (type === "state") {
+      const updateState = await State.findByIdAndUpdate(levelId, req.body, {
+        new: true,
+      });
+      if (updateState) {
+        return responseHandler(
+          res,
+          200,
+          "State updated successfully",
+          updateState
+        );
+      }
+    } else if (type === "zone") {
+      const updateZone = await Zone.findByIdAndUpdate(levelId, req.body, {
+        new: true,
+      });
+      if (updateZone) {
+        return responseHandler(
+          res,
+          200,
+          "Zone updated successfully",
+          updateZone
+        );
+      }
+    } else if (type === "district") {
+      const updateDistrict = await District.findByIdAndUpdate(
+        levelId,
+        req.body,
+        {
+          new: true,
+        }
+      );
+      if (updateDistrict) {
+        return responseHandler(
+          res,
+          200,
+          "District updated successfully",
+          updateDistrict
+        );
+      }
+    } else if (type === "chapter") {
+      const updateChapter = await Chapter.findByIdAndUpdate(levelId, req.body, {
+        new: true,
+      });
+      if (updateChapter) {
+        return responseHandler(
+          res,
+          200,
+          "Chapter updated successfully",
+          updateChapter
+        );
+      }
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error`);
+  }
+};

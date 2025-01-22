@@ -31,6 +31,7 @@ hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
 hierarchyRoute
   .route("/level/:type")
   .post(hierarchyController.createLevel)
-  .get(hierarchyController.getHierarchyList);
+  .get(hierarchyController.getHierarchyList)
+  .put(hierarchyController.updateLevel);
 
 module.exports = hierarchyRoute;
