@@ -232,10 +232,59 @@ exports.getUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const findUser = await User.findById(id);
+    const findUser = await User.findById(id)
+      .populate({
+        path: "chapter",
+        select: "name",
+        populate: {
+          path: "districtId",
+          select: "name",
+          populate: {
+            path: "zoneId",
+            select: "name",
+            populate: {
+              path: "stateId",
+              select: "name",
+            },
+          },
+        },
+      })
+      .lean();
+
+    const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
+
+    const state = {
+      _id: findUser?.chapter?.districtId?.zoneId?.stateId?._id,
+      name: findUser?.chapter?.districtId?.zoneId?.stateId?.name,
+    };
+
+    const zone = {
+      _id: findUser?.chapter?.districtId?.zoneId?._id,
+      name: findUser?.chapter?.districtId?.zoneId?.name,
+    };
+
+    const district = {
+      _id: findUser?.chapter?.districtId?._id,
+      name: findUser?.chapter?.districtId?.name,
+    };
+
+    const chapter = {
+      _id: findUser?.chapter?._id,
+      name: findUser?.chapter?.name,
+    };
+
+    const mappedData = {
+      ...findUser,
+      level,
+      state,
+      zone,
+      district,
+      chapter,
+    };
+
     status = "success";
     if (findUser) {
-      return responseHandler(res, 200, `User found successfull..!`, findUser);
+      return responseHandler(res, 200, `User found successfull..!`, mappedData);
     }
   } catch (error) {
     errorMessage = error.message;
