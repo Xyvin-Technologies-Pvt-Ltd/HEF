@@ -15,11 +15,6 @@ const userSchema = mongoose.Schema(
     uid: { type: String },
     memberId: { type: String },
     bloodgroup: { type: String },
-    role: {
-      type: String,
-      enum: ["president", "secretary", "treasurer", "rep", "member"],
-      default: "member",
-    },
     chapter: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     image: { type: String },
     email: { type: String },
