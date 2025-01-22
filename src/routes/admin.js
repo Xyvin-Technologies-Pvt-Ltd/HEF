@@ -21,5 +21,6 @@ adminRoute
   .delete(adminController.deleteAdmin);
 adminRoute.get("/log-activities", adminController.fetchLogActivity);
 adminRoute.get("/log-activities/:id", adminController.fetchLogActivityById);
+adminRoute.get("/dashboard", adminController.fetchDashboard);
 
 module.exports = adminRoute;

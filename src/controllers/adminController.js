@@ -1,7 +1,17 @@
 const checkAccess = require("../helpers/checkAccess");
 const responseHandler = require("../helpers/responseHandler");
 const Admin = require("../models/adminModel");
+const Analytic = require("../models/analyticModel");
+const Chapter = require("../models/chapterModel");
+const District = require("../models/districtModel");
+const Event = require("../models/eventModel");
 const logActivity = require("../models/logActivityModel");
+const News = require("../models/newsModel");
+const Notification = require("../models/notificationModel");
+const Promotion = require("../models/promotionModel");
+const State = require("../models/stateModel");
+const Subscription = require("../models/subscriptionModel");
+const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateToken } = require("../utils/generateToken");
 const validations = require("../validations");
@@ -390,6 +400,169 @@ exports.fetchLogActivityById = async (req, res) => {
     }
 
     return responseHandler(res, 200, "Log activity fetched successfully", log);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.fetchDashboard = async (req, res) => {
+  try {
+    const [
+      memberShipCount,
+      businessCount,
+      oneVOneMeetingCount,
+      referralsCount,
+      states,
+      zones,
+      districts,
+      chapters,
+      eventCount,
+      newsCount,
+      promotionCount,
+      notificationCount,
+      topPerformers,
+    ] = await Promise.all([
+      Subscription.countDocuments({ status: "active" }),
+      Analytic.countDocuments({
+        type: "Business",
+        referral: { $exists: false },
+      }),
+      Analytic.countDocuments({
+        type: "One v One Meeting",
+      }),
+      Analytic.countDocuments({
+        type: "Business",
+        referral: { $exists: true },
+      }),
+      State.find({}, "admins"),
+      Zone.find({}, "admins"),
+      District.find({}, "admins"),
+      Chapter.find({}, "admins"),
+      Event.countDocuments(),
+      News.countDocuments(),
+      Promotion.countDocuments(),
+      Notification.countDocuments(),
+      Analytic.aggregate([
+        {
+          $match: { status: "accepted" },
+        },
+        {
+          $group: {
+            _id: null,
+            memberIds: { $push: "$member" },
+            senderIds: { $push: "$sender" },
+            referralIds: { $push: "$referral" },
+          },
+        },
+        {
+          $project: {
+            allUsers: {
+              $concatArrays: ["$memberIds", "$senderIds", "$referralIds"],
+            },
+          },
+        },
+        { $unwind: "$allUsers" },
+        {
+          $group: {
+            _id: "$allUsers",
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $sort: { count: -1 },
+        },
+        {
+          $limit: 5,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $unwind: "$user",
+        },
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "user.chapter",
+            foreignField: "_id",
+            as: "chapter",
+          },
+        },
+        {
+          $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true },
+        },
+        {
+          $lookup: {
+            from: "districts",
+            localField: "chapter.districtId",
+            foreignField: "_id",
+            as: "district",
+          },
+        },
+        {
+          $unwind: { path: "$district", preserveNullAndEmptyArrays: true },
+        },
+        {
+          $lookup: {
+            from: "zones",
+            localField: "district.zoneId",
+            foreignField: "_id",
+            as: "zone",
+          },
+        },
+        {
+          $unwind: { path: "$zone", preserveNullAndEmptyArrays: true },
+        },
+        {
+          $lookup: {
+            from: "states",
+            localField: "zone.stateId",
+            foreignField: "_id",
+            as: "state",
+          },
+        },
+        {
+          $unwind: { path: "$state", preserveNullAndEmptyArrays: true },
+        },
+        {
+          $project: {
+            _id: 1,
+            count: 1,
+            name: "$user.name",
+            email: "$user.email",
+            chapter: "$chapter.name",
+            district: "$district.name",
+            zone: "$zone.name",
+            state: "$state.name",
+          },
+        },
+      ]),
+    ]);
+
+    const calculateAdmins = (data) =>
+      data.reduce((sum, item) => sum + item.admins.length, 0);
+
+    return responseHandler(res, 200, "Dashboard fetched successfully", {
+      memberShipCount,
+      memberShipRevenue: memberShipCount * 1000,
+      businessCount,
+      oneVOneMeetingCount,
+      referralsCount,
+      statePST: calculateAdmins(states),
+      zonePST: calculateAdmins(zones),
+      districtPST: calculateAdmins(districts),
+      chapterPST: calculateAdmins(chapters),
+      eventCount,
+      newsCount,
+      promotionCount,
+      notificationCount,
+      topPerformers,
+    });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
