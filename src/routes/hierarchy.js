@@ -27,11 +27,12 @@ hierarchyRoute.get("/chapter/:id", hierarchyController.getChapter);
 hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 
 hierarchyRoute.get("/levels/:id/:type", hierarchyController.getLevels);
+hierarchyRoute.get("/list/:type", hierarchyController.getHierarchyList);
 
 hierarchyRoute
   .route("/level/:type")
   .post(hierarchyController.createLevel)
-  .get(hierarchyController.getHierarchyList)
+  .get(hierarchyController.getLevel)
   .put(hierarchyController.updateLevel);
 
 module.exports = hierarchyRoute;

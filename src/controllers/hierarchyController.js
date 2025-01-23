@@ -830,3 +830,59 @@ exports.updateLevel = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error`);
   }
 };
+
+exports.getLevel = async (req, res) => {
+  try {
+    const { type } = req.params;
+
+    if (!type) {
+      return responseHandler(res, 400, "Type is required");
+    }
+
+    const { levelId } = req.query;
+
+    if (type === "state") {
+      const findState = await State.findById(levelId);
+      if (findState) {
+        return responseHandler(
+          res,
+          200,
+          `State found successfully..!`,
+          findState
+        );
+      }
+    } else if (type === "zone") {
+      const findZone = await Zone.findById(levelId);
+      if (findZone) {
+        return responseHandler(
+          res,
+          200,
+          `Zone found successfully..!`,
+          findZone
+        );
+      }
+    } else if (type === "district") {
+      const findDistrict = await District.findById(levelId);
+      if (findDistrict) {
+        return responseHandler(
+          res,
+          200,
+          `District found successfully..!`,
+          findDistrict
+        );
+      }
+    } else if (type === "chapter") {
+      const findChapter = await Chapter.findById(levelId);
+      if (findChapter) {
+        return responseHandler(
+          res,
+          200,
+          `Chapter found successfully..!`,
+          findChapter
+        );
+      }
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error`);
+  }
+};
