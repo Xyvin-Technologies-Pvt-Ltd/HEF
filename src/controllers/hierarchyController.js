@@ -833,6 +833,14 @@ exports.updateLevel = async (req, res) => {
 
 exports.getLevel = async (req, res) => {
   try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_view")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
     const { type } = req.params;
 
     if (!type) {
@@ -879,6 +887,71 @@ exports.getLevel = async (req, res) => {
           200,
           `Chapter found successfully..!`,
           findChapter
+        );
+      }
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error`);
+  }
+};
+
+exports.deleteLevel = async (req, res) => {
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("hierarchyManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { type } = req.params;
+
+    if (!type) {
+      return responseHandler(res, 400, "Type is required");
+    }
+
+    const { levelId } = req.query;
+
+    if (type === "state") {
+      const deleteState = await State.findByIdAndDelete(levelId);
+      if (deleteState) {
+        return responseHandler(
+          res,
+          200,
+          "State deleted successfully",
+          deleteState
+        );
+      }
+    } else if (type === "zone") {
+      const deleteZone = await Zone.findByIdAndDelete(levelId);
+      if (deleteZone) {
+        return responseHandler(
+          res,
+          200,
+          "Zone deleted successfully",
+          deleteZone
+        );
+      }
+    } else if (type === "district") {
+      const deleteDistrict = await District.findByIdAndDelete(levelId);
+      if (deleteDistrict) {
+        return responseHandler(
+          res,
+          200,
+          "District deleted successfully",
+          deleteDistrict
+        );
+      }
+    } else if (type === "chapter") {
+      const deleteChapter = await Chapter.findByIdAndDelete(levelId);
+      if (deleteChapter) {
+        return responseHandler(
+          res,
+          200,
+          "Chapter deleted successfully",
+          deleteChapter
         );
       }
     }
