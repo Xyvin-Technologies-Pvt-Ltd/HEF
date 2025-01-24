@@ -269,7 +269,7 @@ exports.createUserSchema = Joi.object({
 });
 
 exports.editUserSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string(),
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
@@ -277,8 +277,8 @@ exports.editUserSchema = Joi.object({
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
-  email: Joi.string().email().required(),
-  phone: Joi.string().trim().required(),
+  email: Joi.string().email(),
+  phone: Joi.string().trim(),
   secondaryPhone: Joi.object({
     whatsapp: Joi.string(),
     business: Joi.string(),
