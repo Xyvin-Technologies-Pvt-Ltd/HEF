@@ -586,6 +586,7 @@ exports.getHierarchyList = async (req, res) => {
         name: item.name,
         admins: item.admins || [],
         category,
+        pstCount: item.admins.length,
       }));
 
     if (type === "state") {
