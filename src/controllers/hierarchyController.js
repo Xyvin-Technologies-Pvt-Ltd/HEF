@@ -616,7 +616,6 @@ exports.getHierarchyList = async (req, res) => {
     } else {
       return responseHandler(res, 400, "Invalid type parameter", []);
     }
-
     if (!data.length) {
       return responseHandler(res, 404, `${type} data not found`, []);
     }
