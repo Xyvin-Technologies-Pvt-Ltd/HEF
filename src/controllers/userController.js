@@ -456,6 +456,7 @@ exports.getAllUsers = async (req, res) => {
     }
     const totalCount = await User.countDocuments(filter);
     const data = await User.find(filter)
+      .populate("chapter")
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
@@ -467,7 +468,7 @@ exports.getAllUsers = async (req, res) => {
         return {
           ...user,
           name: user.name || "",
-          companyName: user?.company?.name || "",
+          chapterName: user.chapter?.name || "",
           isAdmin: adminDetails ? true : false,
           adminType: adminDetails?.type || null,
           levelName: adminDetails?.name || null,
