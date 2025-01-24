@@ -850,7 +850,10 @@ exports.getLevel = async (req, res) => {
     const { levelId } = req.query;
 
     if (type === "state") {
-      const findState = await State.findById(levelId);
+      const findState = await State.findById(levelId).populate(
+        "admins.user",
+        "name"
+      );
       if (findState) {
         return responseHandler(
           res,
@@ -860,7 +863,10 @@ exports.getLevel = async (req, res) => {
         );
       }
     } else if (type === "zone") {
-      const findZone = await Zone.findById(levelId);
+      const findZone = await Zone.findById(levelId).populate(
+        "admins.user",
+        "name"
+      );
       if (findZone) {
         return responseHandler(
           res,
@@ -870,7 +876,10 @@ exports.getLevel = async (req, res) => {
         );
       }
     } else if (type === "district") {
-      const findDistrict = await District.findById(levelId);
+      const findDistrict = await District.findById(levelId).populate(
+        "admins.user",
+        "name"
+      );
       if (findDistrict) {
         return responseHandler(
           res,
@@ -880,7 +889,10 @@ exports.getLevel = async (req, res) => {
         );
       }
     } else if (type === "chapter") {
-      const findChapter = await Chapter.findById(levelId);
+      const findChapter = await Chapter.findById(levelId).populate(
+        "admins.user",
+        "name"
+      );
       if (findChapter) {
         return responseHandler(
           res,
@@ -959,4 +971,3 @@ exports.deleteLevel = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error`);
   }
 };
-
