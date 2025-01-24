@@ -246,7 +246,7 @@ exports.getAllProducts = async (req, res) => {
     const mappedData = products.map((item) => {
       return {
         ...item,
-        seller: item?.seller?.name,
+        sellerName: item?.seller?.name,
       };
     });
 
