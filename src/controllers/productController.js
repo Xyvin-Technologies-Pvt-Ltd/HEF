@@ -3,6 +3,8 @@ const Product = require("../models/productModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const logActivity = require("../models/logActivityModel");
+const User = require("../models/userModel");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 // Create a new product - admin
 exports.createProduct = async (req, res) => {
   let status = "failure";
@@ -133,6 +135,16 @@ exports.updateProduct = async (req, res) => {
     });
     status = "success";
     if (updatedProduct) {
+      if (req.body.status) {
+        const toUser = await User.findById(updatedProduct.seller).select("fcm");
+        const fcmUser = [toUser.fcm];
+
+        await sendInAppNotification(
+          fcmUser,
+          `Your Product request has been ${req.body.status}`,
+          `Your Product request has been ${req.body.status} for ${updatedProduct.name}`
+        );
+      }
       return responseHandler(
         res,
         200,
