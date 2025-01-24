@@ -237,16 +237,24 @@ exports.getAllProducts = async (req, res) => {
 
     const totalCount = await Product.countDocuments(filter);
     const products = await Product.find(filter)
+      .populate("seller", "name")
       .skip(skipCount)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 })
       .lean();
 
+    const mappedData = products.map((item) => {
+      return {
+        ...item,
+        seller: item?.seller?.name,
+      };
+    });
+
     return responseHandler(
       res,
       200,
       "Products found successfully!",
-      products,
+      mappedData,
       totalCount
     );
   } catch (error) {
