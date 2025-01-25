@@ -431,3 +431,31 @@ exports.fetchUserProducts = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+exports.deleteUserProduct = async (req, res) => {
+  try {
+    const id = req.params.productId;
+    if (!id) {
+      return responseHandler(res, 400, "Product ID is required");
+    }
+
+    const findProduct = await Product.findById(id);
+    if (!findProduct) {
+      return responseHandler(res, 404, "Product not found");
+    }
+
+    if (findProduct.seller.toString() !== req.userId) {
+      return responseHandler(
+        res,
+        403,
+        "You are not authorized to delete this product"
+      );
+    }
+
+    await Product.findByIdAndDelete(id);
+
+    return responseHandler(res, 200, "Product deleted successfully!");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

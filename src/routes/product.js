@@ -13,6 +13,7 @@ productRoute.get("/", productController.getUserProducts);
 
 productRoute.get("/myproducts", productController.fetchMyProducts);
 productRoute.get("/admin/:userId", productController.fetchUserProducts);
+productRoute.delete("/user/:productId", productController.deleteUserProduct);
 
 productRoute
   .route("/single/:id")
