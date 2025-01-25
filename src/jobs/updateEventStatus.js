@@ -35,8 +35,8 @@ cron.schedule("* * * * *", async () => {
 
       const message = {
         notification: {
-          title: `Event ${event.name} is now live!`,
-          body: `The event ${event.name} has started. Join now!`,
+          title: `Event ${event.eventName} is now live!`,
+          body: `The event ${event.eventName} has started. Join now!`,
         },
         android: {
           notification: {
