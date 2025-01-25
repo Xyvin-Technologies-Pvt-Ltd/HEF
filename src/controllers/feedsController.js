@@ -152,7 +152,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
       description: "Get admin details",
       apiEndpoint: req.originalUrl,
       httpMethod: req.method,
-      host: req.headers.host,
+      host: req.headers["x-forwarded-for"] || req.ip,
       agent: req.headers["user-agent"],
       status: Status,
       errorMessage,
