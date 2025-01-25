@@ -19,7 +19,7 @@ productRoute
   .route("/single/:id")
   .get(productController.getProduct)
   .put(productController.updateProduct)
-  .delete(productController.deleteProduct);  //admin
+  .delete(productController.deleteProduct);
 
 productRoute.route("/user").post(productController.createProductByUser);
 
