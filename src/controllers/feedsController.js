@@ -113,12 +113,10 @@ exports.getAllFeedsForAdmin = async (req, res) => {
   let Status = "failure";
   let errorMessage = null;
   try {
-    const { pageNo = 1, status, limit = 10, search } = req.query;
+    const { pageNo = 1, limit = 10, search } = req.query;
     const skipCount = 10 * (pageNo - 1);
 
-    const filter = {
-      status: "unpublished",
-    };
+    const filter = {};
     if (search) {
       filter.$or = [{ type: { $regex: search, $options: "i" } }];
     }
@@ -155,7 +153,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
       httpMethod: req.method,
       host: req.headers.host,
       agent: req.headers["user-agent"],
-      status:Status,
+      status: Status,
       errorMessage,
     });
   }
@@ -195,7 +193,7 @@ exports.updateFeeds = async (req, res) => {
     await sendInAppNotification(
       fcmUser,
       `Your Feed request has been ${action}`,
-      `Your Feed request has been ${action} for ${findFeeds.content}`,
+      `Your Feed request has been ${action} for ${findFeeds.content}`
     );
 
     if (action === "accept") {
