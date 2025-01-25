@@ -117,6 +117,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     const skipCount = 10 * (pageNo - 1);
 
     const filter = {};
+    
     if (search) {
       filter.$or = [{ type: { $regex: search, $options: "i" } }];
     }
