@@ -614,7 +614,7 @@ exports.loginUser = async (req, res) => {
             400,
             "User with this phone number does not exist"
           );
-        } else if (user.uid !== null) {
+        } else if (user.uid && user.uid !== null) {
           user.fcm = fcm;
           user.save();
           const token = generateToken(user._id);
