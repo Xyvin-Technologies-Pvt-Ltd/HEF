@@ -251,6 +251,8 @@ exports.getUser = async (req, res) => {
       })
       .lean();
 
+    const adminDetails = await isUserAdmin(id);
+
     const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
 
     const state = {
@@ -280,6 +282,9 @@ exports.getUser = async (req, res) => {
       zone,
       district,
       chapter,
+      isAdmin: adminDetails ? true : false,
+      adminType: adminDetails?.type || null,
+      levelName: adminDetails?.name || null,
     };
 
     status = "success";
