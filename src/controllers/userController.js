@@ -504,32 +504,67 @@ exports.getAllUsers = async (req, res) => {
 exports.listUsers = async (req, res) => {
   try {
     const { pageNo = 1, limit = 10 } = req.query;
-    const skipCount = 10 * (pageNo - 1);
+    const skipCount = limit * (pageNo - 1);
+
     const currentUser = await User.findById(req.userId).select("blockedUsers");
-    const blockedUsersList = currentUser.blockedUsers;
+    const blockedUsersList = currentUser?.blockedUsers || [];
+
     const filter = {
       status: { $in: ["active", "awaiting_payment"] },
-      _id: {
-        $ne: req.userId,
-        $nin: blockedUsersList,
-      },
+      _id: { $ne: req.userId, $nin: blockedUsersList },
     };
+
     const totalCount = await User.countDocuments(filter);
-    const data = await User.find(filter)
+
+    const users = await User.find(filter)
+      .populate({
+        path: "chapter",
+        select: "name",
+        populate: {
+          path: "districtId",
+          select: "name",
+          populate: {
+            path: "zoneId",
+            select: "name",
+            populate: {
+              path: "stateId",
+              select: "name",
+            },
+          },
+        },
+      })
       .skip(skipCount)
-      .limit(limit)
+      .limit(parseInt(limit))
       .sort({ createdAt: -1, _id: 1 })
       .lean();
+
+    const mappedUsers = users.map((user) => {
+      const state = user?.chapter?.districtId?.zoneId?.stateId;
+      const zone = user?.chapter?.districtId?.zoneId;
+      const district = user?.chapter?.districtId;
+      const chapter = user?.chapter;
+
+      return {
+        ...user,
+        level: `${state?.name || ""} State ${zone?.name || ""} Zone ${
+          district?.name || ""
+        } District ${chapter?.name || ""} Chapter`,
+        state: state ? { _id: state._id, name: state.name } : null,
+        zone: zone ? { _id: zone._id, name: zone.name } : null,
+        district: district ? { _id: district._id, name: district.name } : null,
+        chapter: chapter ? { _id: chapter._id, name: chapter.name } : null,
+      };
+    });
 
     return responseHandler(
       res,
       200,
-      `Users found successfull..!`,
-      data,
+      "Users found successfully!",
+      mappedUsers,
       totalCount
     );
   } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
 
