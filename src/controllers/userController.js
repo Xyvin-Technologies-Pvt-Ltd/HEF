@@ -645,8 +645,8 @@ exports.loginUser = async (req, res) => {
   try {
     const id = req.body.clientToken;
     const { fcm } = req.body;
-    if (!id) {
-      return responseHandler(res, 400, "Client Token is required");
+    if (!id || !fcm) {
+      return responseHandler(res, 400, "Client Token or Fcm is required");
     }
     let user;
     admin
