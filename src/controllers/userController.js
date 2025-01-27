@@ -333,11 +333,16 @@ exports.getSingleUser = async (req, res) => {
       },
     });
 
+    const adminDetails = await isUserAdmin(id);
+
     const level = `${findUser?.chapter?.districtId?.zoneId?.stateId?.name} State ${findUser?.chapter?.districtId?.zoneId?.name} Zone ${findUser?.chapter?.districtId?.name} District ${findUser?.chapter?.name} Chapter`;
 
     const mappedData = {
       ...findUser._doc,
       level,
+      isAdmin: adminDetails ? true : false,
+      adminType: adminDetails?.type || null,
+      levelName: adminDetails?.name || null,
     };
 
     if (findUser) {
