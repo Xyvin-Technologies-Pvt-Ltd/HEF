@@ -441,7 +441,7 @@ exports.getAllUsers = async (req, res) => {
       );
     }
     const { pageNo = 1, status, limit = 10, search } = req.query;
-    const skipCount = 10 * (pageNo - 1);
+    const skipCount = limit * (pageNo - 1);
     const filter = {};
     if (search) {
       filter.$or = [
