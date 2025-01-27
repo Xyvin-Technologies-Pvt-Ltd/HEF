@@ -343,6 +343,7 @@ exports.getSingleUser = async (req, res) => {
       isAdmin: adminDetails ? true : false,
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
+      levelId: adminDetails?.id,
     };
 
     if (findUser) {
