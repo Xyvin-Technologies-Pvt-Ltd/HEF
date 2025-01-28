@@ -71,6 +71,7 @@ exports.getRequests = async (req, res) => {
       const data = await Analytic.find(filter)
         .populate("sender", "name image")
         .populate("member", "name image")
+        .populate("referral", "name")
         .skip(skipCount)
         .limit(limit)
         .sort({ createdAt: -1, _id: 1 })
@@ -81,6 +82,7 @@ exports.getRequests = async (req, res) => {
           ...user,
           senderName: user.sender?.name || "",
           memberName: user.member?.name || "",
+          referralName: user.referral?.name || "",
         };
       });
 
