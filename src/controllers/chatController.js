@@ -97,7 +97,7 @@ exports.sendMessage = async (req, res) => {
       const fcmUser = [toUser.fcm];
       await sendInAppNotification(
         fcmUser,
-        `New Message ${fromUser.name.first}`,
+        `New Message ${fromUser.name}`,
         content
       );
       if (receiverSocketId) {
@@ -330,13 +330,7 @@ exports.getGroupDetails = async (req, res) => {
     };
 
     const participantsData = group.participants.map((item) => {
-      let fullName = item.name.first;
-      if (item.name.middle) {
-        fullName += ` ${item.name.middle}`;
-      }
-      if (item.name.last) {
-        fullName += ` ${item.name.last}`;
-      }
+      let fullName = item.name;
       return {
         _id: item._id,
         name: fullName,

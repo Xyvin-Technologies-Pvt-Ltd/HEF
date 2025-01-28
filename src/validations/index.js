@@ -148,7 +148,7 @@ exports.createNotificationSchema = Joi.object({
 
 exports.createReport = Joi.object({
   content: Joi.string().required(),
-  reportType: Joi.string().valid("Post", "Chat", "User", "Message").required(),
+  reportType: Joi.string().valid("Feeds", "Chat", "User", "Message", "Product").required(),
 });
 
 exports.createStateSchema = Joi.object({

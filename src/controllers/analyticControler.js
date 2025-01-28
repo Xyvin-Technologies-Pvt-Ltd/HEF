@@ -118,14 +118,18 @@ exports.getRequests = async (req, res) => {
     const mappedData = response.map((data) => {
       let username;
       let user_image;
+      let user_id;
 
       if (filter === "sent") {
+        user_id = data.member?._id;
         username = data.member?.name || "";
         user_image = data.member?.image || "";
       } else if (filter === "received") {
+        user_id = data.sender?._id;
         username = data.sender?.name || "";
         user_image = data.sender?.image || "";
       } else {
+        user_id = data.member?._id || data.sender?._id || "";
         username = data.member?.name || data.sender?.name || "";
         user_image = data.member?.image || data.sender?.image || "";
       }
@@ -133,6 +137,7 @@ exports.getRequests = async (req, res) => {
       return {
         _id: data._id,
         username,
+        user_id,
         user_image,
         title: data.title,
         status: data.status,
@@ -151,7 +156,6 @@ exports.getRequests = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 exports.updateRequestStatus = async (req, res) => {
   try {
