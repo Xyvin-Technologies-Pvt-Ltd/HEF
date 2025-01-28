@@ -49,9 +49,7 @@ exports.getReports = async (req, res) => {
       if (item.reportType === "Feeds") {
         content = item.content?.content || "";
       } else if (item.reportType === "User") {
-        content = `${item.content?.name?.first || ""} ${
-          item.content?.name?.middle || ""
-        } ${item.content?.name?.last || ""}`.trim();
+        content = `${item.content?.name || ""}`.trim();
       } else if (item.reportType === "Message") {
         content = item.content?.content || "Chat";
       }
@@ -60,9 +58,7 @@ exports.getReports = async (req, res) => {
         _id: item._id,
         content: content,
         reportType: item.reportType,
-        reportBy: `${item.reportBy?.name?.first || ""} ${
-          item.reportBy?.name?.middle || ""
-        } ${item.reportBy?.name?.last || ""}`.trim(),
+        reportBy: `${item.reportBy?.name || ""}`.trim(),
       };
     });
 
