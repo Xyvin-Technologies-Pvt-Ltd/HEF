@@ -471,6 +471,8 @@
  *       500:
  *         description: Internal Server Error
  */
+
+
 /**
  * @swagger
  * /user/admin/single/{id}:

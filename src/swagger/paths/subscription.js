@@ -82,7 +82,7 @@
  *       - in: path
  *         name: id
  *         required: true
- *         description: ID of the User
+ *         description: ID of the Subscription
  *         schema:
  *           type: string
  *     requestBody:

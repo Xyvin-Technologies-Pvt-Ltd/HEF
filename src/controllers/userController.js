@@ -438,6 +438,8 @@ exports.updateUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+
 exports.getAllUsers = async (req, res) => {
   let Status = "failure";
   let errorMessage = null;

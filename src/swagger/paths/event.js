@@ -348,6 +348,8 @@
  *       500:
  *         description: Internal server error
  */
+
+
 /**
  * @swagger
  * /event/attend/{eventId}:
