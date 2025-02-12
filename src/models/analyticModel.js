@@ -31,4 +31,3 @@ const analyticSchema = mongoose.Schema(
 const Analytic = mongoose.model("Analytic", analyticSchema);
 
 module.exports = Analytic;
-//server 
