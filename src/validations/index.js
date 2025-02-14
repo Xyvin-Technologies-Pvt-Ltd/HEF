@@ -423,6 +423,7 @@ exports.createAnalyticSchema = Joi.object({
   status: Joi.string(),
 });
 
+
 exports.createMemberSchema = Joi.object({
   name: Joi.string().required(),
   bloodgroup: Joi.string(),
@@ -480,4 +481,27 @@ exports.editAccessSchema = Joi.object({
   addReward: Joi.boolean(),
   addCertificate: Joi.boolean(),
   addSocialmedia: Joi.boolean(),
+});
+
+
+
+exports.PaymentSchema = Joi.object({
+  user: Joi.string().required(),
+  amount: Joi.number().min(0).required(),
+  category: Joi.string().required().valid("app", "membership"),
+  parentSub: Joi.string().required(),
+  receipt: Joi.string(),
+  status: Joi.string()
+});
+
+exports.UserPaymentSchema = Joi.object({
+  category: Joi.string().required().valid("app", "membership"),
+  receipt: Joi.string().required(),
+  amount: Joi.number().min(0).required(),
+  parentSub: Joi.string().required(),
+});
+
+exports.createParentSubSchema = Joi.object({
+  academicYear: Joi.string().required(),
+  expiryDate: Joi.date().required(),
 });

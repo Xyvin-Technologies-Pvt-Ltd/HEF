@@ -28,6 +28,7 @@ const subscriptionRoute = require("./src/routes/subscription");
 const userAccessRoute = require("./src/routes/userAccess");
 const { serviceAccount } = require("./src/config/firebase");
 const { app, server } = require("./src/socket"); //! Import server and io from socket file
+const paymentRoute = require("./src/routes/payments");
 
 //* Define the PORT & API version based on environment variable
 const { PORT, API_VERSION, NODE_ENV } = process.env;
@@ -85,6 +86,7 @@ app.use(`${BASE_PATH}/analytic`, analyticRoute);
 app.use(`${BASE_PATH}/chat`, chatRoute);
 app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
 app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
+app.use(`${BASE_PATH}/payment`, paymentRoute);
 
 app.all("*", (req, res) => {
   return responseHandler(res, 404, "No API Found..!");

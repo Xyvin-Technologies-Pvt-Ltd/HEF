@@ -1,0 +1,169 @@
+require("dotenv").config();
+
+const responseHandler = require("../helpers/responseHandler");
+const Payment = require("../models/paymentModel");
+const User = require("../models/userModel");
+const {
+  PaymentSchema,
+  UserPaymentSchema,
+  createParentSubSchema,
+} = require("../validations/index");
+const ParentSub = require("../models/parentSubModel");
+
+exports.updatePayment = async (req, res) => {
+  try {
+    const { error } = PaymentSchema.validate(req.body, { abortEarly: true });   
+     if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const { id } = req.params;
+
+    await Payment.findByIdAndUpdate(id, { status: "expired" }, { new: true });
+
+    const payment = await Payment.create(req.body);
+
+    if (!payment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      if (req.body.category === "app") {
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { subscription: "premium" },
+          { new: true }
+        );
+      } else if (req.body.category === "membership") {
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { status: "active" },
+          { new: true }
+        );
+      }
+    }
+
+    return responseHandler(res, 200, "Payment updated successfully!", payment);
+  } catch (err) {
+    return responseHandler(res, 500, `Error saving payment: ${err.message}`);
+  }
+};
+
+exports.getUserPayments = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const appPayment = await Payment.findOne({ user: userId, category: "app" })
+      .sort({ createdAt: -1 })
+      .populate("parentSub")
+      .lean();
+
+    const membershipPayment = await Payment.findOne({
+      user: userId,
+      category: "membership",
+    })
+      .sort({ createdAt: -1 })
+      .populate("parentSub")
+      .lean();
+
+    const payments = [];
+
+    if (appPayment) {
+      payments.push(appPayment);
+    }
+
+    if (membershipPayment) {
+      payments.push(membershipPayment);
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Successfully retrieved payments",
+      payments,
+      payments.length
+    );
+  } catch (error) {
+    return responseHandler(res, 500, "Error retrieving payments", error);
+  }
+};
+
+exports.createUserPayment = async (req, res) => {
+  const userId = req.userId;
+  const data = req.body;
+
+  if (!userId) {
+    return responseHandler(res, 400, "Invalid request");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return responseHandler(res, 404, "User not found");
+  }
+
+  const { error } = UserPaymentSchema.validate(data, {
+    abortEarly: true,
+  });
+
+
+  const payment_exist = await Payment.findOne({
+    category: data.category,
+    member: userId,
+    status: { $in: ["accepted", "expiring"] },
+  });
+
+  if (payment_exist) {
+    payment_exist.status == "expired";
+    await payment_exist.save();
+  }
+
+  if (error) {
+    return responseHandler(res, 400, `Invalid input: ${error.message}`);
+  }
+
+  const newPayment = new Payment({
+    ...data,
+    user: userId,
+  });
+
+  try {
+    await newPayment.save();
+    return responseHandler(
+      res,
+      201,
+      "Payment submitted successfully!",
+      newPayment
+    );
+  } catch (err) {
+    return responseHandler(res, 500, `Error saving payment: ${err.message}`);
+  }
+};
+
+exports.createParentSubscription = async (req, res) => {
+  try {
+    const { error } = createParentSubSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const payment = await ParentSub.create(req.body);
+    if (!payment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      return responseHandler(res, 200, "Payment saved successfully", payment);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.getParentSubscription = async (req, res) => {
+  try {
+    const payment = await ParentSub.find();
+    if (!payment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      return responseHandler(res, 200, "Payment saved successfully", payment);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
