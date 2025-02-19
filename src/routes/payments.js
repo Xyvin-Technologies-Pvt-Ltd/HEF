@@ -23,6 +23,11 @@ paymentRoute.get("/user/:userId", paymentController.getUserPayments);
 
 paymentRoute.patch("/status/:id", paymentController.updatePaymentStatus);
 
+paymentRoute
+  .route("/parent-subscription/:id")
+  .put(paymentController.updateParentSubscription)
+  .get(paymentController.getSingleParentSubscription);
+
 paymentRoute.get("/:id", paymentController.getSinglePayment);
 
 module.exports = paymentRoute;

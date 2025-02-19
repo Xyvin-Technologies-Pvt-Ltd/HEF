@@ -505,6 +505,11 @@ exports.createParentSubSchema = Joi.object({
   expiryDate: Joi.date().required(),
 });
 
+exports.editParentSubSchema = Joi.object({
+  academicYear: Joi.string(),
+  expiryDate: Joi.date(),
+});
+
 exports.PaymentSchema = Joi.object({
   user: Joi.string().required(),
   amount: Joi.number().min(0).required(),

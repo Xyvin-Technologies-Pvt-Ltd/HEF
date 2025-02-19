@@ -7,6 +7,7 @@ const {
   PaymentSchema,
   UserPaymentSchema,
   createParentSubSchema,
+  editParentSubSchema,
 } = require("../validations/index");
 const ParentSub = require("../models/parentSubModel");
 
@@ -292,5 +293,42 @@ exports.updatePaymentStatus = async (req, res) => {
     );
   } catch (err) {
     return responseHandler(res, 500, `Error saving payment: ${err.message}`);
+  }
+};
+
+exports.updateParentSubscription = async (req, res) => {
+  try {
+    const { error } = editParentSubSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const { id } = req.params;
+    const payment = await ParentSub.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (!payment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      return responseHandler(res, 200, "Payment saved successfully", payment);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.getSingleParentSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const payment = await ParentSub.findById(id);
+    if (!payment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      return responseHandler(res, 200, "Payment saved successfully", payment);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
   }
 };
