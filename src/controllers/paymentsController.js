@@ -12,8 +12,8 @@ const ParentSub = require("../models/parentSubModel");
 
 exports.updatePayment = async (req, res) => {
   try {
-    const { error } = PaymentSchema.validate(req.body, { abortEarly: true });   
-     if (error) {
+    const { error } = PaymentSchema.validate(req.body, { abortEarly: true });
+    if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
     const { id } = req.params;
@@ -102,7 +102,6 @@ exports.createUserPayment = async (req, res) => {
     abortEarly: true,
   });
 
-
   const payment_exist = await Payment.findOne({
     category: data.category,
     member: userId,
@@ -163,6 +162,78 @@ exports.getParentSubscription = async (req, res) => {
     } else {
       return responseHandler(res, 200, "Payment saved successfully", payment);
     }
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.createPayment = async (req, res) => {
+  try {
+    const { error } = PaymentSchema.validate(req.body, { abortEarly: true });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const newPayment = await Payment.create(req.body);
+
+    if (!newPayment) {
+      return responseHandler(res, 500, "Error saving payment");
+    } else {
+      if (req.body.category === "app") {
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { subscription: "premium" },
+          { new: true }
+        );
+      } else if (req.body.category === "membership") {
+        await User.findOneAndUpdate(
+          { _id: req.body.user },
+          { status: "active" },
+          { new: true }
+        );
+      }
+    }
+
+    return responseHandler(
+      res,
+      201,
+      "Payment submitted successfully!",
+      newPayment
+    );
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.getPayments = async (req, res) => {
+  try {
+    const { pageNo = 1, limit = 10, search, status } = req.query;
+    const skipCount = (pageNo - 1) * limit;
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [{ "user.name": { $regex: search, $options: "i" } }];
+    }
+
+    const payments = await Payment.find(filter)
+      .populate("user", "name")
+      .skip(skipCount)
+      .limit(limit)
+      .sort({ _id: 1 })
+      .lean();
+
+    const totalCount = await Payment.countDocuments(filter);
+
+    return responseHandler(
+      res,
+      200,
+      "Successfully retrieved payments",
+      payments,
+      totalCount
+    );
   } catch (error) {
     return responseHandler(res, 500, "Internal Server Error", error.message);
   }

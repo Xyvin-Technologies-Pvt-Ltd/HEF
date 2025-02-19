@@ -148,7 +148,9 @@ exports.createNotificationSchema = Joi.object({
 
 exports.createReport = Joi.object({
   content: Joi.string().required(),
-  reportType: Joi.string().valid("Feeds", "Chat", "User", "Message", "Product").required(),
+  reportType: Joi.string()
+    .valid("Feeds", "Chat", "User", "Message", "Product")
+    .required(),
 });
 
 exports.createStateSchema = Joi.object({
@@ -423,7 +425,6 @@ exports.createAnalyticSchema = Joi.object({
   status: Joi.string(),
 });
 
-
 exports.createMemberSchema = Joi.object({
   name: Joi.string().required(),
   bloodgroup: Joi.string(),
@@ -483,15 +484,13 @@ exports.editAccessSchema = Joi.object({
   addSocialmedia: Joi.boolean(),
 });
 
-
-
 exports.PaymentSchema = Joi.object({
   user: Joi.string().required(),
   amount: Joi.number().min(0).required(),
   category: Joi.string().required().valid("app", "membership"),
   parentSub: Joi.string().required(),
   receipt: Joi.string(),
-  status: Joi.string()
+  status: Joi.string(),
 });
 
 exports.UserPaymentSchema = Joi.object({
@@ -504,4 +503,13 @@ exports.UserPaymentSchema = Joi.object({
 exports.createParentSubSchema = Joi.object({
   academicYear: Joi.string().required(),
   expiryDate: Joi.date().required(),
+});
+
+exports.PaymentSchema = Joi.object({
+  user: Joi.string().required(),
+  amount: Joi.number().min(0).required(),
+  category: Joi.string().required().valid("app", "membership"),
+  parentSub: Joi.string().required(),
+  receipt: Joi.string(),
+  status: Joi.string(),
 });

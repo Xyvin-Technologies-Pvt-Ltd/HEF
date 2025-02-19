@@ -7,6 +7,11 @@ const paymentRoute = express.Router();
 
 paymentRoute.use(authVerify);
 
+paymentRoute
+  .route("/")
+  .post(paymentController.createPayment)
+  .get(paymentController.getPayments);
+
 paymentRoute.post("/user",paymentController.createUserPayment);
 paymentRoute
   .route("/parent-subscription")
