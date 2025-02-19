@@ -238,3 +238,59 @@ exports.getPayments = async (req, res) => {
     return responseHandler(res, 500, "Internal Server Error", error.message);
   }
 };
+
+exports.getSinglePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payment = await Payment.findById(id);
+    if (!payment) {
+      return responseHandler(res, 404, "Payment not found");
+    }
+
+    return responseHandler(res, 200, "Successfully retrieved payment", payment);
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    let payment = await Payment.findById(id);
+    if (!payment) {
+      return responseHandler(res, 404, "Payment details do not exist");
+    }
+
+    let user = await User.findById(payment.user);
+
+    if (!user) {
+      return responseHandler(res, 404, "User not found");
+    }
+    if (status == "cancelled" && payment.category == "app") {
+      user.subscription = "free";
+      payment.status = "cancelled";
+    } else if (status == "cancelled" && payment.category == "membership") {
+      user.status = "inactive";
+      payment.status = "cancelled";
+    } else if (status == "accepted" && payment.category == "app") {
+      user.subscription = "premium";
+      payment.status = "active";
+    } else if (status == "accepted" && payment.category == "membership") {
+      user.status = "active";
+      payment.status = "active";
+    }
+    await user.save();
+    await payment.save();
+
+    return responseHandler(
+      res,
+      200,
+      "Payment status updated successfully",
+      payment
+    );
+  } catch (err) {
+    return responseHandler(res, 500, `Error saving payment: ${err.message}`);
+  }
+};
