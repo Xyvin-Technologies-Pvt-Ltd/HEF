@@ -5,16 +5,16 @@ const Zone = require("../models/zoneModel");
 
 const isUserAdmin = async (userId) => {
   try {
-    const stateAdmin = await State.findOne({ "admins.user": userId }).select(
-      "name"
-    );
+    const stateAdmin = await State.findOne({
+      "admins.user": userId,
+    }).select("name");
     if (stateAdmin) {
       return { type: "State Admin", name: stateAdmin.name, id: stateAdmin._id };
     }
 
-    const zoneAdmin = await Zone.findOne({ "admins.user": userId }).select(
-      "name"
-    );
+    const zoneAdmin = await Zone.findOne({
+      "admins.user": userId,
+    }).select("name");
     if (zoneAdmin) {
       return { type: "Zone Admin", name: zoneAdmin.name, id: zoneAdmin._id };
     }
