@@ -10,6 +10,7 @@ const {
   editParentSubSchema,
 } = require("../validations/index");
 const ParentSub = require("../models/parentSubModel");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 
 exports.updatePayment = async (req, res) => {
   try {
@@ -27,16 +28,26 @@ exports.updatePayment = async (req, res) => {
       return responseHandler(res, 500, "Error saving payment");
     } else {
       if (req.body.category === "app") {
-        await User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
           { _id: req.body.user },
           { subscription: "premium" },
           { new: true }
         );
+        await sendInAppNotification(
+          user.fcm,
+          "Your subscription has been updated",
+          "Your subscription for our app has been updated. Please explore the app for more features and benefits."
+        );
       } else if (req.body.category === "membership") {
-        await User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
           { _id: req.body.user },
           { status: "active" },
           { new: true }
+        );
+        await sendInAppNotification(
+          user.fcm,
+          "Your membership has been updated",
+          "Your membership for our app has been updated. Please explore the app"
         );
       }
     }
