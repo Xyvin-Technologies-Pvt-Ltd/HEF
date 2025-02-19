@@ -28,6 +28,8 @@ exports.sendRequest = async (req, res) => {
       req.body.sender = req.userId;
     }
 
+    //TODO: add notification
+
     const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
   } catch (error) {
