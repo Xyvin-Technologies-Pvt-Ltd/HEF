@@ -311,10 +311,17 @@ exports.createProductByUser = async (req, res) => {
 
 exports.getUserProducts = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10 } = req.query;
+    const { pageNo = 1, limit = 10, search } = req.query;
     const filter = { status: "accepted" };
 
     const skip = (pageNo - 1) * limit;
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
 
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
@@ -324,14 +331,7 @@ exports.getUserProducts = async (req, res) => {
 
     const totalProducts = await Product.countDocuments(filter);
 
-    const response = {
-      totalProducts,
-      currentPage: Number(pageNo),
-      totalPages: Math.ceil(totalProducts / limit),
-      products,
-    };
-
-    return responseHandler(res, 200, "Products found successfully!", response);
+    return responseHandler(res, 200, "Products found successfully!", products, totalProducts);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
