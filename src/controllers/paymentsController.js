@@ -228,11 +228,18 @@ exports.getPayments = async (req, res) => {
 
     const totalCount = await Payment.countDocuments(filter);
 
+    const mappedData = payments.map((item) => {
+      return {
+        ...item,
+        user: item.user.name,
+      };
+    });
+
     return responseHandler(
       res,
       200,
       "Successfully retrieved payments",
-      payments,
+      mappedData,
       totalCount
     );
   } catch (error) {
@@ -243,12 +250,27 @@ exports.getPayments = async (req, res) => {
 exports.getSinglePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const payment = await Payment.findById(id);
+    const payment = await Payment.findById(id).populate("user", "name");
     if (!payment) {
       return responseHandler(res, 404, "Payment not found");
     }
 
     return responseHandler(res, 200, "Successfully retrieved payment", payment);
+  } catch (error) {
+    return responseHandler(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+exports.deletePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payment = await Payment.findByIdAndDelete(id);
+
+    if (!payment) {
+      return responseHandler(res, 404, "Payment not found");
+    }
+
+    return responseHandler(res, 200, "Successfully deleted payment", payment);
   } catch (error) {
     return responseHandler(res, 500, "Internal Server Error", error.message);
   }

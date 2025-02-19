@@ -28,6 +28,9 @@ paymentRoute
   .put(paymentController.updateParentSubscription)
   .get(paymentController.getSingleParentSubscription);
 
-paymentRoute.get("/:id", paymentController.getSinglePayment);
+paymentRoute
+  .route("/:id")
+  .get(paymentController.getSinglePayment)
+  .delete(paymentController.deletePayment);
 
 module.exports = paymentRoute;
