@@ -29,6 +29,20 @@ const userAccessRoute = require("./src/routes/userAccess");
 const { serviceAccount } = require("./src/config/firebase");
 const { app, server } = require("./src/socket"); //! Import server and io from socket file
 const paymentRoute = require("./src/routes/payments");
+const multer = require("multer");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+  },
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 //* Define the PORT & API version based on environment variable
 const { PORT, API_VERSION, NODE_ENV } = process.env;
@@ -51,7 +65,7 @@ const BASE_PATH = `/api/${API_VERSION}`;
 require("./src/helpers/connection");
 
 //* Start the cron job
-require("./src/jobs"); 
+require("./src/jobs");
 
 //? Define a route for the API root
 app.get(BASE_PATH, (req, res) => {
@@ -88,6 +102,35 @@ app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
 app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 app.use(`${BASE_PATH}/payment`, paymentRoute);
 
+app.post(`${BASE_PATH}/upload`, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return responseHandler(res, 400, "No file uploaded");
+    }
+
+    // Upload to S3
+    const uploadParams = {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: `${Date.now()}_${req.file.originalname}`,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+
+    const upload = new Upload({
+      client: s3,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
+    const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+
+    return responseHandler(res, 200, "Upload successful", fileUrl);
+  } catch (error) {
+    return responseHandler(res, 500, `Upload Failed ${error.message}`);
+  }
+});
+
 app.all("*", (req, res) => {
   return responseHandler(res, 404, "No API Found..!");
 });
@@ -100,4 +143,3 @@ server.listen(PORT, () => {
   );
   console.log(`${portMessage}\n${envMessage}`);
 });
-
