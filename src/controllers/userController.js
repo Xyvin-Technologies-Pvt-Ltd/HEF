@@ -122,7 +122,7 @@ exports.createUser = async (req, res) => {
     }
 
     const checkExist = await User.findOne({
-      $or: [{ email: req.body.email }, { phone: req.body.phone }],
+      $or: [{ phone: req.body.phone }],
     });
 
     if (checkExist) {
@@ -438,7 +438,6 @@ exports.updateUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
-
 
 exports.getAllUsers = async (req, res) => {
   let Status = "failure";
