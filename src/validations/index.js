@@ -248,7 +248,7 @@ exports.createUserSchema = Joi.object({
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
-  email: Joi.string().email().required(),
+  email: Joi.string().email(),
   phone: Joi.string().trim().required(),
   secondaryPhone: Joi.object({
     whatsapp: Joi.string(),
