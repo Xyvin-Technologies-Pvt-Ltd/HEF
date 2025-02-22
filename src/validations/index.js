@@ -334,15 +334,22 @@ exports.editUserSchema = Joi.object({
 });
 
 exports.updateUserSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string().required().messages({
+    "string.empty": "Name is required.",
+  }),
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
-  email: Joi.string().email().required(),
-  phone: Joi.string().trim().required(),
+  email: Joi.string().email().required().messages({
+    "string.email": "Please enter a valid email address.",
+    "string.empty": "Email is required.",
+  }),
+  phone: Joi.string().trim().required().messages({
+    "string.empty": "Phone number is required.",
+  }),
   secondaryPhone: Joi.object({
     whatsapp: Joi.string(),
     business: Joi.string(),
@@ -354,9 +361,13 @@ exports.updateUserSchema = Joi.object({
   businessSubCatogary: Joi.string(),
   company: Joi.array().items(
     Joi.object({
-      name: Joi.string(),
+      name: Joi.string().required().messages({
+        "string.empty": "Company name is required.",
+      }),
       designation: Joi.string(),
-      email: Joi.string().email(),
+      email: Joi.string().email().messages({
+        "string.email": "Company email must be a valid email.",
+      }),
       websites: Joi.string(),
       phone: Joi.string(),
       tags: Joi.array(),
