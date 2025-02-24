@@ -637,6 +637,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
+      installedUsers,
       graph,
     });
   } catch (error) {
