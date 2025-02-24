@@ -425,6 +425,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
+      installedUsers,
       graph,
     ] = await Promise.all([
       Subscription.countDocuments({ status: "active" }),
@@ -550,6 +551,9 @@ exports.fetchDashboard = async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ status: "active" }),
       User.countDocuments({ status: "inactive" }),
+      User.countDocuments({
+        $and: [{ fcm: { $ne: null } }, { fcm: { $ne: "" } }],
+      }),
       Analytic.aggregate([
         {
           $lookup: {
