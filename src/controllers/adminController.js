@@ -11,6 +11,7 @@ const Notification = require("../models/notificationModel");
 const Promotion = require("../models/promotionModel");
 const State = require("../models/stateModel");
 const Subscription = require("../models/subscriptionModel");
+const User = require("../models/userModel");
 const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateToken } = require("../utils/generateToken");
@@ -421,6 +422,9 @@ exports.fetchDashboard = async (req, res) => {
       promotionCount,
       notificationCount,
       topPerformers,
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
     ] = await Promise.all([
       Subscription.countDocuments({ status: "active" }),
       Analytic.countDocuments({
@@ -542,6 +546,9 @@ exports.fetchDashboard = async (req, res) => {
           },
         },
       ]),
+      User.countDocuments(),
+      User.countDocuments({ status: "active" }),
+      User.countDocuments({ status: "inactive" }),
     ]);
 
     const calculateAdmins = (data) =>
@@ -562,6 +569,9 @@ exports.fetchDashboard = async (req, res) => {
       promotionCount,
       notificationCount,
       topPerformers,
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
