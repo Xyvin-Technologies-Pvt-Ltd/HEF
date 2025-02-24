@@ -452,7 +452,15 @@ exports.getAllUsers = async (req, res) => {
         "You don't have permission to perform this action"
       );
     }
-    const { pageNo = 1, status, limit = 10, search } = req.query;
+    const {
+      pageNo = 1,
+      status,
+      limit = 10,
+      search,
+      name = "",
+      membershipId = "",
+      installed,
+    } = req.query;
     const skipCount = limit * (pageNo - 1);
     const filter = {};
     if (search) {
@@ -466,6 +474,21 @@ exports.getAllUsers = async (req, res) => {
     if (status) {
       filter.status = status;
     }
+
+    if (name && name !== "") {
+      filter.name = { $regex: name, $options: "i" };
+    }
+
+    if (membershipId && membershipId !== "") {
+      filter.memberId = membershipId;
+    }
+
+    if (installed) {
+      filter.fcm = {
+        $nin: [null, ""],
+      };
+    }
+
     const totalCount = await User.countDocuments(filter);
     const data = await User.find(filter)
       .populate("chapter")
