@@ -3,6 +3,7 @@ const validations = require("../validations");
 const Analytic = require("../models/analyticModel");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 
 exports.sendRequest = async (req, res) => {
   try {
@@ -28,7 +29,21 @@ exports.sendRequest = async (req, res) => {
       req.body.sender = req.userId;
     }
 
-    //TODO: add notification
+    if (req.body.referral) {
+      const user = await User.findById(req.body.referral);
+      await sendInAppNotification(
+        user.fcm,
+        "You have a new request",
+        `You have a new request. Regarding the ${req.body.type} request.`
+      );
+    } else {
+      const user = await User.findById(req.body.member);
+      await sendInAppNotification(
+        user.fcm,
+        "You have a new request",
+        `You have a new request. Regarding the ${req.body.type} request.`
+      );
+    }
 
     const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
