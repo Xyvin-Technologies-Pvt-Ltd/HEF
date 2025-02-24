@@ -425,6 +425,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
+      graph,
     ] = await Promise.all([
       Subscription.countDocuments({ status: "active" }),
       Analytic.countDocuments({
@@ -476,7 +477,7 @@ exports.fetchDashboard = async (req, res) => {
           $sort: { count: -1 },
         },
         {
-          $limit: 5,
+          $limit: 4,
         },
         {
           $lookup: {
@@ -549,6 +550,66 @@ exports.fetchDashboard = async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ status: "active" }),
       User.countDocuments({ status: "inactive" }),
+      Analytic.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "member",
+            foreignField: "_id",
+            as: "memberData",
+          },
+        },
+        { $unwind: "$memberData" },
+
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "memberData.chapter",
+            foreignField: "_id",
+            as: "chapterData",
+          },
+        },
+        { $unwind: "$chapterData" },
+
+        {
+          $lookup: {
+            from: "districts",
+            localField: "chapterData.districtId",
+            foreignField: "_id",
+            as: "districtData",
+          },
+        },
+        { $unwind: "$districtData" },
+
+        {
+          $lookup: {
+            from: "zones",
+            localField: "districtData.zoneId",
+            foreignField: "_id",
+            as: "zoneData",
+          },
+        },
+        { $unwind: "$zoneData" },
+
+        {
+          $group: {
+            _id: "$zoneData.name",
+            count: { $sum: 1 },
+            totalAmount: {
+              $sum: { $toDouble: "$amount" },
+            },
+          },
+        },
+
+        {
+          $project: {
+            _id: 0,
+            name: "$_id",
+            count: 1,
+            value: "$totalAmount",
+          },
+        },
+      ]),
     ]);
 
     const calculateAdmins = (data) =>
@@ -572,6 +633,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
+      graph,
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
