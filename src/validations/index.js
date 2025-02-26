@@ -527,3 +527,11 @@ exports.PaymentSchema = Joi.object({
   receipt: Joi.string(),
   status: Joi.string(),
 });
+
+exports.bulkCreateUserSchema = Joi.array().items(
+  Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().required(),
+    phone: Joi.string().required(),
+  })
+);

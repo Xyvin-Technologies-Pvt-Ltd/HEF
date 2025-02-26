@@ -15,6 +15,7 @@ const User = require("../models/userModel");
 const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateToken } = require("../utils/generateToken");
+const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
 const validations = require("../validations");
 
 exports.loginAdmin = async (req, res) => {
@@ -640,6 +641,62 @@ exports.fetchDashboard = async (req, res) => {
       installedUsers,
       graph,
     });
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.bulkCreateUser = async (req, res) => {
+  try {
+    const { error } = validations.bulkCreateUserSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      return responseHandler(
+        res,
+        400,
+        `Validation Error: ${error.details
+          .map((err) => err.message)
+          .join(", ")}`
+      );
+    }
+
+    let users = req.body;
+
+    const existingUsers = await User.find({
+      $or: users.map((user) => ({
+        email: user.email,
+        phone: user.phone,
+      })),
+    });
+
+    if (existingUsers.length > 0) {
+      const duplicateDetails = existingUsers.map((user) => ({
+        email: user.email,
+        phone: user.phone,
+      }));
+
+      return responseHandler(
+        res,
+        400,
+        "Some users already exist with the same email, Emirates ID, or phone.",
+        { duplicates: duplicateDetails }
+      );
+    }
+
+    for (let user of users) {
+      const uniqueMemberId = await generateUniqueDigit();
+      user.memberId = `HEF-${uniqueMemberId}`;
+    }
+
+    const createdUsers = await User.insertMany(users);
+
+    return responseHandler(
+      res,
+      201,
+      "Users created successfully",
+      createdUsers
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
