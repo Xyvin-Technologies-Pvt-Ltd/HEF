@@ -83,6 +83,7 @@ exports.getRequests = async (req, res) => {
           ...user,
           senderName: user.sender?.name || "",
           memberName: user.member?.name || "",
+          referralName: user.referral?.name || "",
         };
       });
 
