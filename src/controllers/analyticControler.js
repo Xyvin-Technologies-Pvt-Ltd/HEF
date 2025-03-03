@@ -29,21 +29,12 @@ exports.sendRequest = async (req, res) => {
       req.body.sender = req.userId;
     }
 
-    if (req.body.referral) {
-      const user = await User.findById(req.body.referral);
-      await sendInAppNotification(
-        user.fcm,
-        "You have a new request",
-        `You have a new request. Regarding the ${req.body.type} request.`
-      );
-    } else {
-      const user = await User.findById(req.body.member);
-      await sendInAppNotification(
-        user.fcm,
-        "You have a new request",
-        `You have a new request. Regarding the ${req.body.type} request.`
-      );
-    }
+    const user = await User.findById(req.body.member);
+    await sendInAppNotification(
+      user.fcm,
+      "You have a new request",
+      `You have a new request. Regarding the ${req.body.type} request.`
+    );
 
     const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
@@ -76,19 +67,12 @@ exports.getRequests = async (req, res) => {
         filter.status = status;
       }
 
-      if (type) {
-        if (type === "referrals") {
-          filter.referral = { $exists: true, $ne: null };
-        } else {
-          filter.type = type;
-        }
-      }
+      if (type) filter.type = type;
 
       const totalCount = await Analytic.countDocuments(filter);
       const data = await Analytic.find(filter)
         .populate("sender", "name image")
         .populate("member", "name image")
-        .populate("referral", "name")
         .skip(skipCount)
         .limit(limit)
         .sort({ createdAt: -1, _id: 1 })
@@ -99,7 +83,6 @@ exports.getRequests = async (req, res) => {
           ...user,
           senderName: user.sender?.name || "",
           memberName: user.member?.name || "",
-          referralName: user.referral?.name || "",
         };
       });
 

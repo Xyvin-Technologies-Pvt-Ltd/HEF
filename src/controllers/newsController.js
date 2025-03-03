@@ -5,6 +5,7 @@ const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
 const logActivity = require("../models/logActivityModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
+const Notification = require("../models/notificationModel");
 
 exports.createNews = async (req, res) => {
   let status = "failure";

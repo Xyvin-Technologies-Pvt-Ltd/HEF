@@ -4,13 +4,19 @@ const analyticSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["Business", "One v One Meeting"],
+      enum: ["Business", "One v One Meeting", "Referral"],
     },
     member: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     title: { type: String },
     description: { type: String },
-    referral: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    referral: {
+      name: { type: String },
+      email: { type: String },
+      phone: { type: String },
+      address: { type: String },
+      info: { type: String },
+    },
     contact: { type: String },
     amount: { type: String },
     date: { type: String },
