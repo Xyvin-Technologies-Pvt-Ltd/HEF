@@ -15,6 +15,7 @@ const District = require("../models/districtModel");
 const Review = require("../models/reviewModel");
 const { isUserAdmin } = require("../utils/adminCheck");
 const logActivity = require("../models/logActivityModel");
+const Analytic = require("../models/analyticModel");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -1096,5 +1097,70 @@ exports.analyticReview = async (req, res) => {
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.fetchDashboard = async (req, res) => {
+  try {
+    const { startDate, endDate, type } = req.query;
+    const user = req.userId;
+    const [
+      businessGiven,
+      businessReceived,
+      refferalGiven,
+      refferalReceived,
+      oneToOneCount,
+    ] = await Promise.all([
+      Analytic.countDocuments({
+        type: "Business",
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+        sender: user,
+      }),
+      Analytic.countDocuments({
+        type: "Business",
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+        member: user,
+      }),
+      Analytic.countDocuments({
+        type: "Refferal",
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+        sender: user,
+      }),
+      Analytic.countDocuments({
+        type: "Refferal",
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+        member: user,
+      }),
+      Analytic.countDocuments({
+        type: "One v One Meeting",
+        createdAt: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+        $or: [{ sender: user }, { member: user }],
+      }),
+    ]);
+
+    return responseHandler(res, 200, "Dashboard data fetched successfully", {
+      businessGiven,
+      businessReceived,
+      refferalGiven,
+      refferalReceived,
+      oneToOneCount,
+    });
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };

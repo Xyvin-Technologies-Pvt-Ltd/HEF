@@ -38,4 +38,6 @@ userRoute.patch("/admin/unblock-user/:id", userController.adminUserUnblock);
 
 userRoute.patch("/analytic-review/:userId", userController.analyticReview);
 
+userRoute.get("/dashboard", userController.fetchDashboard);
+
 module.exports = userRoute;
