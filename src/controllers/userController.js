@@ -1104,6 +1104,15 @@ exports.fetchDashboard = async (req, res) => {
   try {
     const { startDate, endDate, type } = req.query;
     const user = req.userId;
+    const filter = {};
+
+    if (startDate && endDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
     const [
       businessGiven,
       businessReceived,
@@ -1113,42 +1122,27 @@ exports.fetchDashboard = async (req, res) => {
     ] = await Promise.all([
       Analytic.countDocuments({
         type: "Business",
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
         sender: user,
+        ...filter,
       }),
       Analytic.countDocuments({
         type: "Business",
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
         member: user,
+        ...filter,
       }),
       Analytic.countDocuments({
         type: "Refferal",
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
         sender: user,
+        ...filter,
       }),
       Analytic.countDocuments({
         type: "Refferal",
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
         member: user,
+        ...filter,
       }),
       Analytic.countDocuments({
         type: "One v One Meeting",
-        createdAt: {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
-        },
+        ...filter,
         $or: [{ sender: user }, { member: user }],
       }),
     ]);
