@@ -1,6 +1,7 @@
 const responseHandler = require("../helpers/responseHandler");
 const Feeds = require("../models/feedsModel");
 const logActivity = require("../models/logActivityModel");
+const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
@@ -117,7 +118,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     const skipCount = 10 * (pageNo - 1);
 
     const filter = {};
-    
+
     if (search) {
       filter.$or = [{ type: { $regex: search, $options: "i" } }];
     }
@@ -245,6 +246,122 @@ exports.getMyFeeds = async (req, res) => {
       return responseHandler(res, 404, "Feeds not found");
     }
     return responseHandler(res, 200, "Feeds found successfull..!", findFeeds);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.likeFeed = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Feeds with this Id is required");
+    }
+
+    const findFeeds = await Feeds.findById(id);
+    if (!findFeeds) {
+      return responseHandler(res, 404, "Feeds not found");
+    }
+
+    if (findFeeds.like.includes(req.userId)) {
+      const updateFeeds = await Feeds.findByIdAndUpdate(
+        id,
+        {
+          $pull: { like: req.userId },
+        },
+        { new: true }
+      );
+      return responseHandler(
+        res,
+        200,
+        "Feeds unliked successfully",
+        updateFeeds
+      );
+    }
+
+    const updateFeeds = await Feeds.findByIdAndUpdate(
+      id,
+      {
+        $push: { like: req.userId },
+      },
+      { new: true }
+    );
+
+    const toUser = await User.findById(updateFeeds.author).select("fcm");
+    const fromUser = await User.findById(req.userId).select("fullName");
+    const fcmUser = [toUser.fcm];
+
+    if (req.userId !== String(updateFeeds.author)) {
+      await sendInAppNotification(
+        fcmUser,
+        `${fromUser.fullName} Liked Your Post`,
+        `${fromUser.fullName} Liked Your ${updateFeeds.content}`
+      );
+
+      await Notification.create({
+        users: toUser._id,
+        subject: `${fromUser.fullName} Liked Your Post`,
+        content: `${fromUser.fullName} Liked Your ${updateFeeds.content}`,
+        type: "in-app",
+      });
+    }
+
+    return responseHandler(res, 200, "Feeds liked successfully", updateFeeds);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.commentFeed = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Feeds with this Id is required");
+    }
+
+    const findFeeds = await Feeds.findById(id);
+    if (!findFeeds) {
+      return responseHandler(res, 404, "Feeds not found");
+    }
+
+    const updateFeeds = await Feeds.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          comment: {
+            user: req.userId,
+            comment: req.body.comment,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    const toUser = await User.findById(updateFeeds.author).select("fcm");
+    const fromUser = await User.findById(req.userId).select("fullName");
+    const fcmUser = [toUser.fcm];
+
+    if (req.userId !== String(updateFeeds.author)) {
+      await sendInAppNotification(
+        fcmUser,
+        `${fromUser.fullName} Commented Your Post`,
+        `${fromUser.fullName} Commented Your ${updateFeeds.content}`
+      );
+
+      await Notification.create({
+        users: toUser._id,
+        subject: `${fromUser.fullName} Commented Your Post`,
+        content: `${fromUser.fullName} Commented Your ${updateFeeds.content}`,
+        type: "in-app",
+      });
+    }
+
+    return responseHandler(
+      res,
+      200,
+      "Feeds commented successfully",
+      updateFeeds
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
