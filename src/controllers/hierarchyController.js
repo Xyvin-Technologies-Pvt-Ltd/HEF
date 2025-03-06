@@ -438,7 +438,10 @@ exports.getChapter = async (req, res) => {
       return responseHandler(res, 400, "chapter with this Id is required");
     }
 
-    const findChapter = await Chapter.findById(id);
+    const findChapter = await Chapter.findById(id).populate(
+      admins.user,
+      "name phone"
+    );
     if (findChapter) {
       return responseHandler(
         res,
