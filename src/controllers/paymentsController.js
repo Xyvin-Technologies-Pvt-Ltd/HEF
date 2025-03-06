@@ -36,7 +36,9 @@ exports.updatePayment = async (req, res) => {
         await sendInAppNotification(
           user.fcm,
           "Your subscription has been updated",
-          "Your subscription for our app has been updated. Please explore the app for more features and benefits."
+          "Your subscription for our app has been updated. Please explore the app for more features and benefits.",
+          null,
+          "my_subscriptions"
         );
       } else if (req.body.category === "membership") {
         const user = await User.findOneAndUpdate(
@@ -47,7 +49,9 @@ exports.updatePayment = async (req, res) => {
         await sendInAppNotification(
           user.fcm,
           "Your membership has been updated",
-          "Your membership for our app has been updated. Please explore the app"
+          "Your membership for our app has been updated. Please explore the app",
+          null,
+          "my_subscriptions"
         );
       }
     }

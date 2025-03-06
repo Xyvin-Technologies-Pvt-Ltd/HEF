@@ -42,7 +42,14 @@ exports.createNews = async (req, res) => {
     }).select("fcm");
     const fcmUser = users.map((user) => user.fcm);
     const userIds = users.map((user) => user._id);
-    await sendInAppNotification(fcmUser, newNews.title, newNews.content);
+    await sendInAppNotification(
+      fcmUser,
+      newNews.title,
+      newNews.content,
+      null,
+      "news",
+      newNews._id.toString()
+    );
 
     await Notification.create({
       users: userIds,

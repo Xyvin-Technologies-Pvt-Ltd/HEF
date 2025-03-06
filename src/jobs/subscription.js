@@ -34,7 +34,9 @@ cron.schedule("0 0 * * *", async () => {
       await sendInAppNotification(
         [exp.user.fcmToken],
         "Subscription Expiring",
-        `Your subscription to our app is expiring soon. Please renew your subscription to continue using our app.`
+        `Your subscription to our app is expiring soon. Please renew your subscription to continue using our app.`,
+        null,
+        "my_subscriptions"
       );
     }
 
@@ -62,7 +64,9 @@ cron.schedule("0 0 * * *", async () => {
       await sendInAppNotification(
         [exp.user.fcmToken],
         "Subscription Expired",
-        `Your subscription to our app has expired. Please renew your subscription to continue using our app.`
+        `Your subscription to our app has expired. Please renew your subscription to continue using our app.`,
+        null,
+        "my_subscriptions"
       );
     }
   } catch (err) {

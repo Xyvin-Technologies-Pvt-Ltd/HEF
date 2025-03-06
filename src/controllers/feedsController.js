@@ -199,7 +199,9 @@ exports.updateFeeds = async (req, res) => {
     await sendInAppNotification(
       fcmUser,
       `Your Feed request has been ${action}`,
-      `Your Feed request has been ${action} for ${findFeeds.content}`
+      `Your Feed request has been ${action} for ${findFeeds.content}`,
+      null,
+      "my_feeds"
     );
 
     if (action === "accept") {
@@ -299,7 +301,9 @@ exports.likeFeed = async (req, res) => {
       await sendInAppNotification(
         fcmUser,
         `${fromUser.fullName} Liked Your Post`,
-        `${fromUser.fullName} Liked Your ${updateFeeds.content}`
+        `${fromUser.fullName} Liked Your ${updateFeeds.content}`,
+        null,
+        "my_feeds"
       );
 
       await Notification.create({
@@ -349,7 +353,9 @@ exports.commentFeed = async (req, res) => {
       await sendInAppNotification(
         fcmUser,
         `${fromUser.fullName} Commented Your Post`,
-        `${fromUser.fullName} Commented Your ${updateFeeds.content}`
+        `${fromUser.fullName} Commented Your ${updateFeeds.content}`,
+        null,
+        "my_feeds"
       );
 
       await Notification.create({
