@@ -41,6 +41,7 @@ cron.schedule("* * * * *", async () => {
         android: {
           notification: {
             imageUrl: event.image,
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
           },
         },
         apns: {
@@ -54,6 +55,10 @@ cron.schedule("* * * * *", async () => {
           },
         },
         topic: topic,
+        data: {
+          screen: "event",
+          id: event._id.toString(),
+        },
       };
 
       try {
@@ -96,7 +101,27 @@ cron.schedule("* * * * *", async () => {
           title: `Event ${event.eventName} is now completed!`,
           body: `The event ${event.eventName} has ended. Thank you for participating!`,
         },
+        android: {
+          notification: {
+            imageUrl: event.image,
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              "mutable-content": 1,
+            },
+          },
+          fcm_options: {
+            image: event.image,
+          },
+        },
         topic: topic,
+        data: {
+          screen: "event",
+          id: event._id.toString(),
+        },
       };
 
       try {
