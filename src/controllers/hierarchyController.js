@@ -439,7 +439,7 @@ exports.getChapter = async (req, res) => {
     }
 
     const findChapter = await Chapter.findById(id).populate(
-      admins.user,
+      "admins.user",
       "name phone"
     );
     if (findChapter) {
