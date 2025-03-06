@@ -447,6 +447,7 @@ exports.getChapter = async (req, res) => {
         findChapter
       );
     }
+    return responseHandler(res, 400, `Chapter not found...!`);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
