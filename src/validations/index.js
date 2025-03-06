@@ -26,6 +26,7 @@ exports.createEventSchema = Joi.object({
   startTime: Joi.date().required(),
   endDate: Joi.date().required(),
   endTime: Joi.date().required(),
+  limit: Joi.number().required(),
   platform: Joi.string(),
   link: Joi.string(),
   venue: Joi.string(),

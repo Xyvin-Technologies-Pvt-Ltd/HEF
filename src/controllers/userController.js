@@ -1106,7 +1106,7 @@ exports.analyticReview = async (req, res) => {
 
 exports.fetchDashboard = async (req, res) => {
   try {
-    const { startDate, endDate, type } = req.query;
+    const { startDate, endDate } = req.query;
     const user = req.userId;
     const filter = {};
 
@@ -1124,16 +1124,36 @@ exports.fetchDashboard = async (req, res) => {
       refferalReceived,
       oneToOneCount,
     ] = await Promise.all([
-      Analytic.countDocuments({
-        type: "Business",
-        sender: user,
-        ...filter,
-      }),
-      Analytic.countDocuments({
-        type: "Business",
-        member: user,
-        ...filter,
-      }),
+      Analytic.aggregate([
+        {
+          $match: {
+            type: "Business",
+            sender: user,
+            ...filter,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: { $toDouble: "$amount" } },
+          },
+        },
+      ]),
+      Analytic.aggregate([
+        {
+          $match: {
+            type: "Business",
+            member: user,
+            ...filter,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: { $toDouble: "$amount" } },
+          },
+        },
+      ]),
       Analytic.countDocuments({
         type: "Refferal",
         sender: user,
@@ -1152,8 +1172,8 @@ exports.fetchDashboard = async (req, res) => {
     ]);
 
     return responseHandler(res, 200, "Dashboard data fetched successfully", {
-      businessGiven,
-      businessReceived,
+      businessGiven: businessGiven[0]?.totalAmount || 0,
+      businessReceived: businessReceived[0]?.totalAmount || 0,
       refferalGiven,
       refferalReceived,
       oneToOneCount,

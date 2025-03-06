@@ -18,6 +18,7 @@ const eventSchema = mongoose.Schema(
     venue: { type: String },
     organiserName: { type: String },
     coordinator: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    limit: { type: Number },
     speakers: [
       {
         name: { type: String },
