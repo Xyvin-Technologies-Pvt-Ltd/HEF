@@ -5,7 +5,8 @@ const sendInAppNotification = async (
   title,
   body,
   media = null,
-  deepLink = null
+  tag = "general",
+  id = null
 ) => {
   try {
     if (!fcmTokens || fcmTokens.length === 0) {
@@ -20,9 +21,8 @@ const sendInAppNotification = async (
       android: {
         notification: {
           ...(media && { imageUrl: media }),
-        },
-        data: {
-          ...(deepLink && { deepLinkUrl: deepLink }),
+          ...(tag && { tag }),
+          clickAction: "FLUTTER_NOTIFICATION_CLICK",
         },
       },
       apns: {
@@ -36,7 +36,8 @@ const sendInAppNotification = async (
         },
       },
       data: {
-        ...(deepLink && { deepLinkUrl: deepLink }),
+        screen: tag,
+        ...(id && { id }),
       },
     };
 

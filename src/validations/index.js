@@ -57,6 +57,7 @@ exports.editEventSchema = Joi.object({
   endTime: Joi.date(),
   platform: Joi.string(),
   link: Joi.string(),
+  limit: Joi.number(),
   venue: Joi.string(),
   organiserName: Joi.string(),
   coordinator: Joi.array().items(Joi.string()),

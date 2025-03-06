@@ -88,7 +88,10 @@ exports.sendMessage = async (req, res) => {
       await sendInAppNotification(
         fcmTokens,
         `New Message ${chat.groupName}`,
-        content
+        content,
+        null,
+        "chat",
+        from.toString()
       );
     } else {
       const receiverSocketId = getReceiverSocketId(to);

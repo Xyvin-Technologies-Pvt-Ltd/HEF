@@ -30,13 +30,16 @@ exports.sendRequest = async (req, res) => {
     }
 
     const user = await User.findById(req.body.member);
+
+    const analytic = await Analytic.create(req.body);
     await sendInAppNotification(
       user.fcm,
       "You have a new request",
-      `You have a new request. Regarding the ${req.body.type} request.`
+      `You have a new request. Regarding the ${req.body.type} request.`,
+      null,
+      "analytic",
+      analytic._id.toSting()
     );
-
-    const analytic = await Analytic.create(req.body);
     return responseHandler(res, 201, "Request created successfully", analytic);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
