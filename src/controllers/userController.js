@@ -68,6 +68,22 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
+exports.checkUser = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) {
+      return responseHandler(res, 400, "Phone number is required");
+    }
+    const checkExist = await User.findOne({ phone });
+    if (checkExist) {
+      return responseHandler(res, 200, "User already exists");
+    }
+    return responseHandler(res, 400, "User does not exist");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
 exports.createNewUser = async (req, res) => {
   try {
     const { error } = validations.createUserSchema.validate(req.body, {
