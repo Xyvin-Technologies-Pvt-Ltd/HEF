@@ -7,6 +7,7 @@ const Zone = require("../models/zoneModel");
 const Chapter = require("../models/chapterModel");
 const Member = require("../models/memberModel");
 const User = require("../models/userModel");
+const { isUserAdmin } = require("../utils/adminCheck");
 
 //state
 
@@ -518,7 +519,7 @@ exports.getLevels = async (req, res) => {
       }
     }
 
-    const { id, type } = req.params;
+    const { id, type, chooseAdmin } = req.params;
 
     if (!id) {
       return responseHandler(res, 400, "ID is required");
@@ -559,7 +560,18 @@ exports.getLevels = async (req, res) => {
         );
       }
     } else if (type === "user") {
-      const findUsers = await User.find({ chapter: id });
+      const query = { chapter: id };
+      const findUsers = await User.find(query);
+      if (chooseAdmin) {
+        const nonAdminUsers = await Promise.all(
+          findUsers.map(async (user) => {
+            const adminData = await isUserAdmin(user._id);
+            return adminData ? null : user;
+          })
+        );
+
+        findUsers = nonAdminUsers.filter(Boolean);
+      }
       if (findUsers) {
         return responseHandler(
           res,
