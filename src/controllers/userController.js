@@ -428,10 +428,22 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { error } = validations.updateUserSchema.validate(req.body, {
-      abortEarly: true,
+      abortEarly: false,
     });
+
     if (error) {
-      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+      const formattedErrors = error.details.map((err) => {
+        if (err.path[0] === "company" && typeof err.path[1] === "number") {
+          return `Error in company at index ${err.path[1] + 1}: ${err.message}`;
+        }
+        return err.message;
+      });
+
+      return responseHandler(
+        res,
+        400,
+        `Invalid input: ${formattedErrors.join("; ")}`
+      );
     }
 
     const id = req.userId;
