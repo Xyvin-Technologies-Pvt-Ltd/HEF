@@ -567,7 +567,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.listUsers = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10, search } = req.query;
+    const { pageNo = 1, limit = 10, search, district } = req.query;
     const skipCount = limit * (pageNo - 1);
 
     const currentUser = await User.findById(req.userId).select("blockedUsers");
@@ -580,6 +580,10 @@ exports.listUsers = async (req, res) => {
 
     if (search) {
       filter.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
+
+    if (district) {
+      filter["chapter.districtId"] = district;
     }
 
     const totalCount = await User.countDocuments(filter);

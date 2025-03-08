@@ -18,6 +18,7 @@ hierarchyRoute.put("/zone/:id", hierarchyController.updateZone);
 
 // District Routes
 hierarchyRoute.post("/district", hierarchyController.createDistrict);
+hierarchyRoute.get("/district/list", hierarchyController.getAllDistricts);
 hierarchyRoute.get("/district/:id", hierarchyController.getDistrict);
 hierarchyRoute.put("/district/:id", hierarchyController.updateDistrict);
 

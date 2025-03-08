@@ -987,3 +987,20 @@ exports.deleteLevel = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error`);
   }
 };
+
+exports.getAllDistricts = async (req, res) => {
+  try {
+    const getAllDistricts = await District.find();
+    if (getAllDistricts) {
+      return responseHandler(
+        res,
+        200,
+        `districts found successfully..!`,
+        getAllDistricts
+      );
+    }
+    return responseHandler(res, 400, `District not found...!`);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
