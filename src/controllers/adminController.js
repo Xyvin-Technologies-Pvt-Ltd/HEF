@@ -14,8 +14,10 @@ const Subscription = require("../models/subscriptionModel");
 const User = require("../models/userModel");
 const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
+const { generateRandomPassword } = require("../utils/generateRandomPassword");
 const { generateToken } = require("../utils/generateToken");
 const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
+const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
 
 exports.loginAdmin = async (req, res) => {
@@ -76,8 +78,22 @@ exports.createAdmin = async (req, res) => {
         `Admin with this email or phone already exists`
       );
 
-    const hashedPassword = await hashPassword(req.body.password);
+    const generatedPassword = generateRandomPassword();
+
+    const hashedPassword = await hashPassword(generatedPassword);
     req.body.password = hashedPassword;
+
+    const data = {
+      to: req.body.email,
+      subject: "Admin Registration Notification",
+      text: `Hello, ${req.body.name}. 
+        You have been registered as an admin on the platform. 
+        Please use the following credentials to log in: Email: ${req.body.email} Password: ${generatedPassword} 
+        Thank you for joining us! 
+        Best regards, The Admin Team`,
+    };
+
+    await sendMail(data);
 
     const newAdmin = await Admin.create(req.body);
     status = "success";
