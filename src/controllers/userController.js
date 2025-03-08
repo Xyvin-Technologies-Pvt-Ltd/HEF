@@ -1170,16 +1170,36 @@ exports.fetchDashboard = async (req, res) => {
           },
         },
       ]),
-      Analytic.countDocuments({
-        type: "Refferal",
-        sender: user,
-        ...filter,
-      }),
-      Analytic.countDocuments({
-        type: "Refferal",
-        member: user,
-        ...filter,
-      }),
+      Analytic.aggregate([
+        {
+          $match: {
+            type: "Refferal",
+            sender: user,
+            ...filter,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: { $toDouble: "$amount" } },
+          },
+        },
+      ]),
+      Analytic.aggregate([
+        {
+          $match: {
+            type: "Refferal",
+            member: user,
+            ...filter,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: { $toDouble: "$amount" } },
+          },
+        },
+      ]),
       Analytic.countDocuments({
         type: "One v One Meeting",
         ...filter,
@@ -1190,8 +1210,8 @@ exports.fetchDashboard = async (req, res) => {
     return responseHandler(res, 200, "Dashboard data fetched successfully", {
       businessGiven: businessGiven[0]?.totalAmount || 0,
       businessReceived: businessReceived[0]?.totalAmount || 0,
-      refferalGiven,
-      refferalReceived,
+      refferalGiven: refferalGiven[0]?.totalAmount || 0,
+      refferalReceived: refferalReceived[0]?.totalAmount || 0,
       oneToOneCount,
     });
   } catch (error) {
