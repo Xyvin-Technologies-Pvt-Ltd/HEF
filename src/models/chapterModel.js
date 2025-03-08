@@ -4,6 +4,7 @@ const adminSchema = require("./adminSchema");
 const chapterSchema = new mongoose.Schema(
   {
     name: { type: String },
+    shortCode: { type: String },
     districtId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "District",

@@ -187,6 +187,7 @@ exports.editDistrictSchema = Joi.object({
 
 exports.createChapterSchema = Joi.object({
   name: Joi.string().required(),
+  shortCode: Joi.string().required(),
   districtId: Joi.string().required(),
   admins: Joi.array(),
 });
