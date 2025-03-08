@@ -519,8 +519,8 @@ exports.getLevels = async (req, res) => {
       }
     }
 
-    const { id, type, chooseAdmin } = req.params;
-
+    const { id, type } = req.params;
+    const { chooseAdmin } = req.query;
     if (!id) {
       return responseHandler(res, 400, "ID is required");
     }
@@ -561,7 +561,7 @@ exports.getLevels = async (req, res) => {
       }
     } else if (type === "user") {
       const query = { chapter: id };
-      const findUsers = await User.find(query);
+      let findUsers = await User.find(query);
       if (chooseAdmin) {
         const nonAdminUsers = await Promise.all(
           findUsers.map(async (user) => {
