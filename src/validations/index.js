@@ -270,6 +270,8 @@ exports.createUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
+  businessTags: Joi.array(),
+  dateOfJoining: Joi.date(),
   company: Joi.array().items(
     Joi.object({
       name: Joi.string(),
@@ -277,7 +279,7 @@ exports.createUserSchema = Joi.object({
       email: Joi.string().email(),
       websites: Joi.string(),
       phone: Joi.string(),
-      tags: Joi.array(),
+      logo: Joi.string(),
     })
   ),
 });
@@ -548,7 +550,10 @@ exports.PaymentSchema = Joi.object({
 exports.bulkCreateUserSchema = Joi.array().items(
   Joi.object({
     name: Joi.string().required(),
-    email: Joi.string().required(),
+    email: Joi.string(),
     phone: Joi.string().required(),
+    chapter: Joi.string().required(),
+    businessTags: Joi.array(),
+    dateOfJoining: Joi.date().required(),
   })
 );

@@ -16,7 +16,7 @@ const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateRandomPassword } = require("../utils/generateRandomPassword");
 const { generateToken } = require("../utils/generateToken");
-const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
+const { generateUniqueDigit } = require("../utils/generateUniqueMemberId");
 const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
 
@@ -681,28 +681,39 @@ exports.bulkCreateUser = async (req, res) => {
 
     const existingUsers = await User.find({
       $or: users.map((user) => ({
-        email: user.email,
         phone: user.phone,
       })),
     });
 
     if (existingUsers.length > 0) {
       const duplicateDetails = existingUsers.map((user) => ({
-        email: user.email,
         phone: user.phone,
       }));
 
       return responseHandler(
         res,
         400,
-        "Some users already exist with the same email, Emirates ID, or phone.",
+        "Some users already exist with the same email or phone.",
         { duplicates: duplicateDetails }
       );
     }
 
     for (let user of users) {
-      const uniqueMemberId = await generateUniqueDigit();
-      user.memberId = `HEF-${uniqueMemberId}`;
+      const chapter = await Chapter.findById(user.chapter);
+      if (!chapter) {
+        return responseHandler(res, 400, `Invalid chapter ID: ${user.chapter}`);
+      }
+
+      user.memberId = await generateUniqueMemberId(
+        user.name,
+        chapter.shortCode
+      );
+
+      if (user.businessTags && typeof user.businessTags === "string") {
+        user.businessTags = user.businessTags
+          .split(",")
+          .map((tag) => tag.trim().toLowerCase());
+      }
     }
 
     const createdUsers = await User.insertMany(users);

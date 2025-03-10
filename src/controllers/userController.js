@@ -9,7 +9,7 @@ const validations = require("../validations");
 const Setting = require("../models/settingsModel");
 const Feeds = require("../models/feedsModel");
 const Products = require("../models/productModel");
-const { generateUniqueDigit } = require("../utils/generateUniqueDigit");
+const { generateUniqueMemberId } = require("../utils/generateUniqueMemberId");
 const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const Review = require("../models/reviewModel");
@@ -104,8 +104,7 @@ exports.createNewUser = async (req, res) => {
         `User with this email or phone already exists`
       );
     }
-    const uniqueMemberId = await generateUniqueDigit();
-    req.body.memberId = `HEF-${uniqueMemberId}`;
+
     const newUser = await User.create(req.body);
 
     if (newUser)
@@ -149,18 +148,13 @@ exports.createUser = async (req, res) => {
         `User with this email or phone already exists`
       );
     }
-    const uniqueMemberId = await generateUniqueDigit();
     const chapter = await Chapter.findById(req.body.chapter);
-    const district = await District.findById(chapter.districtId);
+    const uniqueMemberId = await generateUniqueMemberId(
+      req.body.name,
+      chapter.shortCode
+    );
 
-    const maxLength = 3;
-
-    const shortDistrictName = district.name.substring(0, maxLength);
-    const shortChapterName = chapter.name.substring(0, maxLength);
-
-    const memberId = `${shortDistrictName}${shortChapterName}${req.body.name}${uniqueMemberId}`;
-
-    req.body.memberId = memberId;
+    req.body.memberId = uniqueMemberId;
     const newUser = await User.create(req.body);
 
     if (newUser)
@@ -573,66 +567,101 @@ exports.listUsers = async (req, res) => {
     const currentUser = await User.findById(req.userId).select("blockedUsers");
     const blockedUsersList = currentUser?.blockedUsers || [];
 
-    const filter = {
+    const matchQuery = {
       status: { $in: ["active", "awaiting_payment"] },
       _id: { $ne: req.userId, $nin: blockedUsersList },
     };
 
     if (search) {
-      filter.$or = [{ name: { $regex: search, $options: "i" } }];
+      matchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
     }
 
     if (district) {
-      filter["chapter.districtId"] = district;
+      matchQuery["chapter.districtId"] = district;
     }
 
-    const totalCount = await User.countDocuments(filter);
-
-    const users = await User.find(filter)
-      .populate({
-        path: "chapter",
-        select: "name",
-        populate: {
-          path: "districtId",
-          select: "name",
-          populate: {
-            path: "zoneId",
-            select: "name",
-            populate: {
-              path: "stateId",
-              select: "name",
-            },
-          },
+    const result = await User.aggregate([
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapter",
+          foreignField: "_id",
+          as: "chapter",
         },
-      })
-      .skip(skipCount)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1, _id: 1 })
-      .lean();
+      },
+      { $unwind: "$chapter" },
+      {
+        $lookup: {
+          from: "districts",
+          localField: "chapter.districtId",
+          foreignField: "_id",
+          as: "district",
+        },
+      },
+      { $unwind: "$district" },
+      {
+        $lookup: {
+          from: "zones",
+          localField: "district.zoneId",
+          foreignField: "_id",
+          as: "zone",
+        },
+      },
+      { $unwind: { path: "$zone", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "states",
+          localField: "zone.stateId",
+          foreignField: "_id",
+          as: "state",
+        },
+      },
+      { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
+      { $match: matchQuery },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          users: [
+            { $sort: { createdAt: -1, _id: 1 } },
+            { $skip: skipCount },
+            { $limit: parseInt(limit) },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                status: 1,
+                level: {
+                  $concat: [
+                    { $ifNull: ["$state.name", ""] },
+                    " State ",
+                    { $ifNull: ["$zone.name", ""] },
+                    " Zone ",
+                    { $ifNull: ["$district.name", ""] },
+                    " District ",
+                    { $ifNull: ["$chapter.name", ""] },
+                    " Chapter",
+                  ],
+                },
+                state: { _id: "$state._id", name: "$state.name" },
+                zone: { _id: "$zone._id", name: "$zone.name" },
+                district: { _id: "$district._id", name: "$district.name" },
+                chapter: { _id: "$chapter._id", name: "$chapter.name" },
+              },
+            },
+          ],
+        },
+      },
+    ]);
 
-    const mappedUsers = users.map((user) => {
-      const state = user?.chapter?.districtId?.zoneId?.stateId;
-      const zone = user?.chapter?.districtId?.zoneId;
-      const district = user?.chapter?.districtId;
-      const chapter = user?.chapter;
-
-      return {
-        ...user,
-        level: `${state?.name || ""} State ${zone?.name || ""} Zone ${
-          district?.name || ""
-        } District ${chapter?.name || ""} Chapter`,
-        state: state ? { _id: state._id, name: state.name } : null,
-        zone: zone ? { _id: zone._id, name: zone.name } : null,
-        district: district ? { _id: district._id, name: district.name } : null,
-        chapter: chapter ? { _id: chapter._id, name: chapter.name } : null,
-      };
-    });
+    const totalCount =
+      result[0].metadata.length > 0 ? result[0].metadata[0].total : 0;
+    const users = result[0].users;
 
     return responseHandler(
       res,
       200,
       "Users found successfully!",
-      mappedUsers,
+      users,
       totalCount
     );
   } catch (error) {
@@ -1232,5 +1261,29 @@ exports.fetchDashboard = async (req, res) => {
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.getBusinessTags = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    const filter = {};
+    if (search) {
+      filter.businessTags = { $regex: search, $options: "i" };
+    }
+
+    const tags = await User.distinct("businessTags", filter);
+
+    const uniqueTags = tags.filter((tag) => tag && tag.trim() !== "");
+
+    return responseHandler(
+      res,
+      200,
+      "Business Tags found successfully..!",
+      uniqueTags
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };

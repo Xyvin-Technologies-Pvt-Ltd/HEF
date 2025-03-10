@@ -41,4 +41,6 @@ userRoute.patch("/analytic-review/:userId", userController.analyticReview);
 
 userRoute.get("/dashboard", userController.fetchDashboard);
 
+userRoute.get("/business-tags", userController.getBusinessTags);
+
 module.exports = userRoute;
