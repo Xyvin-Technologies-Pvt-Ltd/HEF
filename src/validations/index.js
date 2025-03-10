@@ -385,7 +385,7 @@ exports.updateUserSchema = Joi.object({
       }),
       websites: Joi.string(),
       phone: Joi.string(),
-      tags: Joi.array(),
+      logo: Joi.string(),
     })
   ),
   social: Joi.array().items(
