@@ -118,6 +118,21 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
+exports.getNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findById(id);
+    return responseHandler(
+      res,
+      200,
+      `Notification fetched successfullyy..!`,
+      notification
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
 exports.getUserNotifications = async (req, res) => {
   try {
     const { userId } = req;

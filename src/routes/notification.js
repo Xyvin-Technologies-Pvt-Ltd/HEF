@@ -12,6 +12,11 @@ notificationRoute
 
 notificationRoute.get("/user", notificationController.getUserNotifications);
 
-notificationRoute.post("/level", notificationController.createLevelNotification);
+notificationRoute.post(
+  "/level",
+  notificationController.createLevelNotification
+);
+
+notificationRoute.get("/:id", notificationController.getNotification);
 
 module.exports = notificationRoute;
