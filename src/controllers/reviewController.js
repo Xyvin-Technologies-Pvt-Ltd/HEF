@@ -23,8 +23,10 @@ exports.getReviews = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const reviews = await Review.find({ userId })
-      .populate("reviewer", "name image");
+    const reviews = await Review.find({ reviewer: userId }).populate(
+      "reviewer",
+      "name image"
+    );
     return responseHandler(res, 200, "Reviews fetched successfully", reviews);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
