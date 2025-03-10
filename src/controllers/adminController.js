@@ -16,7 +16,7 @@ const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
 const { generateRandomPassword } = require("../utils/generateRandomPassword");
 const { generateToken } = require("../utils/generateToken");
-const { generateUniqueDigit } = require("../utils/generateUniqueMemberId");
+const { generateUniqueMemberId } = require("../utils/generateUniqueMemberId");
 const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
 
