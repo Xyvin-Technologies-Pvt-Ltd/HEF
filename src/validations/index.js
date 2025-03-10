@@ -311,7 +311,7 @@ exports.editUserSchema = Joi.object({
       email: Joi.string().email(),
       websites: Joi.string(),
       phone: Joi.string(),
-      tags: Joi.array(),
+      logo: Joi.string(),
     })
   ),
   social: Joi.array().items(
