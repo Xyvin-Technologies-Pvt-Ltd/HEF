@@ -303,6 +303,7 @@ exports.editUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
+  businessTags: Joi.array(),
   company: Joi.array().items(
     Joi.object({
       name: Joi.string(),
@@ -372,6 +373,7 @@ exports.updateUserSchema = Joi.object({
   address: Joi.string(),
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
+  businessTags: Joi.array(),
   company: Joi.array().items(
     Joi.object({
       name: Joi.string().required().messages({
