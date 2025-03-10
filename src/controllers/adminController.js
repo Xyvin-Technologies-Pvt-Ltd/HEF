@@ -448,14 +448,12 @@ exports.fetchDashboard = async (req, res) => {
       Subscription.countDocuments({ status: "active" }),
       Analytic.countDocuments({
         type: "Business",
-        referral: { $exists: false },
       }),
       Analytic.countDocuments({
         type: "One v One Meeting",
       }),
       Analytic.countDocuments({
-        type: "Business",
-        referral: { $exists: true },
+        type: "Referral",
       }),
       State.find({}, "admins"),
       Zone.find({}, "admins"),
