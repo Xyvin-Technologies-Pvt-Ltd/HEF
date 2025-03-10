@@ -680,9 +680,7 @@ exports.bulkCreateUser = async (req, res) => {
     let users = req.body;
 
     const existingUsers = await User.find({
-      $or: users.map((user) => ({
-        phone: user.phone,
-      })),
+      phone: { $in: users.map((user) => user.phone) },
     });
 
     if (existingUsers.length > 0) {
@@ -693,10 +691,12 @@ exports.bulkCreateUser = async (req, res) => {
       return responseHandler(
         res,
         400,
-        "Some users already exist with the same email or phone.",
+        "Some users already exist with the same phone number.",
         { duplicates: duplicateDetails }
       );
     }
+
+    let generatedMemberIds = new Set();
 
     for (let user of users) {
       const chapter = await Chapter.findById(user.chapter);
@@ -704,10 +704,13 @@ exports.bulkCreateUser = async (req, res) => {
         return responseHandler(res, 400, `Invalid chapter ID: ${user.chapter}`);
       }
 
-      user.memberId = await generateUniqueMemberId(
+      let uniqueMemberId = await generateUniqueMemberId(
         user.name,
-        chapter.shortCode
+        chapter.shortCode,
+        generatedMemberIds
       );
+      user.memberId = uniqueMemberId;
+      generatedMemberIds.add(uniqueMemberId);
 
       if (user.businessTags && typeof user.businessTags === "string") {
         user.businessTags = user.businessTags

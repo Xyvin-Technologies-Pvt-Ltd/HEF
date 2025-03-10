@@ -1,6 +1,10 @@
 const User = require("../models/userModel");
 
-exports.generateUniqueMemberId = async (name, chapterShortCode) => {
+exports.generateUniqueMemberId = async (
+  name,
+  chapterShortCode,
+  existingIdsSet
+) => {
   if (!name || !chapterShortCode) {
     throw new Error("Both name and chapterShortCode are required");
   }
@@ -16,7 +20,7 @@ exports.generateUniqueMemberId = async (name, chapterShortCode) => {
 
     const existingUser = await User.findOne({ memberId: uniqueMemberId });
 
-    if (!existingUser) {
+    if (!existingUser && !existingIdsSet.has(uniqueMemberId)) {
       isUnique = true;
     } else {
       counter++;
