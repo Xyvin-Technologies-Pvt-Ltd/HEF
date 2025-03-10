@@ -518,7 +518,7 @@ exports.getAllUsers = async (req, res) => {
       .populate("chapter")
       .skip(skipCount)
       .limit(limit)
-      .sort({ createdAt: -1, _id: 1 })
+      .sort({ name: 1 })
       .lean();
 
     const mappedData = await Promise.all(
