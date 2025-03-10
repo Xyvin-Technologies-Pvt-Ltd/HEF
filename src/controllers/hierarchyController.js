@@ -1008,18 +1008,24 @@ exports.getAllDistricts = async (req, res) => {
 exports.getAllChapters = async (req, res) => {
   try {
     const getAllChapters = await Chapter.find().select("-admins -districtId");
-    const headers = ["ID", "Chapter Name", "Short Code"];
     if (getAllChapters) {
+      const headers = [
+        { header: "ID", key: "Name" },
+        { header: "Chapter Name", key: "ChapterName" },
+        { header: "Short Code", key: "ShortCode" },
+      ];
+
       const mappedData = getAllChapters.map((item) => {
         return {
-          _id: item._id,
-          name: item.name,
-          shortCode: item.shortCode,
+          Name: item._id,
+          ChapterName: item.name,
+          ShortCode: item.shortCode,
         };
       });
+
       const data = {
         headers,
-        data: mappedData,
+        body: mappedData,
       };
       return responseHandler(res, 200, `chapters found successfully..!`, data);
     }
