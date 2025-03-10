@@ -103,11 +103,15 @@ exports.getNotifications = async (req, res) => {
       .sort({ createdAt: 1, _id: 1 })
       .skip(skipCount)
       .limit(limit);
+
+    const totalCount = await Notification.countDocuments();
+
     return responseHandler(
       res,
       200,
       `Notifications fetched successfullyy..!`,
-      notifications
+      notifications,
+      totalCount
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
