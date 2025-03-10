@@ -99,6 +99,7 @@ exports.getNotifications = async (req, res) => {
     const skipCount = 10 * (page - 1);
 
     const notifications = await Notification.find()
+      .populate("users.user", "name")
       .sort({ createdAt: 1, _id: 1 })
       .skip(skipCount)
       .limit(limit);
