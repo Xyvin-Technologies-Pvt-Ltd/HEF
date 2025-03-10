@@ -646,7 +646,7 @@ exports.listUsers = async (req, res) => {
                 state: { _id: "$state._id", name: "$state.name" },
                 zone: { _id: "$zone._id", name: "$zone.name" },
                 district: { _id: "$district._id", name: "$district.name" },
-                chapter: { _id: "$chapter._id", name: "$chapter.name" },
+                chapter: { _id: "$chapter._id", name: "$chapter.name", shortCode: "$chapter.shortCode" },
               },
             },
           ],
