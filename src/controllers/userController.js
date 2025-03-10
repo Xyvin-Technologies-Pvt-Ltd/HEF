@@ -646,7 +646,11 @@ exports.listUsers = async (req, res) => {
                 state: { _id: "$state._id", name: "$state.name" },
                 zone: { _id: "$zone._id", name: "$zone.name" },
                 district: { _id: "$district._id", name: "$district.name" },
-                chapter: { _id: "$chapter._id", name: "$chapter.name", shortCode: "$chapter.shortCode" },
+                chapter: {
+                  _id: "$chapter._id",
+                  name: "$chapter.name",
+                  shortCode: "$chapter.shortCode",
+                },
               },
             },
           ],
@@ -1269,14 +1273,22 @@ exports.getBusinessTags = async (req, res) => {
   try {
     const { search } = req.query;
 
-    const filter = {};
-    if (search) {
-      filter.businessTags = { $regex: search, $options: "i" };
+    if (!search) {
+      return responseHandler(res, 400, "Search query is required", []);
     }
 
-    const tags = await User.distinct("businessTags", filter);
+    const users = await User.find(
+      { businessTags: { $regex: search, $options: "i" } },
+      { businessTags: 1, _id: 0 }
+    );
 
-    const uniqueTags = tags.filter((tag) => tag && tag.trim() !== "");
+    let allTags = users.flatMap((user) => user.businessTags);
+
+    const filteredTags = allTags
+      .filter((tag) => tag.toLowerCase().startsWith(search.toLowerCase()))
+      .map((tag) => tag.trim());
+
+    const uniqueTags = [...new Set(filteredTags)];
 
     return responseHandler(
       res,
