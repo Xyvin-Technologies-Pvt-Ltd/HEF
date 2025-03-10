@@ -567,7 +567,6 @@ exports.listUsers = async (req, res) => {
 
     const currentUser = await User.findById(req.userId).select("blockedUsers");
     const blockedUsersList = currentUser?.blockedUsers || [];
-    console.log(`Blocked users list has ${blockedUsersList.length} users`);
 
     const matchQuery = {
       status: { $in: ["active", "awaiting_payment"] },
