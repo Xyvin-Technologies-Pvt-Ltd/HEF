@@ -591,6 +591,10 @@ exports.listUsers = async (req, res) => {
       matchQuery.$or = searchConditions;
     }
 
+    const districtMatch = district
+      ? { "chapter.districtId": new mongoose.Types.ObjectId(district) }
+      : {};
+
     const result = await User.aggregate([
       {
         $lookup: {

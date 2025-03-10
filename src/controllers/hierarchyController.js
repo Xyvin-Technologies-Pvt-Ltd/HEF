@@ -1004,3 +1004,27 @@ exports.getAllDistricts = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+exports.getAllChapters = async (req, res) => {
+  try {
+    const getAllChapters = await Chapter.find().select("-admins -districtId");
+    const headers = ["ID", "Chapter Name", "Short Code"];
+    if (getAllChapters) {
+      const mappedData = getAllChapters.map((item) => {
+        return {
+          _id: item._id,
+          name: item.name,
+          shortCode: item.shortCode,
+        };
+      });
+      const data = {
+        headers,
+        data: mappedData,
+      };
+      return responseHandler(res, 200, `chapters found successfully..!`, data);
+    }
+    return responseHandler(res, 400, `Chapter not found...!`);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};

@@ -24,6 +24,7 @@ hierarchyRoute.put("/district/:id", hierarchyController.updateDistrict);
 
 // Chapter Routes
 hierarchyRoute.post("/chapter", hierarchyController.createChapter);
+hierarchyRoute.get("/chapter/list", hierarchyController.getAllChapters);
 hierarchyRoute.get("/chapter/:id", hierarchyController.getChapter);
 hierarchyRoute.put("/chapter/:id", hierarchyController.updateChapter);
 
