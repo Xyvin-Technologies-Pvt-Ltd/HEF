@@ -552,7 +552,7 @@ exports.PaymentSchema = Joi.object({
 exports.bulkCreateUserSchema = Joi.array().items(
   Joi.object({
     name: Joi.string().required(),
-    email: Joi.string(),
+    email: Joi.string().allow("").email(),
     phone: Joi.string().required(),
     chapter: Joi.string().required(),
     businessTags: Joi.array(),
