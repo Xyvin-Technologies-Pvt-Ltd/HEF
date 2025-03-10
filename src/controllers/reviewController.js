@@ -23,7 +23,7 @@ exports.getReviews = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const reviews = await Review.find({ reviewer: userId }).populate(
+    const reviews = await Review.find({ toUser: userId }).populate(
       "reviewer",
       "name image"
     );
