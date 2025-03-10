@@ -567,27 +567,28 @@ exports.listUsers = async (req, res) => {
 
     const currentUser = await User.findById(req.userId).select("blockedUsers");
     const blockedUsersList = currentUser?.blockedUsers || [];
+    console.log(`Blocked users list has ${blockedUsersList.length} users`);
 
     const matchQuery = {
       status: { $in: ["active", "awaiting_payment"] },
       _id: { $ne: req.userId, $nin: blockedUsersList },
     };
 
-    if (search) {
-      matchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
-    }
+    const searchConditions = [];
 
-    if (district) {
-      matchQuery["chapter.districtId"] = new mongoose.Types.ObjectId(district);
+    if (search) {
+      searchConditions.push({ name: { $regex: search, $options: "i" } });
     }
 
     if (tags) {
       const tagSearchQueries = tags.split(",").map((tag) => ({
-        businessTags: { $regex: `^${tag.trim()}`, $options: "i" },
+        businessTags: { $regex: tag.trim(), $options: "i" },
       }));
-      matchQuery.$or = matchQuery.$or
-        ? [...matchQuery.$or, ...tagSearchQueries]
-        : tagSearchQueries;
+      searchConditions.push(...tagSearchQueries);
+    }
+
+    if (searchConditions.length > 0) {
+      matchQuery.$or = searchConditions;
     }
 
     const result = await User.aggregate([
@@ -599,7 +600,8 @@ exports.listUsers = async (req, res) => {
           as: "chapter",
         },
       },
-      { $unwind: "$chapter" },
+      { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+      ...(district ? [{ $match: districtMatch }] : []),
       {
         $lookup: {
           from: "districts",
@@ -608,7 +610,7 @@ exports.listUsers = async (req, res) => {
           as: "district",
         },
       },
-      { $unwind: "$district" },
+      { $unwind: { path: "$district", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "zones",
@@ -640,16 +642,25 @@ exports.listUsers = async (req, res) => {
                 _id: 1,
                 name: 1,
                 status: 1,
+                businessTags: 1,
                 level: {
                   $concat: [
                     { $ifNull: ["$state.name", ""] },
-                    " State ",
+                    { $cond: [{ $ne: ["$state.name", null] }, " State ", ""] },
                     { $ifNull: ["$zone.name", ""] },
-                    " Zone ",
+                    { $cond: [{ $ne: ["$zone.name", null] }, " Zone ", ""] },
                     { $ifNull: ["$district.name", ""] },
-                    " District ",
+                    {
+                      $cond: [
+                        { $ne: ["$district.name", null] },
+                        " District ",
+                        "",
+                      ],
+                    },
                     { $ifNull: ["$chapter.name", ""] },
-                    " Chapter",
+                    {
+                      $cond: [{ $ne: ["$chapter.name", null] }, " Chapter", ""],
+                    },
                   ],
                 },
                 state: { _id: "$state._id", name: "$state.name" },
@@ -682,7 +693,6 @@ exports.listUsers = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 exports.fetchUser = async (req, res) => {
   try {
     const id = req.userId;
