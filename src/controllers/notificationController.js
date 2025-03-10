@@ -95,7 +95,13 @@ exports.createNotification = async (req, res) => {
 
 exports.getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find();
+    const { page = 1, limit = 10 } = req.query;
+    const skipCount = 10 * (page - 1);
+
+    const notifications = await Notification.find()
+      .sort({ createdAt: 1, _id: 1 })
+      .skip(skipCount)
+      .limit(limit);
     return responseHandler(
       res,
       200,
@@ -170,7 +176,11 @@ exports.createLevelNotification = async (req, res) => {
     const { media, level, id } = req.body;
 
     if (id.length === 0) {
-      return responseHandler(res, 400, "Send to is required to send notification");
+      return responseHandler(
+        res,
+        400,
+        "Send to is required to send notification"
+      );
     }
 
     if (!level) {

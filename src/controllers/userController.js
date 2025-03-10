@@ -637,7 +637,7 @@ exports.listUsers = async (req, res) => {
         $facet: {
           metadata: [{ $count: "total" }],
           users: [
-            { $sort: { createdAt: -1, _id: 1 } },
+            { $sort: { name: 1 } },
             { $skip: skipCount },
             { $limit: parseInt(limit) },
             {
