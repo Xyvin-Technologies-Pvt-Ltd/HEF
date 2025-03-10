@@ -121,7 +121,9 @@ exports.getNotifications = async (req, res) => {
 exports.getNotification = async (req, res) => {
   try {
     const { id } = req.params;
-    const notification = await Notification.findById(id);
+    const notification = await Notification.findById(id)
+      .populate("users.user", "name")
+      .populate("sender", "name");
     return responseHandler(
       res,
       200,
