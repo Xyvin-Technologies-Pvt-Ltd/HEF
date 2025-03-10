@@ -16,6 +16,7 @@ const Review = require("../models/reviewModel");
 const { isUserAdmin } = require("../utils/adminCheck");
 const logActivity = require("../models/logActivityModel");
 const Analytic = require("../models/analyticModel");
+const mongoose = require("mongoose");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -577,7 +578,7 @@ exports.listUsers = async (req, res) => {
     }
 
     if (district) {
-      matchQuery["chapter.districtId"] = district;
+      matchQuery["chapter.districtId"] = new mongoose.Types.ObjectId(district);
     }
 
     const result = await User.aggregate([
