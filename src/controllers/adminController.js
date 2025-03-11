@@ -737,7 +737,7 @@ exports.downloadUser = async (req, res) => {
     if (status) {
       filter.status = status;
     }
-    if (installed === "false") {
+    if (installed == "false") {
       filter.fcm = { $in: [null, ""] };
     } else if (installed) {
       filter.fcm = {

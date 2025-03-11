@@ -507,7 +507,7 @@ exports.getAllUsers = async (req, res) => {
       filter.memberId = membershipId;
     }
 
-    if (installed === "false") {
+    if (installed == "false") {
       filter.fcm = { $in: [null, ""] };
     } else if (installed) {
       filter.fcm = {
