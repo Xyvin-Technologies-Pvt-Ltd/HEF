@@ -19,6 +19,7 @@ const { generateToken } = require("../utils/generateToken");
 const { generateUniqueMemberId } = require("../utils/generateUniqueMemberId");
 const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
+const moment = require("moment-timezone");
 
 exports.loginAdmin = async (req, res) => {
   try {
@@ -768,7 +769,7 @@ exports.downloadUser = async (req, res) => {
         Phone: item.phone,
         Email: item.email,
         ChapterName: item.chapter?.name,
-        DateOfJoining: item.dateOfJoining,
+        DateOfJoining: moment(item.dateOfJoining).format("DD-MM-YYYY"),
         Address: item.address,
         BusinessCatogary: item.businessCatogary,
         BusinessSubCatogary: item.businessSubCatogary,
