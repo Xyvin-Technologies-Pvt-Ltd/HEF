@@ -767,7 +767,7 @@ exports.downloadUser = async (req, res) => {
         Name: item.name,
         Phone: item.phone,
         Email: item.email,
-        ChapterName: item.chapter.name,
+        ChapterName: item.chapter?.name,
         DateOfJoining: item.dateOfJoining,
         Address: item.address,
         BusinessCatogary: item.businessCatogary,
