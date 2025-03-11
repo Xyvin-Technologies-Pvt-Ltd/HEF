@@ -136,7 +136,7 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     const mappedData = data.map((user) => {
       return {
         ...user,
-        authorName: user.author.name || "",
+        authorName: user?.author?.name || "",
       };
     });
     Status = "success";
