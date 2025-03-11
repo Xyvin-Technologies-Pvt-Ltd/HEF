@@ -23,5 +23,6 @@ adminRoute.get("/log-activities", adminController.fetchLogActivity);
 adminRoute.get("/log-activities/:id", adminController.fetchLogActivityById);
 adminRoute.get("/dashboard", adminController.fetchDashboard);
 adminRoute.post("/user-bulk", adminController.bulkCreateUser);
+adminRoute.get("/download-user", adminController.downloadUser);
 
 module.exports = adminRoute;

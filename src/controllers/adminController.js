@@ -729,3 +729,59 @@ exports.bulkCreateUser = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+exports.downloadUser = async (req, res) => {
+  try {
+    const { status, installed } = req.query;
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+    if (installed === "false") {
+      filter.fcm = { $in: [null, ""] };
+    } else if (installed) {
+      filter.fcm = {
+        $nin: [null, ""],
+      };
+    }
+    const users = await User.find(filter).populate("chapter", "name").lean();
+    if (users.length === 0) {
+      return responseHandler(res, 404, "No users found");
+    }
+    const headers = [
+      { header: "Member ID", key: "ID" },
+      { header: "Name", key: "Name" },
+      { header: "Phone", key: "Phone" },
+      { header: "Email", key: "Email" },
+      { header: "Chapter Name", key: "ChapterName" },
+      { header: "Date of Joining", key: "DateOfJoining" },
+      { header: "Address", key: "Address" },
+      { header: "Business Catogary", key: "BusinessCatogary" },
+      { header: "Business Sub Catogary", key: "BusinessSubCatogary" },
+      { header: "Subscription", key: "Subscription" },
+    ];
+
+    const mappedData = users.map((item) => {
+      return {
+        ID: item.memberId,
+        Name: item.name,
+        Phone: item.phone,
+        Email: item.email,
+        ChapterName: item.chapter.name,
+        DateOfJoining: item.dateOfJoining,
+        Address: item.address,
+        BusinessCatogary: item.businessCatogary,
+        BusinessSubCatogary: item.businessSubCatogary,
+        Subscription: item.subscription,
+      };
+    });
+
+    const data = {
+      headers,
+      body: mappedData,
+    };
+    return responseHandler(res, 200, "Users found successfully", data);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

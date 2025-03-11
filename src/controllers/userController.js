@@ -1113,7 +1113,7 @@ exports.listUserIdName = async (req, res) => {
 
     const data = await User.find(filter)
       .select("uid name")
-      .sort({ createdAt: -1, _id: 1 })
+      .sort({ name: 1 })
       .lean();
 
     return responseHandler(
