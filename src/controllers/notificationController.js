@@ -100,7 +100,7 @@ exports.getNotifications = async (req, res) => {
 
     const notifications = await Notification.find()
       .populate("users.user", "name")
-      .sort({ createdAt: 1, _id: 1 })
+      .sort({ _id: -1 })
       .skip(skipCount)
       .limit(limit);
 
