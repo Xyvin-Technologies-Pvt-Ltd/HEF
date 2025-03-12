@@ -5,7 +5,6 @@ const feedsSchema = mongoose.Schema(
     type: {
       type: String,
       trim: true,
-      enum: ["Information", "Job", "Funding", "Requirement"],
     },
     media: { type: String },
     link: { type: String, trim: true },

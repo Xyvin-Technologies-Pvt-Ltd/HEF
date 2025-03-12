@@ -11,7 +11,7 @@ const linkSchema = Joi.object({
 // });
 
 exports.createFeedsSchema = Joi.object({
-  type: Joi.string().required(),
+  type: Joi.string().allow(""),
   media: Joi.string(),
   link: Joi.string(),
   content: Joi.string().required(),
