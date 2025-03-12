@@ -603,6 +603,7 @@ exports.getHierarchyList = async (req, res) => {
         admins: item.admins || [],
         category,
         pstCount: item.admins.length,
+        createdAt: item.createdAt
       }));
 
     if (type === "state") {
