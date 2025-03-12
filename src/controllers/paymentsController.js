@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const { getMessaging } = require("firebase-admin/messaging");
 const responseHandler = require("../helpers/responseHandler");
 const Payment = require("../models/paymentModel");
 const User = require("../models/userModel");
@@ -323,6 +323,23 @@ exports.updatePaymentStatus = async (req, res) => {
     }
     await user.save();
     await payment.save();
+
+    const message = {
+      notification: {
+        title: `HEF Payment has been ${status}`,
+        body: `HEF Payment for ${payment.category} has been ${status}, please check your account`,
+      },
+      token: user.fcm,
+    };
+
+    getMessaging()
+      .send(message)
+      .then((response) => {
+        console.log("Successfully sent message:", response);
+      })
+      .catch((error) => {
+        console.log("Error sending message:", error);
+      });
 
     return responseHandler(
       res,
