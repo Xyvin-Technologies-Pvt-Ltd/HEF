@@ -304,6 +304,7 @@ exports.editUserSchema = Joi.object({
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
   businessTags: Joi.array(),
+  dateOfJoining: Joi.date(),
   company: Joi.array().items(
     Joi.object({
       name: Joi.string(),
