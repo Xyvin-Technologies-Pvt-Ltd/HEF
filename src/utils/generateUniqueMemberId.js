@@ -20,7 +20,7 @@ exports.generateUniqueMemberId = async (
 
     const existingUser = await User.findOne({ memberId: uniqueMemberId });
 
-    if (!existingUser && !existingIdsSet.has(uniqueMemberId)) {
+    if (!existingUser && !existingIdsSet?.has(uniqueMemberId)) {
       isUnique = true;
     } else {
       counter++;
