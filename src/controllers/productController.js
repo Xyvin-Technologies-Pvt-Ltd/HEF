@@ -139,10 +139,12 @@ exports.updateProduct = async (req, res) => {
         const toUser = await User.findById(updatedProduct.seller).select("fcm");
         const fcmUser = [toUser.fcm];
 
-        await (
+        await sendInAppNotification(
           fcmUser,
           `Your Product request has been ${req.body.status}`,
-          `Your Product request has been ${req.body.status} for ${updatedProduct.name}`
+          `Your Product request has been ${req.body.status} for ${updatedProduct.name}`,
+          null,
+          "my_products"
         );
       }
       return responseHandler(
