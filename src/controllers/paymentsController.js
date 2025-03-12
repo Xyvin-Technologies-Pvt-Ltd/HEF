@@ -236,6 +236,7 @@ exports.getPayments = async (req, res) => {
 
     const payments = await Payment.find(filter)
       .populate("user", "name")
+      .populate("parentSub", "expiryDate")
       .skip(skipCount)
       .limit(limit)
       .sort({ _id: 1 })
@@ -247,6 +248,7 @@ exports.getPayments = async (req, res) => {
       return {
         ...item,
         user: item.user.name,
+        expiryDate: item.parentSub?.expiryDate,
       };
     });
 
