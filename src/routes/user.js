@@ -7,7 +7,7 @@ userRoute.post("/send-otp", userController.sendOtp);
 userRoute.post("/verify", userController.verifyUser);
 userRoute.post("/login", userController.loginUser);
 userRoute.get("/app-version", userController.getVersion);
-userRoute.get("/check-user", userController.checkUser);
+userRoute.post("/check-user", userController.checkUser);
 
 userRoute.use(authVerify);
 
