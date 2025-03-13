@@ -198,8 +198,8 @@ exports.updateFeeds = async (req, res) => {
 
     await sendInAppNotification(
       fcmUser,
-      `Your Feed request has been ${action}`,
-      `Your Feed request has been ${action} for ${findFeeds.content}`,
+      `Your Feed request has been ${action}ed`,
+      `Your Feed request has been ${action}ed for ${findFeeds.content}`,
       null,
       "my_feeds"
     );
