@@ -11,6 +11,7 @@ userRoute.get("/check-user", userController.checkUser);
 
 userRoute.use(authVerify);
 
+userRoute.patch("/change-phone-number", userController.changePhoneNumber);
 userRoute.get("/", userController.fetchUser);
 userRoute.get("/users", userController.getUsers);
 userRoute.get("/single/:id", userController.getSingleUser);

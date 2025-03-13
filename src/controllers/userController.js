@@ -1341,3 +1341,18 @@ exports.getBusinessTags = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+exports.changePhoneNumber = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const user = await User.findOne({ _id: req.userId });
+    if (!user) {
+      return responseHandler(res, 404, "User not found");
+    }
+    user.phone = phone;
+    await user.save();
+    return responseHandler(res, 200, "Phone number changed successfully");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
