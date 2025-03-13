@@ -239,7 +239,7 @@ exports.getPayments = async (req, res) => {
       .populate("parentSub", "expiryDate")
       .skip(skipCount)
       .limit(limit)
-      .sort({ _id: 1 })
+      .sort({ _id: -1 })
       .lean();
 
     const totalCount = await Payment.countDocuments(filter);
