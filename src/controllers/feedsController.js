@@ -246,8 +246,10 @@ exports.updateFeeds = async (req, res) => {
 
 exports.getMyFeeds = async (req, res) => {
   try {
-    const findFeeds = await Feeds.find({ author: req.userId });
-
+    const findFeeds = await Feeds.find({ author: req.userId }).populate({
+      path: "comment.user",
+      select: "name image",
+    });
     if (!findFeeds) {
       return responseHandler(res, 404, "Feeds not found");
     }
