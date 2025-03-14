@@ -39,7 +39,7 @@ exports.sendRequest = async (req, res) => {
         `You have a new request. Regarding the ${req.body.type} request.`,
         null,
         "analytic",
-        analytic._id.toSting()
+        analytic._id
       );
     }
     return responseHandler(res, 201, "Request created successfully", analytic);
