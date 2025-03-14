@@ -149,6 +149,8 @@ exports.getRequests = async (req, res) => {
         status: data.status,
         time: data.createdAt,
         description: data.description,
+        type: data.type,
+        amount: data.amount,
       };
     });
 
