@@ -60,7 +60,7 @@ exports.getRequests = async (req, res) => {
         );
       }
 
-      const { pageNo = 1, status, limit = 10, type, user } = req.query;
+      const { pageNo = 1, status, limit = 10, requestType, user } = req.query;
       const skipCount = 10 * (pageNo - 1);
       const filter = {};
 
@@ -72,7 +72,7 @@ exports.getRequests = async (req, res) => {
         filter.status = status;
       }
 
-      if (type) filter.type = type;
+      if (requestType) filter.type = type;
 
       const totalCount = await Analytic.countDocuments(filter);
       const data = await Analytic.find(filter)
