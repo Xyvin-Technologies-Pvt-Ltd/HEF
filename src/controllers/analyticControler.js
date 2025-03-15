@@ -84,9 +84,11 @@ exports.getRequests = async (req, res) => {
       if (requestType || type) filter.type = type;
 
       if (startDate && endDate) {
+        const start = new Date(`${startDate}T00:00:00.000Z`);
+        const end = new Date(`${endDate}T23:59:59.999Z`);
         filter.date = {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate),
+          $gte: start,
+          $lte: end,
         };
       }
 
