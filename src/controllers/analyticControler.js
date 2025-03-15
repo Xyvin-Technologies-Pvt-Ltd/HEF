@@ -67,6 +67,8 @@ exports.getRequests = async (req, res) => {
         requestType,
         user,
         type,
+        startDate,
+        endDate,
       } = req.query;
       const skipCount = 10 * (pageNo - 1);
       const filter = {};
@@ -80,6 +82,13 @@ exports.getRequests = async (req, res) => {
       }
 
       if (requestType || type) filter.type = type;
+
+      if (startDate && endDate) {
+        filter.date = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        };
+      }
 
       const totalCount = await Analytic.countDocuments(filter);
       const data = await Analytic.find(filter)
