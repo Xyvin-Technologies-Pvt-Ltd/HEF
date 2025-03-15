@@ -134,12 +134,14 @@ exports.getRequests = async (req, res) => {
       query.type = type;
     }
 
-    const start = new Date(`${startDate}T00:00:00.000Z`);
-    const end = new Date(`${endDate}T23:59:59.999Z`);
-    query.date = {
-      $gte: start,
-      $lte: end,
-    };
+    if (startDate && endDate) {
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+      query.date = {
+        $gte: start,
+        $lte: end,
+      };
+    }
 
     const response = await Analytic.find(query)
       .populate("sender", "name image")
