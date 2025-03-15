@@ -64,7 +64,6 @@ exports.getRequests = async (req, res) => {
         pageNo = 1,
         status,
         limit = 10,
-        requestType,
         user,
         type,
         startDate,
@@ -81,7 +80,7 @@ exports.getRequests = async (req, res) => {
         filter.status = status;
       }
 
-      if (requestType || type) filter.type = type;
+      if (type) filter.type = type;
 
       if (startDate && endDate) {
         const start = new Date(`${startDate}T00:00:00.000Z`);
@@ -120,7 +119,7 @@ exports.getRequests = async (req, res) => {
     }
 
     const { userId } = req;
-    const { filter, type } = req.query;
+    const { filter, requestType, startDate, endDate } = req.query;
 
     let query;
     if (filter === "sent") {
@@ -131,9 +130,16 @@ exports.getRequests = async (req, res) => {
       query = { $or: [{ sender: userId }, { member: userId }] };
     }
 
-    if (type) {
+    if (requestType) {
       query.type = type;
     }
+
+    const start = new Date(`${startDate}T00:00:00.000Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
+    query.date = {
+      $gte: start,
+      $lte: end,
+    };
 
     const response = await Analytic.find(query)
       .populate("sender", "name image")
