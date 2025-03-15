@@ -151,9 +151,18 @@ exports.getRequests = async (req, res) => {
         username = data.sender?.name || "";
         user_image = data.sender?.image || "";
       } else {
-        user_id = data.member?._id || data.sender?._id || "";
-        username = data.member?.name || data.sender?.name || "";
-        user_image = data.member?.image || data.sender?.image || "";
+        user_id =
+          req.userId === data.sender?._id
+            ? data.member?._id
+            : data.sender?._id || "";
+        username =
+          req.userId === data.sender?._id
+            ? data.member?.name
+            : data.sender?.name || "";
+        user_image =
+          req.userId === data.sender?._id
+            ? data.member?.image
+            : data.sender?.image || "";
       }
 
       return {
