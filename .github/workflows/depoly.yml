@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     name: Build and Push Docker Image
@@ -15,16 +19,20 @@ jobs:
         node-version: [20.x]
 
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       ECR_REPOSITORY: hef
       IMAGE_TAG: latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActionsSession
+          aws-region: $AWS_REGION
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -45,20 +53,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_INSTANCE_IP: ${{ secrets.EC2_INSTANCE_IP }}
       EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
 
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActionsSession
+          aws-region: $AWS_REGION
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
@@ -67,40 +76,25 @@ jobs:
           username: ec2-user
           key: ${{ env.EC2_PRIVATE_KEY }}
           script: |
-            # Update system and install Docker if not installed
             sudo yum update -y
             sudo yum install -y docker aws-cli
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            # Ensure AWS CLI is installed
-            if ! command -v aws &> /dev/null; then
-              sudo yum install -y aws-cli
-            fi
-
-            # Login to Amazon ECR with AWS credentials
-            export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
-            export AWS_REGION=${{ env.AWS_REGION }}
             aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            # Pull the latest Docker image
             sudo docker pull ${{ steps.login-ecr.outputs.registry }}/hef:latest
 
-            # Stop and remove the existing container if running
             sudo docker stop HEF_BACKEND || true
             sudo docker rm HEF_BACKEND || true
 
-            # Check if the .env.production file exists
             if [ ! -f /home/ec2-user/hef/.env/.env.production ]; then
               echo ".env.production file is missing."
               exit 1
             fi
 
-            # Run the new container with the .env.production file
             sudo docker run -d \
               -p 3003:3003 \
               --name HEF_BACKEND \
               --env-file /home/ec2-user/hef/.env/.env.production \
               ${{ steps.login-ecr.outputs.registry }}/hef:latest
-              
