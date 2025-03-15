@@ -449,7 +449,7 @@ exports.createAnalyticSchema = Joi.object({
     info: Joi.string(),
   }),
   contact: Joi.string(),
-  date: Joi.string(),
+  date: Joi.date(),
   time: Joi.string(),
   meetingLink: Joi.string(),
   location: Joi.string(),

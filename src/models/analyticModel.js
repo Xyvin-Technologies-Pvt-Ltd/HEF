@@ -19,7 +19,7 @@ const analyticSchema = mongoose.Schema(
     },
     contact: { type: String },
     amount: { type: Number },
-    date: { type: String },
+    date: { type: Date },
     time: { type: String },
     meetingLink: { type: String },
     location: { type: String },
