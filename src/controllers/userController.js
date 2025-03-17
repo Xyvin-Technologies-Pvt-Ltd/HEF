@@ -572,9 +572,12 @@ exports.listUsers = async (req, res) => {
 
     const matchQuery = {
       status: { $in: ["active", "awaiting_payment"] },
-      _id: { $nin: [req.userId, ...blockedUsersList] },
+      _id: {
+        $ne: new mongoose.Types.ObjectId(req.userId),
+        $nin: blockedUsersList,
+      },
     };
-    
+
     const searchConditions = [];
 
     if (search) {
