@@ -101,7 +101,10 @@ exports.sendMessage = async (req, res) => {
       await sendInAppNotification(
         fcmUser,
         `New Message ${fromUser.name}`,
-        content
+        content,
+        null,
+        "chat",
+        from.toString()
       );
       if (receiverSocketId) {
         chatNamespace.to(receiverSocketId).emit("message", newMessage);
