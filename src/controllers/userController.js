@@ -572,9 +572,9 @@ exports.listUsers = async (req, res) => {
 
     const matchQuery = {
       status: { $in: ["active", "awaiting_payment"] },
-      _id: { $ne: req.userId, $nin: blockedUsersList },
+      _id: { $nin: [req.userId, ...blockedUsersList] },
     };
-
+    
     const searchConditions = [];
 
     if (search) {
