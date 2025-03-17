@@ -160,16 +160,16 @@ exports.getSingleEvent = async (req, res) => {
       .populate("coordinator", "name phone memberId image role");
     const mappedData = {
       ...event,
-      rsvpCount: event.rsvp.length,
-      rsvp: event.rsvp.map((rsvp) => {
+      rsvpCount: event?.rsvp?.length,
+      rsvp: event?.rsvp?.map((rsvp) => {
         return {
           name: rsvp.name,
           phone: rsvp.phone,
           memberId: rsvp.memberId,
         };
       }),
-      attendedCount: event.attented.length,
-      attented: event.attented.map((attented) => {
+      attendedCount: event?.attented?.length,
+      attented: event?.attented?.map((attented) => {
         return {
           name: attented.name,
           phone: attented.phone,
