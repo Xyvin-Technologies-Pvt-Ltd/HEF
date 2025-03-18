@@ -131,7 +131,7 @@ exports.getRequests = async (req, res) => {
     }
 
     if (requestType) {
-      query.type = type;
+      query.type = requestType;
     }
 
     if (startDate && endDate) {
