@@ -73,3 +73,23 @@ exports.getReports = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
+
+exports.getSingleReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Report ID is required");
+    }
+    const report = await Report.findById(id)
+      .populate("reportBy", "name")
+      .populate("content")
+      .lean();
+    if (!report) {
+      return responseHandler(res, 404, "Report not found");
+    } else {
+      return responseHandler(res, 200, "Report found successfully", report);
+    }
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};

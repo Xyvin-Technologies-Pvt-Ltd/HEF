@@ -10,4 +10,6 @@ reportRoute
   .post(reportController.createReport)
   .get(reportController.getReports);
 
+reportRoute.route("/:id").get(reportController.getSingleReport);
+
 module.exports = reportRoute;
