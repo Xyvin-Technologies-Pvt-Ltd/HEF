@@ -80,16 +80,25 @@ exports.getSingleReport = async (req, res) => {
     if (!id) {
       return responseHandler(res, 400, "Report ID is required");
     }
+
     const report = await Report.findById(id)
       .populate("reportBy", "name")
       .populate("content")
       .lean();
+
     if (!report) {
       return responseHandler(res, 404, "Report not found");
-    } else {
-      return responseHandler(res, 200, "Report found successfully", report);
     }
+
+    if (report.reportType === "Message" && report.content) {
+      const fromUser = await User.findById(report.content.from).select("name");
+      const toUser = await User.findById(report.content.to).select("name");
+      report.content.from = fromUser || { name: "Unknown" };
+      report.content.to = toUser || { name: "Unknown" };
+    }
+
+    return responseHandler(res, 200, "Report found successfully", report);
   } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
