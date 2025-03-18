@@ -98,6 +98,12 @@ exports.getSingleReport = async (req, res) => {
       const toUser = await User.findById(report.content.to).select("name");
       report.content.from = fromUser || { name: "Unknown" };
       report.content.to = toUser || { name: "Unknown" };
+    } else if (report.reportType === "Feeds" && report.content) {
+      const author = await User.findById(report.content.author).select("name");
+      report.content.author = author || { name: "Unknown" };
+    } else if (report.reportType === "Product" && report.content) {
+      const seller = await User.findById(report.content.seller).select("name");
+      report.content.seller = seller || { name: "Unknown" };
     }
 
     return responseHandler(res, 200, "Report found successfully", report);
