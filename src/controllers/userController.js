@@ -488,11 +488,12 @@ exports.getAllUsers = async (req, res) => {
     const skipCount = limit * (pageNo - 1);
     const filter = {};
     if (search) {
+      const escapedSearch = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
       filter.$or = [
-        { status: { $regex: search, $options: "i" } },
-        { phone: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { name: { $regex: search, $options: "i" } },
+        { status: { $regex: escapedSearch, $options: "i" } },
+        { phone: { $regex: escapedSearch, $options: "i" } },
+        { email: { $regex: escapedSearch, $options: "i" } },
+        { name: { $regex: escapedSearch, $options: "i" } },
       ];
     }
     if (status) {
