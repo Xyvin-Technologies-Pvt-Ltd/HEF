@@ -51,6 +51,8 @@ exports.getReports = async (req, res) => {
         content = item.content?.content || "";
       } else if (item.reportType === "User") {
         content = `${item.content?.name || ""}`.trim();
+      } else if (item.reportType === "Product") {
+        content = `${item.content?.name || ""}`.trim();
       } else if (item.reportType === "Message") {
         content = item.content?.content || "Chat";
       }
