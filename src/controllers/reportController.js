@@ -1,5 +1,6 @@
 const responseHandler = require("../helpers/responseHandler");
 const Report = require("../models/reportModel");
+const User = require("../models/userModel");
 const validations = require("../validations");
 
 exports.createReport = async (req, res) => {
