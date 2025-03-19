@@ -26,7 +26,7 @@ const analyticSchema = mongoose.Schema(
     supportingDocuments: { type: String },
     status: {
       type: String,
-      enum: ["accepted", "pending", "meeting_scheduled", "rejected"],
+      enum: ["accepted", "pending", "meeting_scheduled", "rejected", "completed"],
       default: "pending",
     },
   },
