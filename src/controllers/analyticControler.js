@@ -209,7 +209,7 @@ exports.updateRequestStatus = async (req, res) => {
 
     if (
       !requestId ||
-      !["accepted", "rejected", "meeting_scheduled"].includes(action)
+      !["accepted", "rejected", "meeting_scheduled", "completed"].includes(action)
     ) {
       return responseHandler(
         res,
