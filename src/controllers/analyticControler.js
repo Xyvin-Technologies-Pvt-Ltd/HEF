@@ -188,6 +188,7 @@ exports.getRequests = async (req, res) => {
         description: data.description,
         type: data.type,
         amount: data.amount,
+        meetingLink: data?.meetingLink,
       };
     });
 
