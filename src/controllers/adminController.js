@@ -680,6 +680,7 @@ exports.bulkCreateUser = async (req, res) => {
 
     const existingUsers = await User.find({
       phone: { $in: users.map((user) => user.phone) },
+      status: { $ne: "deleted" },
     });
 
     if (existingUsers.length > 0) {
