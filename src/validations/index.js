@@ -557,6 +557,6 @@ exports.bulkCreateUserSchema = Joi.array().items(
     phone: Joi.string().required(),
     chapter: Joi.string().required(),
     businessTags: Joi.array(),
-    dateOfJoining: Joi.date().required(),
+    dateOfJoining: Joi.date(),
   })
 );
