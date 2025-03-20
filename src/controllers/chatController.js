@@ -406,13 +406,13 @@ exports.getGroup = async (req, res) => {
         path: "chapter",
         select: "name",
         populate: {
-          path: "district",
+          path: "districtId",
           select: "name",
           populate: {
-            path: "zone",
+            path: "zoneId",
             select: "name",
             populate: {
-              path: "state",
+              path: "stateId",
               select: "name",
             },
           },
