@@ -342,7 +342,7 @@ exports.getGroupDetails = async (req, res) => {
         _id: item._id,
         name: fullName,
         phone: item.phone,
-        chapter: item.college.collegeName,
+        chapter: item.chapter.name,
         memberId: item.memberId ? item.memberId : null,
         status: item.status,
       };
