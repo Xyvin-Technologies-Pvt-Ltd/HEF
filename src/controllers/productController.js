@@ -174,6 +174,36 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+exports.updateProductByUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return responseHandler(res, 400, "Product ID is required");
+    }
+
+    const { error } = validations.updateProductSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    req.body.status = "pending";
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    return responseHandler(
+      res,
+      200,
+      "Product updated successfully!",
+      updatedProduct
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
 // Delete a product by ID - admin
 exports.deleteProduct = async (req, res) => {
   let status = "failure";
@@ -333,7 +363,13 @@ exports.getUserProducts = async (req, res) => {
 
     const totalProducts = await Product.countDocuments(filter);
 
-    return responseHandler(res, 200, "Products found successfully!", products, totalProducts);
+    return responseHandler(
+      res,
+      200,
+      "Products found successfully!",
+      products,
+      totalProducts
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

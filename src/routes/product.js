@@ -19,6 +19,7 @@ productRoute
   .route("/single/:id")
   .get(productController.getProduct)
   .put(productController.updateProduct)
+  .patch(productController.updateProductByUser)
   .delete(productController.deleteProduct);
 
 productRoute.route("/user").post(productController.createProductByUser);
