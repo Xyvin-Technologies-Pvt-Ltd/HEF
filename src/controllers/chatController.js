@@ -96,7 +96,7 @@ exports.sendMessage = async (req, res) => {
         const receiverSocketId = getReceiverSocketId(user.toString());
         if (receiverSocketId) {
           const socketData = {
-            ...newMessage,
+            ...newMessage._doc,
             isGroup: true,
           };
           chatNamespace.to(receiverSocketId).emit("message", socketData);
