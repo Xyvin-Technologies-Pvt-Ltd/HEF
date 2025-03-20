@@ -399,7 +399,26 @@ exports.getGroup = async (req, res) => {
       return responseHandler(res, 400, `Group id is required`);
     }
 
-    const group = await Chat.findById(id);
+    const group = await Chat.findById(id).populate({
+      path: "participants",
+      select: "name phone chapter memberId",
+      populate: {
+        path: "chapter",
+        select: "name",
+        populate: {
+          path: "district",
+          select: "name",
+          populate: {
+            path: "zone",
+            select: "name",
+            populate: {
+              path: "state",
+              select: "name",
+            },
+          },
+        },
+      },
+    });
     if (!group) {
       return responseHandler(res, 404, `Group not found`);
     }
