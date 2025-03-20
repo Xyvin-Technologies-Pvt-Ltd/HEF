@@ -76,10 +76,8 @@ exports.sendMessage = async (req, res) => {
     });
 
     if (isGroup) {
-      chatNamespace.to(to).emit("message", newMessage);
       let allUsers = chat.participants;
       allUsers = allUsers.filter((user) => user.toString() !== from);
-      console.log("🚀 ~ exports.sendMessage= ~ allUsers:", allUsers)
       const allUsersFCM = await User.find({
         _id: { $in: allUsers },
       }).select("fcm");
@@ -94,6 +92,12 @@ exports.sendMessage = async (req, res) => {
         "chat",
         from.toString()
       );
+      for (const user of allUsers) {
+        const receiverSocketId = getReceiverSocketId(user.toString());
+        if (receiverSocketId) {
+          chatNamespace.to(receiverSocketId).emit("message", newMessage);
+        }
+      }
     } else {
       const receiverSocketId = getReceiverSocketId(to);
       const toUser = await User.findById(to).select("fcm");
