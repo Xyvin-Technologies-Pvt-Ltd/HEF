@@ -495,6 +495,7 @@ exports.getAllUsers = async (req, res) => {
         { phone: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
         { name: { $regex: escapedSearch, $options: "i" } },
+        { memberId: { $regex: escapedSearch, $options: "i" } },
       ];
     }
     if (status) {
