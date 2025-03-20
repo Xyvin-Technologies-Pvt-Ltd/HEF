@@ -6,8 +6,8 @@ const chatModel = mongoose.Schema(
     lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
     unreadCount: { type: Map, of: Number, default: {} },
     isGroup: { type: Boolean, default: false },
-    groupName: { type: String },
-    groupInfo: { type: String },
+    groupName: { type: String, trim: true },
+    groupInfo: { type: String, trim: true },
   },
   {
     timestamps: true,
