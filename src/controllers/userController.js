@@ -484,6 +484,7 @@ exports.getAllUsers = async (req, res) => {
       name = "",
       membershipId = "",
       installed,
+      chapter,
     } = req.query;
     const skipCount = limit * (pageNo - 1);
     const filter = {};
@@ -494,6 +495,7 @@ exports.getAllUsers = async (req, res) => {
         { phone: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
         { name: { $regex: escapedSearch, $options: "i" } },
+        { membershipId: { $regex: escapedSearch, $options: "i" } },
       ];
     }
     if (status) {
@@ -505,7 +507,11 @@ exports.getAllUsers = async (req, res) => {
     }
 
     if (membershipId && membershipId !== "") {
-      filter.memberId = membershipId;
+      filter.membershipId = membershipId;
+    }
+
+    if (chapter && chapter !== "") {
+      filter.chapter = new mongoose.Types.ObjectId(chapter);
     }
 
     if (installed == "false") {
