@@ -495,7 +495,6 @@ exports.getAllUsers = async (req, res) => {
         { phone: { $regex: escapedSearch, $options: "i" } },
         { email: { $regex: escapedSearch, $options: "i" } },
         { name: { $regex: escapedSearch, $options: "i" } },
-        { memberId: { $regex: escapedSearch, $options: "i" } },
       ];
     }
     if (status) {
@@ -507,7 +506,7 @@ exports.getAllUsers = async (req, res) => {
     }
 
     if (membershipId && membershipId !== "") {
-      filter.memberId = membershipId;
+      filter.memberId = { $regex: membershipId, $options: "i" };
     }
 
     if (chapter && chapter !== "") {
