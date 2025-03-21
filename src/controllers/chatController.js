@@ -168,13 +168,22 @@ exports.getBetweenUsers = async (req, res) => {
 
 exports.getChats = async (req, res) => {
   try {
+    const { pageNo = 1, limit = 10 } = req.query;
+    const skipCount = 10 * (pageNo - 1);
     const chats = await Chat.find({ participants: req.userId, isGroup: false })
+      .skip(skipCount)
+      .limit(limit)
       .populate("participants", "name image")
       .populate("lastMessage")
       .sort({ lastMessage: -1, _id: 1 })
       .exec();
 
-    return responseHandler(res, 200, "Chat retrieved successfully!", chats);
+    const totalCount = await Chat.countDocuments({
+      participants: req.userId,
+      isGroup: false,
+    });
+
+    return responseHandler(res, 200, "Chat retrieved successfully!", chats, totalCount);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
@@ -261,7 +270,10 @@ exports.getGroupList = async (req, res) => {
       .populate("lastMessage")
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-    const totalCount = await Chat.countDocuments({ isGroup: true, participants: req.userId });
+    const totalCount = await Chat.countDocuments({
+      isGroup: true,
+      participants: req.userId,
+    });
     const mappedData = group.map((item) => {
       return {
         _id: item._id,
