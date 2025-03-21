@@ -330,7 +330,7 @@ exports.getGroupDetails = async (req, res) => {
     }
 
     const group = await Chat.findById(id)
-      .populate("participants", "name phone chapter memberId")
+      .populate("participants", "name phone chapter memberId image")
       .populate({
         path: "participants",
         populate: { path: "chapter" },
@@ -351,6 +351,7 @@ exports.getGroupDetails = async (req, res) => {
         _id: item._id,
         name: fullName,
         phone: item.phone,
+        image: item.image,
         chapter: item.chapter.name,
         memberId: item.memberId ? item.memberId : null,
         status: item.status,
