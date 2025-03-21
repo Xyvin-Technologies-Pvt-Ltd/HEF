@@ -70,10 +70,12 @@ exports.sendMessage = async (req, res) => {
 
     await Promise.all([chat.save(), newMessage.save()]);
 
-    await newMessage.populate({
-      path: "feed",
-      select: "media",
-    });
+    await newMessage
+      .populate({
+        path: "feed",
+        select: "media",
+      })
+      .populate("from", "name image");
 
     if (isGroup) {
       let allUsers = chat.participants;
