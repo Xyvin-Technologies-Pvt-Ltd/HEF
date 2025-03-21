@@ -657,6 +657,7 @@ exports.listUsers = async (req, res) => {
                 _id: 1,
                 name: 1,
                 status: 1,
+                memberId: 1,
                 businessTags: 1,
                 level: {
                   $concat: [
