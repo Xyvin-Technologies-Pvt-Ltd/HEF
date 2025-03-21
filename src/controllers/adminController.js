@@ -14,6 +14,7 @@ const Subscription = require("../models/subscriptionModel");
 const User = require("../models/userModel");
 const Zone = require("../models/zoneModel");
 const { comparePasswords, hashPassword } = require("../utils/bcrypt");
+const { generateDuplicateExcel } = require("../utils/generateDuplicateExcel");
 const { generateRandomPassword } = require("../utils/generateRandomPassword");
 const { generateToken } = require("../utils/generateToken");
 const { generateUniqueMemberId } = require("../utils/generateUniqueMemberId");
@@ -685,11 +686,12 @@ exports.bulkCreateUser = async (req, res) => {
 
     if (existingUsers.length > 0) {
       const duplicatePhones = existingUsers.map((user) => user.phone);
+      const base64Excel = await generateDuplicateExcel(duplicatePhones);
       return responseHandler(
         res,
         400,
         "Some users already exist with the same phone number.",
-        { duplicates: duplicatePhones }
+        { duplicates: duplicatePhones, excelFile: base64Excel }
       );
     }
 
