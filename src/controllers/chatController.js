@@ -255,11 +255,13 @@ exports.getGroupList = async (req, res) => {
   try {
     const { pageNo = 1, limit = 10 } = req.query;
     const skipCount = 10 * (pageNo - 1);
-    const group = await Chat.find({ isGroup: true })
+    const group = await Chat.find({ isGroup: true, participants: req.userId })
+      .skip(skipCount)
+      .limit(limit)
       .populate("lastMessage")
       .sort({ createdAt: -1, _id: 1 })
       .lean();
-    const totalCount = await Chat.countDocuments({ isGroup: true });
+    const totalCount = await Chat.countDocuments({ isGroup: true, participants: req.userId });
     const mappedData = group.map((item) => {
       return {
         _id: item._id,
