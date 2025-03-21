@@ -684,15 +684,12 @@ exports.bulkCreateUser = async (req, res) => {
     });
 
     if (existingUsers.length > 0) {
-      const duplicateDetails = existingUsers.map((user) => ({
-        phone: user.phone,
-      }));
-
+      const duplicatePhones = existingUsers.map((user) => user.phone);
       return responseHandler(
         res,
         400,
         "Some users already exist with the same phone number.",
-        { duplicates: duplicateDetails }
+        { duplicates: duplicatePhones }
       );
     }
 
