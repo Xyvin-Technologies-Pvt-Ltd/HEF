@@ -296,22 +296,22 @@ exports.likeFeed = async (req, res) => {
     );
 
     const toUser = await User.findById(updateFeeds.author).select("fcm");
-    const fromUser = await User.findById(req.userId).select("fullName");
+    const fromUser = await User.findById(req.userId).select("name");
     const fcmUser = [toUser.fcm];
 
     if (req.userId !== String(updateFeeds.author)) {
       await sendInAppNotification(
         fcmUser,
-        `${fromUser.fullName} Liked Your Post`,
-        `${fromUser.fullName} Liked Your ${updateFeeds.content}`,
+        `${fromUser.name} Liked Your Post`,
+        `${fromUser.name} Liked Your ${updateFeeds.content}`,
         null,
         "my_feeds"
       );
 
       await Notification.create({
         users: toUser._id,
-        subject: `${fromUser.fullName} Liked Your Post`,
-        content: `${fromUser.fullName} Liked Your ${updateFeeds.content}`,
+        subject: `${fromUser.name} Liked Your Post`,
+        content: `${fromUser.name} Liked Your ${updateFeeds.content}`,
         type: "in-app",
       });
     }
@@ -348,22 +348,22 @@ exports.commentFeed = async (req, res) => {
     );
 
     const toUser = await User.findById(updateFeeds.author).select("fcm");
-    const fromUser = await User.findById(req.userId).select("fullName");
+    const fromUser = await User.findById(req.userId).select("name");
     const fcmUser = [toUser.fcm];
 
     if (req.userId !== String(updateFeeds.author)) {
       await sendInAppNotification(
         fcmUser,
-        `${fromUser.fullName} Commented Your Post`,
-        `${fromUser.fullName} Commented Your ${updateFeeds.content}`,
+        `${fromUser.name} Commented Your Post`,
+        `${fromUser.name} Commented Your ${updateFeeds.content}`,
         null,
         "my_feeds"
       );
 
       await Notification.create({
         users: toUser._id,
-        subject: `${fromUser.fullName} Commented Your Post`,
-        content: `${fromUser.fullName} Commented Your ${updateFeeds.content}`,
+        subject: `${fromUser.name} Commented Your Post`,
+        content: `${fromUser.name} Commented Your ${updateFeeds.content}`,
         type: "in-app",
       });
     }
