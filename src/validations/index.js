@@ -292,6 +292,7 @@ exports.editUserSchema = Joi.object({
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
+  designation: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
