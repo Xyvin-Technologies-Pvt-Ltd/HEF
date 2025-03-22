@@ -259,6 +259,7 @@ exports.createUserSchema = Joi.object({
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
   chapter: Joi.string(),
+  designation: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
   email: Joi.string().email(),
@@ -357,6 +358,7 @@ exports.updateUserSchema = Joi.object({
   uid: Joi.string(),
   memberId: Joi.string(),
   bloodgroup: Joi.string(),
+  designation: Joi.string(),
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
@@ -560,5 +562,6 @@ exports.bulkCreateUserSchema = Joi.array().items(
     chapter: Joi.string().required(),
     businessTags: Joi.array(),
     dateOfJoining: Joi.date(),
+    designation: Joi.string(),
   })
 );

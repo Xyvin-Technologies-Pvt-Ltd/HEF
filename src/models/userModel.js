@@ -14,6 +14,7 @@ const userSchema = mongoose.Schema(
     uid: { type: String },
     memberId: { type: String },
     bloodgroup: { type: String },
+    designation: { type: String, trim: true },
     chapter: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     image: { type: String },
     email: { type: String },
