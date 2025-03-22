@@ -1246,7 +1246,7 @@ exports.fetchDashboard = async (req, res) => {
         {
           $match: {
             type: "Business",
-            sender: user,
+            sender: new mongoose.Types.ObjectId(user),
             ...filter,
           },
         },
@@ -1261,7 +1261,7 @@ exports.fetchDashboard = async (req, res) => {
         {
           $match: {
             type: "Business",
-            member: user,
+            member: new mongoose.Types.ObjectId(user),
             ...filter,
           },
         },
@@ -1276,7 +1276,7 @@ exports.fetchDashboard = async (req, res) => {
         {
           $match: {
             type: "Refferal",
-            sender: user,
+            sender: new mongoose.Types.ObjectId(user),
             ...filter,
           },
         },
@@ -1291,7 +1291,7 @@ exports.fetchDashboard = async (req, res) => {
         {
           $match: {
             type: "Refferal",
-            member: user,
+            member: new mongoose.Types.ObjectId(user),
             ...filter,
           },
         },
