@@ -8,13 +8,13 @@ userRoute.post("/verify", userController.verifyUser);
 userRoute.post("/login", userController.loginUser);
 userRoute.get("/app-version", userController.getVersion);
 userRoute.post("/check-user", userController.checkUser);
+userRoute.get("/single/:id", userController.getSingleUser);
 
 userRoute.use(authVerify);
 
 userRoute.patch("/change-phone-number", userController.changePhoneNumber);
 userRoute.get("/", userController.fetchUser);
 userRoute.get("/users", userController.getUsers);
-userRoute.get("/single/:id", userController.getSingleUser);
 userRoute.patch("/update", userController.updateUser);
 userRoute.post("/", userController.createNewUser);
 userRoute.post("/admin", userController.createUser);
