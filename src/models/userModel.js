@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema(
     status: {
       type: String,
       enum: ["active", "inactive", "suspended", "deleted", "blocked"],
-      default: "inactive",
+      default: "active",
     },
     address: { type: String },
     company: [
@@ -60,7 +60,7 @@ const userSchema = mongoose.Schema(
     subscription: {
       type: String,
       enum: ["free", "premium"],
-      default: "free",
+      default: "premium",
     },
     dateOfJoining: { type: Date },
     fcm: { type: String },
