@@ -1247,6 +1247,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Business",
             sender: new mongoose.Types.ObjectId(user),
+            status: "accepted",
             ...filter,
           },
         },
@@ -1262,6 +1263,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Business",
             member: new mongoose.Types.ObjectId(user),
+            status: "accepted",
             ...filter,
           },
         },
@@ -1277,6 +1279,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Refferal",
             sender: new mongoose.Types.ObjectId(user),
+            status: "accepted",
             ...filter,
           },
         },
@@ -1292,6 +1295,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Refferal",
             member: new mongoose.Types.ObjectId(user),
+            status: "accepted",
             ...filter,
           },
         },
@@ -1304,6 +1308,7 @@ exports.fetchDashboard = async (req, res) => {
       ]),
       Analytic.countDocuments({
         type: "One v One Meeting",
+        status: "completed",
         ...filter,
         $or: [{ sender: user }, { member: user }],
       }),
