@@ -363,10 +363,7 @@ exports.updateUserSchema = Joi.object({
   chapter: Joi.string(),
   image: Joi.string(),
   file: Joi.array().items(Joi.string()),
-  email: Joi.string().email().required().messages({
-    "string.email": "Please enter a valid email address.",
-    "string.empty": "Email is required.",
-  }),
+  email: Joi.string().email().allow(""),
   phone: Joi.string().trim().required().messages({
     "string.empty": "Phone number is required.",
   }),
