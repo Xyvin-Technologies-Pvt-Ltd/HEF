@@ -441,7 +441,7 @@ exports.createAnalyticSchema = Joi.object({
   member: Joi.string().required(),
   sender: Joi.string(),
   title: Joi.string().required(),
-  description: Joi.string().required(),
+  description: Joi.string(),
   amount: Joi.number(),
   referral: Joi.object({
     name: Joi.string(),
