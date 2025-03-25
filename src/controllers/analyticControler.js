@@ -152,9 +152,7 @@ exports.getRequests = async (req, res) => {
       };
     }
 
-    const totalCount = await Analytic.countDocuments({
-      query,
-    });
+    const totalCount = await Analytic.countDocuments(query);
 
     const response = await Analytic.find(query)
       .populate("sender", "name image")
