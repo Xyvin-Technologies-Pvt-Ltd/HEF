@@ -119,7 +119,16 @@ exports.getRequests = async (req, res) => {
     }
 
     const { userId } = req;
-    const { filter, requestType, startDate, endDate } = req.query;
+    const {
+      filter,
+      requestType,
+      startDate,
+      endDate,
+      limit = 10,
+      pageNo = 1,
+    } = req.query;
+
+    const skipCount = 10 * (pageNo - 1);
 
     let query;
     if (filter === "sent") {
@@ -143,10 +152,16 @@ exports.getRequests = async (req, res) => {
       };
     }
 
-  
+    const totalCount = await Analytic.countDocuments({
+      query,
+    });
+
     const response = await Analytic.find(query)
       .populate("sender", "name image")
-      .populate("member", "name image");
+      .populate("member", "name image")
+      .skip(skipCount)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
     const mappedData = response.map((data) => {
       let username;
@@ -189,6 +204,7 @@ exports.getRequests = async (req, res) => {
         type: data.type,
         amount: data.amount,
         meetingLink: data?.meetingLink,
+        referral: data?.referral,
       };
     });
 
@@ -196,7 +212,8 @@ exports.getRequests = async (req, res) => {
       res,
       200,
       "Requests fetched successfully",
-      mappedData
+      mappedData,
+      totalCount
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
@@ -209,7 +226,9 @@ exports.updateRequestStatus = async (req, res) => {
 
     if (
       !requestId ||
-      !["accepted", "rejected", "meeting_scheduled", "completed"].includes(action)
+      !["accepted", "rejected", "meeting_scheduled", "completed"].includes(
+        action
+      )
     ) {
       return responseHandler(
         res,
