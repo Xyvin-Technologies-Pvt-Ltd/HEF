@@ -561,7 +561,22 @@ exports.getLevels = async (req, res) => {
       }
     } else if (type === "user") {
       const query = { chapter: id };
-      let findUsers = await User.find(query);
+      let findUsers = await User.find(query).populate({
+        path: "chapter",
+        select: "name",
+        populate: {
+          path: "districtId",
+          select: "name",
+          populate: {
+            path: "zoneId",
+            select: "name",
+            populate: {
+              path: "stateId",
+              select: "name",
+            },
+          },
+        },
+      });
       if (chooseAdmin) {
         const nonAdminUsers = await Promise.all(
           findUsers.map(async (user) => {
@@ -603,7 +618,7 @@ exports.getHierarchyList = async (req, res) => {
         admins: item.admins || [],
         category,
         pstCount: item.admins.length,
-        createdAt: item.createdAt
+        createdAt: item.createdAt,
       }));
 
     if (type === "state") {
