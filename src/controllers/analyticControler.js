@@ -305,11 +305,11 @@ exports.getRequestsByChapter = async (req, res) => {
     })
       .populate({
         path: "member",
-        select: "name email role chapter",
+        select: "name email role chapter image",
       })
       .populate({
         path: "sender",
-        select: "name email role chapter",
+        select: "name email role chapter image",
       });
 
     if (requests.length === 0) {
