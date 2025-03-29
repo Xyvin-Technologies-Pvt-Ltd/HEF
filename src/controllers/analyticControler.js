@@ -239,10 +239,26 @@ exports.updateRequestStatus = async (req, res) => {
       requestId,
       { status: action },
       { new: true }
-    );
+    )
+      .populate("sender", "fcm")
+      .populate("member", "fcm");
 
     if (!updatedRequest) {
       return responseHandler(res, 404, "Request not found.");
+    }
+
+    const fcm = [updatedRequest.sender?.fcm, updatedRequest.member?.fcm].filter(
+      Boolean
+    );
+
+    if (fcm.length > 0) {
+      await sendInAppNotification(
+        fcm,
+        `Your request for ${updatedRequest.type} has been ${action}`,
+        `Your request for ${updatedRequest.title} with ${updatedRequest.type} has been ${action}`,
+        null,
+        "analytics"
+      );
     }
 
     return responseHandler(
