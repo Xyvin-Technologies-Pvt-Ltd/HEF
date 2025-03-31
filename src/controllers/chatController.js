@@ -183,7 +183,13 @@ exports.getChats = async (req, res) => {
       isGroup: false,
     });
 
-    return responseHandler(res, 200, "Chat retrieved successfully!", chats, totalCount);
+    return responseHandler(
+      res,
+      200,
+      "Chat retrieved successfully!",
+      chats,
+      totalCount
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
@@ -198,7 +204,15 @@ exports.createGroup = async (req, res) => {
     if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
-    const { participantIds, groupName, groupInfo } = req.body;
+    const { groupName, groupInfo, chapter } = req.body;
+
+    let { participantIds } = req.body;
+
+    if (participantIds[0] === "*") {
+      participantIds = [];
+      const users = await User.find({ chapter: chapter });
+      participantIds = users.map((user) => user._id);
+    }
 
     const newChat = new Chat({
       participants: participantIds,

@@ -23,6 +23,7 @@ exports.createEventSchema = Joi.object({
   type: Joi.string().required(),
   image: Joi.string(),
   eventDate: Joi.date().required(),
+  eventEndDate: Joi.date(),
   startDate: Joi.date().required(),
   startTime: Joi.date().required(),
   endDate: Joi.date().required(),
@@ -494,6 +495,7 @@ exports.createGroupSchame = Joi.object({
   groupName: Joi.string().required(),
   groupInfo: Joi.string().required(),
   participantIds: Joi.array().required(),
+  chapter: Joi.string(),
 });
 
 exports.editGroupSchema = Joi.object({

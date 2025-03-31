@@ -10,6 +10,7 @@ const eventSchema = mongoose.Schema(
     },
     image: { type: String },
     eventDate: { type: Date },
+    eventEndDate: { type: Date },
     startDate: { type: Date },
     startTime: { type: Date },
     endDate: { type: Date },

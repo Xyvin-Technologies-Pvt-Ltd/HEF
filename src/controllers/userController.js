@@ -485,6 +485,8 @@ exports.getAllUsers = async (req, res) => {
       membershipId = "",
       installed,
       chapter,
+      from,
+      to,
     } = req.query;
     const skipCount = limit * (pageNo - 1);
     const filter = {};
@@ -496,6 +498,7 @@ exports.getAllUsers = async (req, res) => {
         { email: { $regex: escapedSearch, $options: "i" } },
         { name: { $regex: escapedSearch, $options: "i" } },
         { memberId: { $regex: escapedSearch, $options: "i" } },
+        { "chapter.name": { $regex: escapedSearch, $options: "i" } },
       ];
     }
     if (status) {
@@ -519,6 +522,13 @@ exports.getAllUsers = async (req, res) => {
     } else if (installed) {
       filter.fcm = {
         $nin: [null, ""],
+      };
+    }
+
+    if (from && to) {
+      filter.dateOfJoining = {
+        $gte: new Date(`${from}T00:00:00.000Z`),
+        $lte: new Date(`${to}T23:59:59.999Z`),
       };
     }
 
