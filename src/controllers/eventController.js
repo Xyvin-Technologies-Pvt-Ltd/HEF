@@ -5,6 +5,7 @@ const Event = require("../models/eventModel");
 const { getMessaging } = require("firebase-admin/messaging");
 const User = require("../models/userModel");
 const logActivity = require("../models/logActivityModel");
+const sendInAppNotification = require("../utils/sendInAppNotification");
 
 exports.createEvent = async (req, res) => {
   let status = "failure";
@@ -36,13 +37,27 @@ exports.createEvent = async (req, res) => {
     }
     status = "success";
     const newEvent = await Event.create(req.body);
-    if (newEvent)
+    const users = await User.find({
+      status: "active",
+    }).select("fcm");
+    const FCM = [];
+    if (users.length > 0) {
+      FCM = users.map((user) => user.fcm);
+    }
+    if (newEvent) {
+      await sendInAppNotification(
+        FCM,
+        newEvent.eventName,
+        newEvent.description,
+        newEvent.image
+      );
       return responseHandler(
         res,
         201,
         `New Event created successfull..!`,
         newEvent
       );
+    }
   } catch (error) {
     errorMessage = error.message;
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);

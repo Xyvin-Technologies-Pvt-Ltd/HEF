@@ -46,7 +46,7 @@ exports.getFeeds = async (req, res) => {
       return responseHandler(res, 400, "Feeds with this Id is required");
     }
 
-    const findFeeds = await Feeds.findById(id);
+    const findFeeds = await Feeds.findById(id).populate("author", "name image memberId");
     if (findFeeds) {
       return responseHandler(res, 200, `Feeds found successfull..!`, findFeeds);
     }

@@ -79,7 +79,10 @@ exports.getProduct = async (req, res) => {
       return responseHandler(res, 400, "Product ID is required");
     }
 
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate(
+      "seller",
+      "name image memberId"
+    );
     status = "success";
     if (product) {
       return responseHandler(res, 200, "Product found successfully!", product);
