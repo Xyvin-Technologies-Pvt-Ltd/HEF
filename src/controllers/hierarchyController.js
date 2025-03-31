@@ -605,6 +605,16 @@ exports.getHierarchyList = async (req, res) => {
   try {
     const { type } = req.params;
 
+    const { limit = 10, pageNo = 1, search } = req.query;
+
+    const skip = (pageNo - 1) * limit;
+
+    const filter = {};
+
+    if (search) {
+      filter.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
+
     if (!type) {
       return responseHandler(res, 400, "Type parameter is required", []);
     }
@@ -622,16 +632,16 @@ exports.getHierarchyList = async (req, res) => {
       }));
 
     if (type === "state") {
-      const states = await State.find();
+      const states = await State.find(filter).limit(limit).skip(skip);
       data = mapData(states, "state");
     } else if (type === "zone") {
-      const zones = await Zone.find();
+      const zones = await Zone.find(filter).limit(limit).skip(skip);
       data = mapData(zones, "zone");
     } else if (type === "district") {
-      const districts = await District.find();
+      const districts = await District.find(filter).limit(limit).skip(skip);
       data = mapData(districts, "district");
     } else if (type === "chapter") {
-      const chapters = await Chapter.find();
+      const chapters = await Chapter.find(filter).limit(limit).skip(skip);
       data = mapData(chapters, "chapter");
     } else if (type === "all") {
       const states = await State.find();
