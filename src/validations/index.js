@@ -423,7 +423,7 @@ exports.updateUserSchema = Joi.object({
       link: Joi.string(),
     })
   ),
-  fcm: Joi.string(),
+  fcm: Joi.string().allow(''),
 });
 
 exports.createReviewSchema = Joi.object({
