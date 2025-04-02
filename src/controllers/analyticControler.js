@@ -174,6 +174,27 @@ exports.getRequests = async (req, res) => {
           },
         },
         { $unwind: "$memberData" },
+        ...(chapter
+          ? [
+              {
+                $match: {
+                  $or: [
+                    {
+                      "senderData.chapter": new mongoose.Types.ObjectId(
+                        chapter
+                      ),
+                    },
+                    {
+                      "memberData.chapter": new mongoose.Types.ObjectId(
+                        chapter
+                      ),
+                    },
+                  ],
+                },
+              },
+            ]
+          : []),
+
         { $match: matchStage },
         { $count: "total" },
       ]);
@@ -357,7 +378,7 @@ exports.downloadRequests = async (req, res) => {
           referralName: "$referral.name",
         },
       },
-      { $sort: { createdAt: -1, _id: 1 } },
+      { $sort: { createdAt: -1, _id: 1 } }
     );
     const data = await Analytic.aggregate(pipeline);
 
