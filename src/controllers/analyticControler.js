@@ -4,6 +4,7 @@ const Analytic = require("../models/analyticModel");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
+const mongoose = require("mongoose");
 
 exports.sendRequest = async (req, res) => {
   try {
@@ -92,8 +93,9 @@ exports.getRequests = async (req, res) => {
         matchStage.date = { $gte: start, $lte: end };
       }
 
-      const pipeline = [
-        { $match: matchStage },
+      const pipeline = [{ $match: matchStage }];
+
+      pipeline.push(
         {
           $lookup: {
             from: "users",
@@ -111,13 +113,16 @@ exports.getRequests = async (req, res) => {
             as: "memberData",
           },
         },
-        { $unwind: "$memberData" },
-      ];
+        { $unwind: "$memberData" }
+      );
 
       if (chapter) {
         pipeline.push({
           $match: {
-            $or: [{ "senderData.chapter": chapter }],
+            $or: [
+              { "senderData.chapter": new mongoose.Types.ObjectId(chapter) },
+              { "memberData.chapter": new mongoose.Types.ObjectId(chapter) },
+            ],
           },
         });
       }
@@ -257,6 +262,91 @@ exports.getRequests = async (req, res) => {
       mappedData,
       totalCount
     );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.downloadRequests = async (req, res) => {
+  try {
+    const { startDate, endDate, chapter } = req.query;
+    const matchStage = {};
+
+    if (startDate && endDate) {
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+      matchStage.date = { $gte: start, $lte: end };
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "users",
+          localField: "sender",
+          foreignField: "_id",
+          as: "senderData",
+        },
+      },
+      { $unwind: "$senderData" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "member",
+          foreignField: "_id",
+          as: "memberData",
+        },
+      },
+      { $unwind: "$memberData" },
+    ];
+
+    if (chapter) {
+      pipeline.push({
+        $match: {
+          $or: [{ "senderData.chapter": chapter }],
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $project: {
+          _id: 1,
+          status: 1,
+          type: 1,
+          date: 1,
+          title: 1,
+          description: 1,
+          referral: 1,
+          contact: 1,
+          amount: 1,
+          time: 1,
+          meetingLink: 1,
+          location: 1,
+          supportingDocuments: 1,
+          createdAt: 1,
+          senderName: "$senderData.name",
+          memberName: "$memberData.name",
+          referralName: "$referral.name",
+        },
+      },
+      { $sort: { createdAt: -1, _id: 1 } }
+    );
+
+    const data = await Analytic.aggregate(pipeline);
+
+    const headers = [
+      { header: "ID", key: "_id" },
+      { header: "Status", key: "status" },
+      { header: "Type", key: "type" },
+      { header: "Date", key: "date" },
+      { header: "Title", key: "title" },
+      { header: "Description", key: "description" },
+      { header: "Referral", key: "referral" },
+      { header: "Contact", key: "contact" },
+      { header: "Amount", key: "amount" },
+      { header: "Time", key: "time" },
+    ];
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

@@ -10,9 +10,13 @@ analyticRoute
   .post(analyticControler.sendRequest)
   .get(analyticControler.getRequests);
 
+analyticRoute.get("/download", analyticControler.downloadRequests);
+
 analyticRoute.post("/status", analyticControler.updateRequestStatus);
 analyticRoute.delete("/:requestId", analyticControler.deleteRequestById);
-analyticRoute.get("/chapter/:chapterId", analyticControler.getRequestsByChapter);
-
+analyticRoute.get(
+  "/chapter/:chapterId",
+  analyticControler.getRequestsByChapter
+);
 
 module.exports = analyticRoute;
