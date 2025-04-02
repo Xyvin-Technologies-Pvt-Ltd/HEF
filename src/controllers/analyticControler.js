@@ -70,51 +70,93 @@ exports.getRequests = async (req, res) => {
         endDate,
         chapter,
       } = req.query;
-      const skipCount = 10 * (pageNo - 1);
-      const filter = {};
+      const skipCount = Number(limit) * (pageNo - 1);
+
+      const matchStage = {};
 
       if (user) {
-        filter.$or = [{ sender: user }, { member: user }];
+        matchStage.$or = [{ sender: user }, { member: user }];
       }
 
       if (status) {
-        filter.status = status;
+        matchStage.status = status;
       }
 
-      if (type) filter.type = type;
+      if (type) {
+        matchStage.type = type;
+      }
 
       if (startDate && endDate) {
         const start = new Date(`${startDate}T00:00:00.000Z`);
         const end = new Date(`${endDate}T23:59:59.999Z`);
-        filter.date = {
-          $gte: start,
-          $lte: end,
-        };
+        matchStage.date = { $gte: start, $lte: end };
       }
 
-      const totalCount = await Analytic.countDocuments(filter);
-      const data = await Analytic.find(filter)
-        .populate("sender", "name image")
-        .populate("member", "name image")
-        .skip(skipCount)
-        .limit(limit)
-        .sort({ createdAt: -1, _id: 1 })
-        .lean();
+      const pipeline = [
+        { $match: matchStage },
+        {
+          $lookup: {
+            from: "users",
+            localField: "sender",
+            foreignField: "_id",
+            as: "senderData",
+          },
+        },
+        { $unwind: "$senderData" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "member",
+            foreignField: "_id",
+            as: "memberData",
+          },
+        },
+        { $unwind: "$memberData" },
+      ];
 
-      const adminData = data.map((user) => {
-        return {
-          ...user,
-          senderName: user.sender?.name || "",
-          memberName: user.member?.name || "",
-          referralName: user.referral?.name || "",
-        };
-      });
+      if (chapter) {
+        pipeline.push({
+          $match: {
+            $or: [{ "senderData.chapter": chapter }],
+          },
+        });
+      }
+
+      pipeline.push(
+        {
+          $project: {
+            _id: 1,
+            status: 1,
+            type: 1,
+            date: 1,
+            title: 1,
+            description: 1,
+            referral: 1,
+            contact: 1,
+            amount: 1,
+            time: 1,
+            meetingLink: 1,
+            location: 1,
+            supportingDocuments: 1,
+            createdAt: 1,
+            senderName: "$senderData.name",
+            memberName: "$memberData.name",
+            referralName: "$referral.name",
+          },
+        },
+        { $sort: { createdAt: -1, _id: 1 } },
+        { $skip: skipCount },
+        { $limit: Number(limit) }
+      );
+
+      const data = await Analytic.aggregate(pipeline);
+      const totalCount = await Analytic.countDocuments(matchStage);
 
       return responseHandler(
         res,
         200,
         "Requests fetched successfully",
-        adminData,
+        data,
         totalCount
       );
     }
