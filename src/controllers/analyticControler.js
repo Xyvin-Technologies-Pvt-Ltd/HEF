@@ -70,104 +70,51 @@ exports.getRequests = async (req, res) => {
         endDate,
         chapter,
       } = req.query;
-      const skipCount = limit * (pageNo - 1);
-
-      const matchStage = {};
+      const skipCount = 10 * (pageNo - 1);
+      const filter = {};
 
       if (user) {
-        matchStage.$or = [{ sender: user }, { member: user }];
+        filter.$or = [{ sender: user }, { member: user }];
       }
 
       if (status) {
-        matchStage.status = status;
+        filter.status = status;
       }
 
-      if (type) {
-        matchStage.type = type;
-      }
+      if (type) filter.type = type;
 
       if (startDate && endDate) {
         const start = new Date(`${startDate}T00:00:00.000Z`);
         const end = new Date(`${endDate}T23:59:59.999Z`);
-        matchStage.date = { $gte: start, $lte: end };
+        filter.date = {
+          $gte: start,
+          $lte: end,
+        };
       }
 
-      const pipeline = [
-        { $match: matchStage },
-        {
-          $lookup: {
-            from: "users",
-            localField: "sender",
-            foreignField: "_id",
-            as: "senderData",
-          },
-        },
-        { $unwind: "$senderData" },
-        {
-          $lookup: {
-            from: "users",
-            localField: "member",
-            foreignField: "_id",
-            as: "memberData",
-          },
-        },
-        { $unwind: "$memberData" },
-        chapter
-          ? {
-              $match: {
-                $or: [
-                  { "senderData.chapter": chapter },
-                  { "memberData.chapter": chapter },
-                ],
-              },
-            }
-          : null,
+      const totalCount = await Analytic.countDocuments(filter);
+      const data = await Analytic.find(filter)
+        .populate("sender", "name image")
+        .populate("member", "name image")
+        .skip(skipCount)
+        .limit(limit)
+        .sort({ createdAt: -1, _id: 1 })
+        .lean();
 
-        {
-          $project: {
-            _id: 1,
-            status: 1,
-            type: 1,
-            date: 1,
-            title: 1,
-            description: 1,
-            referral: 1,
-            contact: 1,
-            amount: 1,
-            time: 1,
-            meetingLink: 1,
-            location: 1,
-            supportingDocuments: 1,
-            createdAt: 1,
-            sender: "$senderData",
-            senderName: "$senderData.name",
-            member: "$memberData",
-            memberName: "$memberData.name",
-            referralName: "$referral.name",
-          },
-        },
-        { $sort: { createdAt: -1, _id: 1 } },
-        { $skip: skipCount },
-        { $limit: limit },
-      ];
-
-      const data = await Analytic.aggregate(pipeline);
-      const totalCount = await Analytic.countDocuments(matchStage);
-
-      // const adminData = data.map((user) => {
-      //   return {
-      //     ...user,
-      //     senderName: user.sender?.name || "",
-      //     memberName: user.member?.name || "",
-      //     referralName: user.referral?.name || "",
-      //   };
-      // });
+      const adminData = data.map((user) => {
+        return {
+          ...user,
+          senderName: user.sender?.name || "",
+          memberName: user.member?.name || "",
+          referralName: user.referral?.name || "",
+        };
+      });
 
       return responseHandler(
         res,
         200,
         "Requests fetched successfully",
-        data,
+        adminData,
         totalCount
       );
     }
