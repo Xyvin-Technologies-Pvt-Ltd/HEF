@@ -155,14 +155,37 @@ exports.getRequests = async (req, res) => {
       );
 
       const data = await Analytic.aggregate(pipeline);
-      const totalCount = await Analytic.countDocuments(matchStage);
+      const totalCount = await Analytic.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "sender",
+            foreignField: "_id",
+            as: "senderData",
+          },
+        },
+        { $unwind: "$senderData" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "member",
+            foreignField: "_id",
+            as: "memberData",
+          },
+        },
+        { $unwind: "$memberData" },
+        { $match: matchStage },
+        { $count: "total" },
+      ]);
+
+      const count = totalCount.length > 0 ? totalCount[0].total : 0;
 
       return responseHandler(
         res,
         200,
         "Requests fetched successfully",
         data,
-        totalCount
+        count
       );
     }
 
@@ -278,8 +301,9 @@ exports.downloadRequests = async (req, res) => {
       matchStage.date = { $gte: start, $lte: end };
     }
 
-    const pipeline = [
-      { $match: matchStage },
+    const pipeline = [{ $match: matchStage }];
+
+    pipeline.push(
       {
         $lookup: {
           from: "users",
@@ -297,13 +321,16 @@ exports.downloadRequests = async (req, res) => {
           as: "memberData",
         },
       },
-      { $unwind: "$memberData" },
-    ];
+      { $unwind: "$memberData" }
+    );
 
     if (chapter) {
       pipeline.push({
         $match: {
-          $or: [{ "senderData.chapter": chapter }],
+          $or: [
+            { "senderData.chapter": new mongoose.Types.ObjectId(chapter) },
+            { "memberData.chapter": new mongoose.Types.ObjectId(chapter) },
+          ],
         },
       });
     }
@@ -330,23 +357,28 @@ exports.downloadRequests = async (req, res) => {
           referralName: "$referral.name",
         },
       },
-      { $sort: { createdAt: -1, _id: 1 } }
+      { $sort: { createdAt: -1, _id: 1 } },
+      { $skip: skipCount },
+      { $limit: Number(limit) }
     );
-
     const data = await Analytic.aggregate(pipeline);
 
     const headers = [
-      { header: "ID", key: "_id" },
-      { header: "Status", key: "status" },
-      { header: "Type", key: "type" },
-      { header: "Date", key: "date" },
+      { header: "Sender", key: "senderName" },
+      { header: "Receiver", key: "memberName" },
+      { header: "Business Type", key: "type" },
       { header: "Title", key: "title" },
       { header: "Description", key: "description" },
-      { header: "Referral", key: "referral" },
-      { header: "Contact", key: "contact" },
+      { header: "Status", key: "status" },
+      { header: "Date", key: "date" },
+      { header: "Referral", key: "referralName" },
       { header: "Amount", key: "amount" },
-      { header: "Time", key: "time" },
     ];
+
+    return responseHandler(res, 200, "Requests fetched successfully", {
+      headers,
+      body: data,
+    });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
