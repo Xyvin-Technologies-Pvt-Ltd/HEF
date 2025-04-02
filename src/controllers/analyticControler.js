@@ -358,8 +358,6 @@ exports.downloadRequests = async (req, res) => {
         },
       },
       { $sort: { createdAt: -1, _id: 1 } },
-      { $skip: skipCount },
-      { $limit: Number(limit) }
     );
     const data = await Analytic.aggregate(pipeline);
 
