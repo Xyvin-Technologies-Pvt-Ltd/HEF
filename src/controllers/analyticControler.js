@@ -313,13 +313,17 @@ exports.getRequests = async (req, res) => {
 
 exports.downloadRequests = async (req, res) => {
   try {
-    const { startDate, endDate, chapter } = req.query;
+    const { startDate, endDate, chapter, type } = req.query;
     const matchStage = {};
 
     if (startDate && endDate) {
       const start = new Date(`${startDate}T00:00:00.000Z`);
       const end = new Date(`${endDate}T23:59:59.999Z`);
       matchStage.date = { $gte: start, $lte: end };
+    }
+
+    if (type) {
+      matchStage.type = type;
     }
 
     const pipeline = [{ $match: matchStage }];
