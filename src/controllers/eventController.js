@@ -40,7 +40,7 @@ exports.createEvent = async (req, res) => {
     const users = await User.find({
       status: "active",
     }).select("fcm");
-    const FCM = [];
+    let FCM = [];
     if (users.length > 0) {
       FCM = users.map((user) => user.fcm);
     }
