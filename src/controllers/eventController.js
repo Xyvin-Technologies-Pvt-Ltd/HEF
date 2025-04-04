@@ -242,6 +242,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
       .limit(limit)
       .sort({ createdAt: -1, _id: 1 })
       .lean();
+    const totalCount = await Event.countDocuments(filter);
     const mappedEvents = events.map((event) => {
       return {
         ...event,
@@ -265,7 +266,8 @@ exports.getAllEventsForAdmin = async (req, res) => {
       res,
       200,
       "Events retrieved successfully",
-      mappedEvents
+      mappedEvents,
+      totalCount
     );
   } catch (error) {
     errorMessage = error.message;
