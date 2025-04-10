@@ -76,7 +76,7 @@ exports.getRequests = async (req, res) => {
       const matchStage = {};
 
       if (user) {
-        matchStage.$or = [{ sender: user }, { member: user }];
+        matchStage.$or = [{ sender:  new mongoose.Types.ObjectId(user) }, { member:  new mongoose.Types.ObjectId(user) }];
       }
 
       if (status) {
