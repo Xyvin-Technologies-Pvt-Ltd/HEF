@@ -1284,38 +1284,18 @@ exports.fetchDashboard = async (req, res) => {
           },
         },
       ]),
-      Analytic.aggregate([
-        {
-          $match: {
-            type: "Referral",
-            sender: new mongoose.Types.ObjectId(user),
-            status: "accepted",
-            ...filter,
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalAmount: { $sum: { $toDouble: "$amount" } },
-          },
-        },
-      ]),
-      Analytic.aggregate([
-        {
-          $match: {
-            type: "Referral",
-            member: new mongoose.Types.ObjectId(user),
-            status: "accepted",
-            ...filter,
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalAmount: { $sum: { $toDouble: "$amount" } },
-          },
-        },
-      ]),
+      Analytic.countDocuments({
+        type: "Referral",
+        sender: new mongoose.Types.ObjectId(user),
+        status: "accepted",
+        ...filter,
+      }),
+      Analytic.countDocuments({
+        type: "Referral",
+        member: new mongoose.Types.ObjectId(user),
+        status: "accepted",
+        ...filter,
+      }),
       Analytic.countDocuments({
         type: "One v One Meeting",
         status: "completed",
@@ -1327,8 +1307,8 @@ exports.fetchDashboard = async (req, res) => {
     return responseHandler(res, 200, "Dashboard data fetched successfully", {
       businessGiven: businessGiven[0]?.totalAmount || 0,
       businessReceived: businessReceived[0]?.totalAmount || 0,
-      refferalGiven: refferalGiven[0]?.totalAmount || 0,
-      refferalReceived: refferalReceived[0]?.totalAmount || 0,
+      refferalGiven,
+      refferalReceived,
       oneToOneCount,
     });
   } catch (error) {
