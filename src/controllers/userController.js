@@ -1287,7 +1287,7 @@ exports.fetchDashboard = async (req, res) => {
       Analytic.aggregate([
         {
           $match: {
-            type: "Refferal",
+            type: "Referral",
             sender: new mongoose.Types.ObjectId(user),
             status: "accepted",
             ...filter,
@@ -1303,7 +1303,7 @@ exports.fetchDashboard = async (req, res) => {
       Analytic.aggregate([
         {
           $match: {
-            type: "Refferal",
+            type: "Referral",
             member: new mongoose.Types.ObjectId(user),
             status: "accepted",
             ...filter,
