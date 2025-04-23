@@ -33,14 +33,14 @@ exports.sendRequest = async (req, res) => {
     const user = await User.findById(req.body.member);
 
     const analytic = await Analytic.create(req.body);
-    if (analytic) {
+    if (analytic) {    const fcmUser = [user.fcm];
       await sendInAppNotification(
         user.fcm,
         "You have a new request",
         `You have a new request. Regarding the ${req.body.type} request.`,
         null,
         "analytic",
-        analytic._id
+        analytic._id.toString()
       );
     }
     return responseHandler(res, 201, "Request created successfully", analytic);
