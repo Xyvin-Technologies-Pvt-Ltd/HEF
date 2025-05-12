@@ -21,6 +21,7 @@ const { generateUniqueMemberId } = require("../utils/generateUniqueMemberId");
 const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
 const moment = require("moment-timezone");
+const mongoose = require("mongoose");
 
 exports.loginAdmin = async (req, res) => {
   try {
@@ -733,16 +734,39 @@ exports.bulkCreateUser = async (req, res) => {
 
 exports.downloadUser = async (req, res) => {
   try {
-    const { status, installed } = req.query;
+    const {
+      status,
+      installed,
+      name = "",
+      membershipId = "",
+      chapter,
+      from,
+      to,
+    } = req.query;
     const filter = {};
     if (status) {
       filter.status = status;
+    }
+    if (name && name !== "") {
+      filter.name = { $regex: name, $options: "i" };
+    }
+    if (membershipId && membershipId !== "") {
+      filter.memberId = { $regex: membershipId, $options: "i" };
+    }
+    if (chapter && chapter !== "") {
+      filter.chapter = new mongoose.Types.ObjectId(chapter);
     }
     if (installed == "false") {
       filter.fcm = { $in: [null, ""] };
     } else if (installed) {
       filter.fcm = {
         $nin: [null, ""],
+      };
+    }
+    if (from && to) {
+      filter.dateOfJoining = {
+        $gte: new Date(`${from}T00:00:00.000Z`),
+        $lte: new Date(`${to}T23:59:59.999Z`),
       };
     }
     const users = await User.find(filter).populate("chapter", "name").lean();
