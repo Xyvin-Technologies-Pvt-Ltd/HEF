@@ -11,6 +11,7 @@ const reportSchema = mongoose.Schema(
       type: String,
       enum: ["Feeds", "Chat", "User", "Message", "Product"],
     },
+    reason: { type: String },
   },
   { timestamps: true }
 );
