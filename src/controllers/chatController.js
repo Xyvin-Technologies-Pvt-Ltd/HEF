@@ -1,13 +1,14 @@
 const responseHandler = require("../helpers/responseHandler");
 const Chat = require("../models/chatModel");
 const Message = require("../models/messageModel");
+const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const { getReceiverSocketId, chatNamespace, io } = require("../socket");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.sendMessage = async (req, res) => {
-  const { content, isGroup, feed } = req.body;
+  const { content, isGroup, feed, product } = req.body;
   const to = req.params.id;
   const from = req.userId;
 
@@ -29,7 +30,10 @@ exports.sendMessage = async (req, res) => {
       content,
       status: "sent",
     };
-
+    if (product) {
+      newMessageData.product = product;
+      product_sent = await Product.findById(product);
+    }
     if (feed) {
       newMessageData.feed = feed;
     }
