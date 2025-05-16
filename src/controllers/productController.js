@@ -11,7 +11,7 @@ exports.createProduct = async (req, res) => {
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("productManagement_modify")) {
+    if (!check || !check.includes("businessManagement_modify")) {
       return responseHandler(
         res,
         403,
@@ -66,7 +66,7 @@ exports.getProduct = async (req, res) => {
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("productManagement_view")) {
+    if (!check || !check.includes("businessManagement_view")) {
       return responseHandler(
         res,
         403,
@@ -113,7 +113,7 @@ exports.updateProduct = async (req, res) => {
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("productManagement_modify")) {
+    if (!check || !check.includes("businessManagement_modify")) {
       return responseHandler(
         res,
         403,
@@ -213,7 +213,7 @@ exports.deleteProduct = async (req, res) => {
   let errorMessage = null;
   try {
     const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("productManagement_modify")) {
+    if (!check || !check.includes("businessManagement_modify")) {
       return responseHandler(
         res,
         403,
@@ -255,7 +255,7 @@ exports.deleteProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("productManagement_view")) {
+    if (!check || !check.includes("businessManagement_view")) {
       return responseHandler(
         res,
         403,
