@@ -570,7 +570,22 @@ exports.fetchDashboard = async (req, res) => {
       User.countDocuments({ status: "active" }),
       User.countDocuments({ status: "inactive" }),
       User.countDocuments({
-        $and: [{ fcm: { $ne: null } }, { fcm: { $ne: "" } }],
+        $or: [
+          {
+            $and: [
+              { uid: { $exists: true } },
+              { uid: { $ne: null } },
+              { uid: { $ne: "" } },
+            ],
+          },
+          {
+            $and: [
+              { fcm: { $exists: true } },
+              { fcm: { $ne: null } },
+              { fcm: { $ne: "" } },
+            ],
+          },
+        ],
       }),
       Analytic.aggregate([
         {

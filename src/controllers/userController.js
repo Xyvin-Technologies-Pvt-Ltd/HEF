@@ -517,12 +517,32 @@ exports.getAllUsers = async (req, res) => {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
     }
 
-    if (installed == "false") {
-      filter.fcm = { $in: [null, ""] };
+    if (installed === "false") {
+      filter.$and = [
+        {
+          $or: [{ uid: { $exists: false } }, { uid: null }, { uid: "" }],
+        },
+        {
+          $or: [{ fcm: { $exists: false } }, { fcm: null }, { fcm: "" }],
+        },
+      ];
     } else if (installed) {
-      filter.fcm = {
-        $nin: [null, ""],
-      };
+      filter.$or = [
+        {
+          $and: [
+            { uid: { $exists: true } },
+            { uid: { $ne: null } },
+            { uid: { $ne: "" } },
+          ],
+        },
+        {
+          $and: [
+            { fcm: { $exists: true } },
+            { fcm: { $ne: null } },
+            { fcm: { $ne: "" } },
+          ],
+        },
+      ];
     }
 
     if (from && to) {
