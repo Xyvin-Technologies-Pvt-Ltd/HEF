@@ -4,7 +4,6 @@ const authVerify = require("../middlewares/authVerify");
 const adminRoute = express.Router();
 
 adminRoute.post("/login", adminController.loginAdmin);
-
 adminRoute.use(authVerify);
 
 adminRoute
