@@ -554,7 +554,6 @@ exports.getAllUsers = async (req, res) => {
         filter.$or = installedCondition;
       }
     }
-
     if (from && to) {
       filter.dateOfJoining = {
         $gte: new Date(`${from}T00:00:00.000Z`),
