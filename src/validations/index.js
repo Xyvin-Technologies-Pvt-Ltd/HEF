@@ -465,7 +465,7 @@ exports.createMemberSchema = Joi.object({
   name: Joi.string().required(),
   bloodgroup: Joi.string(),
   image: Joi.string(),
-  email: Joi.string().email().required(),
+  email: Joi.string().email(),
   phone: Joi.string().trim().required(),
   bio: Joi.string(),
   status: Joi.string(),
