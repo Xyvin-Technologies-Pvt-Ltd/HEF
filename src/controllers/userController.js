@@ -516,9 +516,9 @@ exports.getAllUsers = async (req, res) => {
     if (chapter && chapter !== "") {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
     }
-
     if (installed === "false") {
       filter.$and = [
+        ...(filter.$and || []),
         {
           $or: [{ uid: { $exists: false } }, { uid: null }, { uid: "" }],
         },
@@ -527,7 +527,7 @@ exports.getAllUsers = async (req, res) => {
         },
       ];
     } else if (installed) {
-      filter.$or = [
+      const installedCondition = [
         {
           $and: [
             { uid: { $exists: true } },
@@ -543,6 +543,16 @@ exports.getAllUsers = async (req, res) => {
           ],
         },
       ];
+      if (filter.$or) {
+        filter.$and = [
+          ...(filter.$and || []),
+          { $or: filter.$or },
+          { $or: installedCondition },
+        ];
+        delete filter.$or;
+      } else {
+        filter.$or = installedCondition;
+      }
     }
 
     if (from && to) {
