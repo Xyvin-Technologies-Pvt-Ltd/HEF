@@ -45,7 +45,7 @@ exports.loginAdmin = async (req, res) => {
 
     const token = generateToken(findAdmin._id, findAdmin.role);
 
-    return responseHandler(res, 200, "Login successfully", token);
+    return responseHandler(res, 200, "Login successfully!!", token);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
