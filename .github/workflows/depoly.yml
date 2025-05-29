@@ -20,7 +20,7 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       ECR_REPOSITORY: hef
-      IMAGE_TAG: latest
+      IMAGE_TAG: new
 
     steps:
       - name: Checkout repository
@@ -85,7 +85,7 @@ jobs:
             aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
             # Pull the latest Docker image
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/hef:latest
+            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/hef:new
 
             # Stop and remove the existing container if running
             sudo docker stop HEF_BACKEND || true
