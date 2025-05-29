@@ -102,5 +102,5 @@ jobs:
               -p 3003:3003 \
               --name HEF_BACKEND \
               --env-file /home/ec2-user/hef/.env/.env.production \
-              ${{ steps.login-ecr.outputs.registry }}/hef:latest
+              ${{ steps.login-ecr.outputs.registry }}/hef:new
 
