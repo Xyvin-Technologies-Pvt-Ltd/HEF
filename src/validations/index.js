@@ -473,13 +473,16 @@ exports.createMemberSchema = Joi.object({
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
   chapter: Joi.string().required(),
-  company: Joi.object({
-    name: Joi.string(),
-    designation: Joi.string(),
-    email: Joi.string().email(),
-    websites: Joi.string(),
-    phone: Joi.string(),
-  }),
+  company: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      designation: Joi.string(),
+      email: Joi.string().email(),
+      websites: Joi.string(),
+      phone: Joi.string(),
+      logo: Joi.string().allow(""),
+    })
+  ),
 });
 
 exports.createSubscriptionSchema = Joi.object({

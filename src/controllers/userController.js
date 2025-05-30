@@ -1199,16 +1199,10 @@ exports.createMember = async (req, res) => {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
 
-    const checkExist = await User.findOne({
-      $or: [{ email: req.body.email }, { phone: req.body.phone }],
-    });
+    const checkExist = await User.findOne({ phone: req.body.phone });
 
     if (checkExist) {
-      return responseHandler(
-        res,
-        409,
-        `User with this email or phone already exists`
-      );
+      return responseHandler(res, 409, `User with this phone already exists`);
     }
 
     const newUser = await User.create(req.body);
