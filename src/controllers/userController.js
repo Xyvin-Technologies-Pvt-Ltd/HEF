@@ -632,7 +632,7 @@ exports.listUsers = async (req, res) => {
 
     if (tags) {
       const tagSearchQueries = tags.split(",").map((tag) => ({
-        businessTags: { $regex: `^${tag.trim()}`, $options: "i" },
+        businessTags: { $regex: `${tag.trim()}`, $options: "i" },
       }));
       searchConditions.push(...tagSearchQueries);
     }
