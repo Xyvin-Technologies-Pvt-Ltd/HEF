@@ -230,15 +230,15 @@ exports.editMemberSchema = Joi.object({
 });
 
 exports.createProductSchema = Joi.object({
-  seller: Joi.string().required(),
+  seller: Joi.string(),
   name: Joi.string().required(),
   image: Joi.string().required(),
-  price: Joi.number().required(),
-  offerPrice: Joi.number().required(),
-  description: Joi.string().required(),
+  price: Joi.number(),
+  offerPrice: Joi.number(),
+  description: Joi.string(),
   tags: Joi.array(),
-  moq: Joi.number().required(),
-  units: Joi.string().required(),
+  moq: Joi.number(),
+  units: Joi.string(),
   status: Joi.string(),
 });
 
