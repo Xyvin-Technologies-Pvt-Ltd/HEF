@@ -6,8 +6,9 @@ const analyticSchema = mongoose.Schema(
       type: String,
       enum: ["Business", "One v One Meeting", "Referral"],
     },
-    member: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    member: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    onBehalf: { type: Boolean, default: false }, 
     title: { type: String },
     description: { type: String },
     referral: {

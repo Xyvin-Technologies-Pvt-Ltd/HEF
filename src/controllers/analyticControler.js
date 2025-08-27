@@ -18,26 +18,29 @@ exports.sendRequest = async (req, res) => {
         );
       }
     }
-
     const { error } = validations.createAnalyticSchema.validate(req.body, {
       abortEarly: true,
     });
     if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
-
-    if (req.role !== "admin") {
-      req.body.sender = req.userId;
+    if (req.body.onBehalf) {
+      if (!req.body.sender) {
+        return responseHandler(res, 400, "Sender ID is required for on-behalf request");
+      }
+      req.body.member = req.userId; 
+    } else {
+      if (req.role !== "admin") {
+        req.body.sender = req.userId;
+      }
     }
-
     const user = await User.findById(req.body.member);
-
     const analytic = await Analytic.create(req.body);
-    if (analytic) {    const fcmUser = [user.fcm];
+    if (analytic) {
       await sendInAppNotification(
         user.fcm,
         "You have a new request",
-        `You have a new request. Regarding the ${req.body.type} request.`,
+        "You have a new request",
         null,
         "analytic",
         analytic._id.toString()
