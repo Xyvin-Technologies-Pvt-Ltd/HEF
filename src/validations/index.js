@@ -108,6 +108,11 @@ exports.editAdminSchema = Joi.object({
   status: Joi.boolean(),
 });
 
+exports.resetAdminPasswordSchema = Joi.object({
+  adminId: Joi.string().required(),
+  sendEmail: Joi.boolean().default(true),
+});
+
 exports.createNewsSchema = Joi.object({
   category: Joi.string(),
   title: Joi.string(),

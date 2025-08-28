@@ -18,6 +18,9 @@ adminRoute
   .get(adminController.fetchAdmin)
   .put(adminController.updateAdmin)
   .delete(adminController.deleteAdmin);
+
+adminRoute.post("/reset-password", adminController.resetAdminPassword);
+
 adminRoute.get("/log-activities", adminController.fetchLogActivity);
 adminRoute.get("/log-activities/:id", adminController.fetchLogActivityById);
 adminRoute.get("/dashboard", adminController.fetchDashboard);

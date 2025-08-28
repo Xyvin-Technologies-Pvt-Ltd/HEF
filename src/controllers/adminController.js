@@ -370,6 +370,111 @@ exports.deleteAdmin = async (req, res) => {
   }
 };
 
+exports.resetAdminPassword = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("adminManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { error } = validations.resetAdminPasswordSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const { adminId, sendEmail = true } = req.body;
+
+    // Find the admin to reset password for
+    const findAdmin = await Admin.findById(adminId);
+    if (!findAdmin) {
+      return responseHandler(res, 404, "Admin not found");
+    }
+
+    // Generate new random password
+    const newPassword = generateRandomPassword();
+    
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+    
+    // Update admin with new password
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      { password: hashedPassword },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAdmin) {
+      return responseHandler(res, 400, "Password reset failed");
+    }
+
+    // Send email with new password if requested
+    if (sendEmail) {
+      const emailData = {
+        to: findAdmin.email,
+        subject: "Admin Password Reset Notification",
+        text: `Hello ${findAdmin.name},
+
+Your admin account password has been reset by a super administrator.
+
+New Login Credentials:
+Email: ${findAdmin.email}
+Password: ${newPassword}
+
+Please change your password after logging in for security purposes.
+
+Best regards,
+The Admin Team`,
+      };
+
+      try {
+        await sendMail(emailData);
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        // Continue with password reset even if email fails
+      }
+    }
+
+    status = "success";
+    return responseHandler(
+      res,
+      200,
+      "Admin password reset successfully",
+      {
+        adminId: updatedAdmin._id,
+        email: updatedAdmin.email,
+        passwordSent: sendEmail,
+        message: sendEmail 
+          ? "New password has been sent to admin's email" 
+          : "Password reset completed without email notification"
+      }
+    );
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Admin password reset",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
+
 exports.fetchLogActivity = async (req, res) => {
   try {
     const { page = 1, limit = 10, date, status, method } = req.query;
