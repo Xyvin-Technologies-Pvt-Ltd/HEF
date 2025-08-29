@@ -391,7 +391,7 @@ exports.resetAdminPassword = async (req, res) => {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
 
-    const { adminId, sendEmail = true } = req.body;
+    const { adminId, sendEmail = true, customEmail } = req.body;
 
     // Find the admin to reset password for
     const findAdmin = await Admin.findById(adminId);
@@ -405,10 +405,18 @@ exports.resetAdminPassword = async (req, res) => {
     // Hash the new password
     const hashedPassword = await hashPassword(newPassword);
     
-    // Update admin with new password
+    // Prepare update data
+    const updateData = { password: hashedPassword };
+    
+    // If custom email is provided, update the admin's email as well
+    if (customEmail) {
+      updateData.email = customEmail;
+    }
+    
+    // Update admin with new password and email (if provided)
     const updatedAdmin = await Admin.findByIdAndUpdate(
       adminId,
-      { password: hashedPassword },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -418,18 +426,21 @@ exports.resetAdminPassword = async (req, res) => {
 
     // Send email with new password if requested
     if (sendEmail) {
+      // Use custom email if provided, otherwise use admin's email
+      const emailToSend = customEmail || findAdmin.email;
+      
       const emailData = {
-        to: findAdmin.email,
+        to: emailToSend,
         subject: "Admin Password Reset Notification",
         text: `Hello ${findAdmin.name},
 
-Your admin account password has been reset by a super administrator.
+Your admin account has been updated by a super administrator.
 
-New Login Credentials:
-Email: ${findAdmin.email}
+${customEmail ? 'New Login Credentials:' : 'Updated Login Credentials:'}
+Email: ${customEmail || findAdmin.email}
 Password: ${newPassword}
 
-Please change your password after logging in for security purposes.
+${customEmail ? 'Your email address has been updated. ' : ''}Please change your password after logging in for security purposes.
 
 Best regards,
 The Admin Team`,
@@ -444,16 +455,25 @@ The Admin Team`,
     }
 
     status = "success";
+    const responseMessage = customEmail 
+      ? "Admin password and email updated successfully"
+      : "Admin password reset successfully";
+      
     return responseHandler(
       res,
       200,
-      "Admin password reset successfully",
+      responseMessage,
       {
         adminId: updatedAdmin._id,
         email: updatedAdmin.email,
+        emailChanged: !!customEmail,
+        oldEmail: customEmail ? findAdmin.email : null,
+        newEmail: customEmail || null,
         passwordSent: sendEmail,
         message: sendEmail 
-          ? "New password has been sent to admin's email" 
+          ? customEmail 
+            ? `New password and email updated. Login credentials sent to ${customEmail}`
+            : "New password has been sent to admin's email"
           : "Password reset completed without email notification"
       }
     );
