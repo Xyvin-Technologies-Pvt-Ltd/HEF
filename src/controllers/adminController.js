@@ -370,6 +370,131 @@ exports.deleteAdmin = async (req, res) => {
   }
 };
 
+exports.resetAdminPassword = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("adminManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { error } = validations.resetAdminPasswordSchema.validate(req.body, {
+      abortEarly: true,
+    });
+
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const { adminId, sendEmail = true, customEmail } = req.body;
+
+    // Find the admin to reset password for
+    const findAdmin = await Admin.findById(adminId);
+    if (!findAdmin) {
+      return responseHandler(res, 404, "Admin not found");
+    }
+
+    // Generate new random password
+    const newPassword = generateRandomPassword();
+    
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+    
+    // Prepare update data
+    const updateData = { password: hashedPassword };
+    
+    // If custom email is provided, update the admin's email as well
+    if (customEmail) {
+      updateData.email = customEmail;
+    }
+    
+    // Update admin with new password and email (if provided)
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAdmin) {
+      return responseHandler(res, 400, "Password reset failed");
+    }
+
+    // Send email with new password if requested
+    if (sendEmail) {
+      // Use custom email if provided, otherwise use admin's email
+      const emailToSend = customEmail || findAdmin.email;
+      
+      const emailData = {
+        to: emailToSend,
+        subject: "Admin Password Reset Notification",
+        text: `Hello ${findAdmin.name},
+
+Your admin account has been updated by a super administrator.
+
+${customEmail ? 'New Login Credentials:' : 'Updated Login Credentials:'}
+Email: ${customEmail || findAdmin.email}
+Password: ${newPassword}
+
+${customEmail ? 'Your email address has been updated. ' : ''}Please change your password after logging in for security purposes.
+
+Best regards,
+The Admin Team`,
+      };
+
+      try {
+        await sendMail(emailData);
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        // Continue with password reset even if email fails
+      }
+    }
+
+    status = "success";
+    const responseMessage = customEmail 
+      ? "Admin password and email updated successfully"
+      : "Admin password reset successfully";
+      
+    return responseHandler(
+      res,
+      200,
+      responseMessage,
+      {
+        adminId: updatedAdmin._id,
+        email: updatedAdmin.email,
+        emailChanged: !!customEmail,
+        oldEmail: customEmail ? findAdmin.email : null,
+        newEmail: customEmail || null,
+        passwordSent: sendEmail,
+        message: sendEmail 
+          ? customEmail 
+            ? `New password and email updated. Login credentials sent to ${customEmail}`
+            : "New password has been sent to admin's email"
+          : "Password reset completed without email notification"
+      }
+    );
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "admin",
+      description: "Admin password reset",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
+
 exports.fetchLogActivity = async (req, res) => {
   try {
     const { page = 1, limit = 10, date, status, method } = req.query;
