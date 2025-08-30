@@ -28,10 +28,10 @@ exports.sendRequest = async (req, res) => {
       if (!req.body.sender) {
         return responseHandler(res, 400, "Sender ID is required for on-behalf request");
       }
-      req.body.member = req.userId; 
+      req.body.member = req.userId;  
     } else {
       if (req.role !== "admin") {
-        req.body.sender = req.userId;
+        req.body.sender = req.userId
       }
     }
     const user = await User.findById(req.body.member);
@@ -51,6 +51,8 @@ exports.sendRequest = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
+
 
 exports.getRequests = async (req, res) => {
   try {
@@ -203,15 +205,36 @@ exports.getRequests = async (req, res) => {
       ]);
 
       const count = totalCount.length > 0 ? totalCount[0].total : 0;
+      const types = ["Business", "Referral", "One v One Meeting"];
+       const totalsArray = [];
 
-      return responseHandler(
-        res,
-        200,
-        "Requests fetched successfully",
-        data,
-        count
-      );
-    }
+    for (const t of types) {
+     const sent = await Analytic.countDocuments({
+     ...matchStage,
+     type: t,
+    sender: { $exists: true },
+    });
+
+   const received = await Analytic.countDocuments({
+    ...matchStage,
+    type: t,
+    member: { $exists: true },
+    onBehalf: true,
+    });
+
+    totalsArray.push({
+    type: t,
+    total: sent + received,
+    sent,
+    received,
+     });
+     }
+     return responseHandler(res, 200, "Requests fetched successfully", {
+      totals: totalsArray,
+      data,
+      count,  
+      });
+      }
 
     //* For App API
     const { userId } = req;
@@ -230,9 +253,10 @@ exports.getRequests = async (req, res) => {
     if (filter === "sent") {
       query = { sender: userId };
     } else if (filter === "received") {
-      query = { member: userId };
+      query = { member: userId, onBehalf: true};
     } else {
-      query = { $or: [{ sender: userId }, { member: userId }] };
+      query = { $or: [{ sender: userId }, 
+                  { member: userId, onBehalf: true}] };
     }
 
     if (requestType) {
@@ -536,5 +560,61 @@ exports.getRequestsByChapter = async (req, res) => {
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+}
+
+exports.getAnalyticsReport = async (req, res) => {
+  try {
+    const { type, state, district, chapter } = req.query; 
+    
+
+    let matchStage = {};
+    if (type) matchStage.type = type; // (business/referral/meeting)
+
+    
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $group: {
+          _id: "$member", // group by member
+          totalAmount: { $sum: "$amount" }, 
+          count: { $sum: 1 } // number of requests
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "memberInfo"
+        }
+      },
+      { $unwind: "$memberInfo" },
+    ];
+
+    //  Apply region filter
+    if (state || district || chapter) {
+      let regionMatch = {};
+      if (state) regionMatch["memberInfo.state"] = state;
+      if (district) regionMatch["memberInfo.district"] = district;
+      if (chapter) regionMatch["memberInfo.chapter"] = chapter;
+      pipeline.push({ $match: regionMatch });
+    }
+
+    //  Sort by totalAmount descending
+    pipeline.push({ $sort: { totalAmount: -1 } });
+
+    const result = await Analytic.aggregate(pipeline);
+
+    res.status(200).json({
+      status: "success",
+      message: "Analytics report fetched successfully",
+      data: result, //  highest performer
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
   }
 };

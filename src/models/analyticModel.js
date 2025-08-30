@@ -11,6 +11,10 @@ const analyticSchema = mongoose.Schema(
     onBehalf: { type: Boolean, default: false }, 
     title: { type: String },
     description: { type: String },
+    state: { type: String },
+    district: { type: String },
+    chapter: { type: String },
+
     referral: {
       name: { type: String },
       email: { type: String },
