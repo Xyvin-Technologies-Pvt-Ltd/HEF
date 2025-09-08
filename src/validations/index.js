@@ -450,7 +450,7 @@ exports.createAnalyticSchema = Joi.object({
   state: Joi.string(),
   district: Joi.string(),
   chapter: Joi.string(),
-
+  zone: Joi.string(),
   referral: Joi.object({
     name: Joi.string(),
     email: Joi.string(),
@@ -478,6 +478,9 @@ exports.createMemberSchema = Joi.object({
   businessCatogary: Joi.string(),
   businessSubCatogary: Joi.string(),
   chapter: Joi.string().required(),
+  state: Joi.string(),       
+  district: Joi.string(),   
+  zone: Joi.string(),        
   company: Joi.array().items(
     Joi.object({
       name: Joi.string(),

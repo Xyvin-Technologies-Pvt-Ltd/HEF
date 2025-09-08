@@ -1,6 +1,6 @@
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
-const Analytic = require("../models/analyticModel");
+const Analytic = require("../models/analyticModel")
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
@@ -204,66 +204,73 @@ exports.getRequests = async (req, res) => {
         { $count: "total" },
       ]);
 
-      const count = totalCount.length > 0 ? totalCount[0].total : 0;
-      const types = ["Business", "Referral", "One v One Meeting"];
-       const totalsArray = [];
+        const count = totalCount.length > 0 ? totalCount[0].total : 0;
+        const types = ["Business", "Referral", "One v One Meeting"];
+        const totalsArray = [];
 
-    for (const t of types) {
-     const sent = await Analytic.countDocuments({
-     ...matchStage,
-     type: t,
-    sender: { $exists: true },
-    });
+        for (const t of types) {
+         const sent = await Analytic.countDocuments({
+         ...matchStage,
+         type: t,
+         sender: { $exists: true },
+          });
 
-   const received = await Analytic.countDocuments({
-    ...matchStage,
-    type: t,
-    member: { $exists: true },
-    onBehalf: true,
-    });
+        const received = await Analytic.countDocuments({
+        ...matchStage,
+        type: t,
+        member: { $exists: true },
+        onBehalf: true,
+         });
 
-    totalsArray.push({
-    type: t,
-    total: sent + received,
-    sent,
-    received,
-     });
+        totalsArray.push({
+        type: t,
+        total: sent + received,
+        sent,
+        received,
+         });
      }
-     return responseHandler(res, 200, "Requests fetched successfully", {
+      return responseHandler(res, 200, "Requests fetched successfully", {
       totals: totalsArray,
       data,
       count,  
-      });
       }
+    );
+   }
 
     //* For App API
-    const { userId } = req;
-    const {
-      filter,
-      requestType,
-      startDate,
-      endDate,
-      limit = 10,
-      pageNo = 1,
-    } = req.query;
+      const { userId } = req;
+      const {
+           filter,
+           requestType,
+           startDate,
+           endDate,
+           limit = 10,
+           pageNo = 1,
+           } = req.query;
 
-    const skipCount = 10 * (pageNo - 1);
+      const skipCount = 10 * (pageNo - 1);
 
-    let query;
-    if (filter === "sent") {
+      let query;
+      if (filter === "sent") {
       query = { sender: userId };
-    } else if (filter === "received") {
-      query = { member: userId, onBehalf: true};
-    } else {
+      } 
+      else if (filter === "received") 
+        {
+          query = { member: userId, onBehalf: true};
+        } 
+      else 
+        {
       query = { $or: [{ sender: userId }, 
                   { member: userId, onBehalf: true}] };
-    }
+         }
 
-    if (requestType) {
+      if (requestType) 
+      {
       query.type = requestType;
     }
 
-    if (startDate && endDate) {
+    if (startDate && endDate) 
+      {
       const start = new Date(`${startDate}T00:00:00.000Z`);
       const end = new Date(`${endDate}T23:59:59.999Z`);
       query.date = {
@@ -274,57 +281,66 @@ exports.getRequests = async (req, res) => {
 
     const totalCount = await Analytic.countDocuments(query);
 
-    const response = await Analytic.find(query)
+      const response = await Analytic.find(query)
       .populate("sender", "name image")
       .populate("member", "name image")
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const mappedData = response.map((data) => {
-      let username;
-      let user_image;
-      let user_id;
+      const mappedData = response.map((data) => {
+         let user_id = "";
+         let username = "";
+         let user_image = "";
 
-      if (filter === "sent") {
-        user_id = data.member?._id;
-        username = data.member?.name || "";
-        user_image = data.member?.image || "";
-      } else if (filter === "received") {
-        user_id = data.sender?._id;
-        username = data.sender?.name || "";
-        user_image = data.sender?.image || "";
-      } else {
-        user_id =
-          req.userId == data.sender?._id
-            ? data.member?._id
-            : data.sender?._id || "";
-        username =
-          req.userId == data.sender?._id
-            ? data.member?.name
-            : data.sender?.name || "";
-        user_image =
-          req.userId == data.sender?._id
-            ? data.member?.image
-            : data.sender?.image || "";
+  // Sent activities
+      if (filter === "sent") 
+      {
+      user_id = data.member?._id?.toString() || "";
+      username = data.member?.name || data.memberName || "";
+      user_image = data.member?.image || "";
       }
+  // Received activities
+      else if (filter === "received") 
+      {
+      user_id = data.sender?._id?.toString() || "";
+      username = data.sender?.name || data.senderName || "";
+      user_image = data.sender?.image || "";
+      }
+  // All activities
+     else 
+      {
+      const isSender = req.userId === data.sender?._id?.toString();
+     if (isSender) 
+      {
+      user_id = data.member?._id?.toString() || "";
+      username = data.member?.name || data.memberName || "";
+      user_image = data.member?.image || "";
+      } 
+      else 
+      {
+      user_id = data.sender?._id?.toString() || "";
+      username = data.sender?.name || data.senderName || "";
+      user_image = data.sender?.image || "";
+    }
+  }
 
-      return {
-        _id: data._id,
-        username,
-        user_id,
-        user_image,
-        title: data.title,
-        status: data.status,
-        time: data.time,
-        date: data.date,
-        description: data.description,
-        type: data.type,
-        amount: data.amount,
-        meetingLink: data?.meetingLink,
-        referral: data?.referral,
-      };
-    });
+  return {
+    _id: data._id,
+    user_id,
+    username,
+    user_image,
+    title: data.title,
+    description: data.description,
+    type: data.type,
+    status: data.status,
+    amount: data.amount,
+    date: data.date,
+    time: data.time,
+    meetingLink: data?.meetingLink,
+    referral: data?.referral,
+  };
+});
 
     return responseHandler(
       res,
@@ -333,7 +349,9 @@ exports.getRequests = async (req, res) => {
       mappedData,
       totalCount
     );
-  } catch (error) {
+  } 
+  catch (error) 
+  {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
@@ -563,58 +581,142 @@ exports.getRequestsByChapter = async (req, res) => {
   }
 }
 
-exports.getAnalyticsReport = async (req, res) => {
+exports.getHighestPerformer = async (req, res) => {
   try {
-    const { type, state, district, chapter } = req.query; 
-    
+    const { chapter, zone, district, state, type, filter } = req.query;
 
-    let matchStage = {};
-    if (type) matchStage.type = type; // (business/referral/meeting)
+    // Base filter
+    let match = {};
+    if (chapter) match.chapter = chapter;
+    if (zone) match.zone = zone;
+    if (district) match.district = district;
+    if (state) match.state = state;
+    if (type && type !== "All") match.type = type;
 
-    
-    const pipeline = [
-      { $match: matchStage },
+    //  Sent / Received / All filter
+    let performerMatch = { ...match };
+    if (filter === "sent")
+       {
+      performerMatch.sender = { $exists: true };
+       } 
+    else if (filter === "received") 
       {
-        $group: {
-          _id: "$member", // group by member
-          totalAmount: { $sum: "$amount" }, 
-          count: { $sum: 1 } // number of requests
-        }
-      },
+      performerMatch.member = { $exists: true };
+      performerMatch.onBehalf = true;
+      } 
+      else
       {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "memberInfo"
-        }
-      },
-      { $unwind: "$memberInfo" },
-    ];
-
-    //  Apply region filter
-    if (state || district || chapter) {
-      let regionMatch = {};
-      if (state) regionMatch["memberInfo.state"] = state;
-      if (district) regionMatch["memberInfo.district"] = district;
-      if (chapter) regionMatch["memberInfo.chapter"] = chapter;
-      pipeline.push({ $match: regionMatch });
+      performerMatch.$or = [
+        { sender: { $exists: true } },
+        { member: { $exists: true }, onBehalf: true }
+      ];
     }
 
-    //  Sort by totalAmount descending
-    pipeline.push({ $sort: { totalAmount: -1 } });
+    //  Counts for cards
+    const sentCount = await Analytic.countDocuments({ ...match, sender: { $exists: true } });
+    const receivedCount = await Analytic.countDocuments({ ...match, member: { $exists: true }, onBehalf: true });
+    const totalCount = sentCount + receivedCount;
 
-    const result = await Analytic.aggregate(pipeline);
+    //  Aggregate top performer
+    const performersAggregation = await Analytic.aggregate([
+      { $match: performerMatch },
+      {
+        $project: {
+          user: { $cond: [{ $eq: ["$sender", null] }, "$member", "$sender"] },
+          amount: 1,
+          type: 1,
+          title: 1,
+          description: 1,
+          status: 1,
+          date: 1,
+          time: 1,
+          meetingLink: 1,
+          referral: 1,
+        }
+      },
+      { $group: { _id: "$user", totalAmount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "userInfo" } },
+      { $unwind: "$userInfo" },
+      { $sort: { totalAmount: -1 } },
+      ]
+    );
 
+    const topPerformerRaw = performersAggregation[0] || null;
+    const remainingPerformersRaw = performersAggregation.slice(1);
+
+    // Map to frontend compatible format
+    const mapPerformer = (perf) => ({
+      _id: perf._id.toString(),
+      user_id: perf._id.toString(),
+      username: perf.userInfo.name,
+      user_image: perf.userInfo.image || "",
+      totalAmount: perf.totalAmount,
+      count: perf.count,
+    }
+  );
+
+    const topPerformer = topPerformerRaw ? mapPerformer(topPerformerRaw) : null;
+    const remainingPerformers = remainingPerformersRaw.map(mapPerformer);
+
+    //  Sent / Received performers separately
+    const mapAgg = (arr) => arr.map((p) => ({
+      _id: p._id.toString(),
+      user_id: p._id.toString(),
+      username: p.userInfo.name,
+      user_image: p.userInfo.image || "",
+      totalAmount: p.totalAmount,
+      count: p.count,
+    }
+  )
+);
+
+    const sentPerformers = mapAgg(await Analytic.aggregate([
+      { $match: { ...match, sender: { $exists: true } } },
+      { $group: { _id: "$sender", totalAmount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "userInfo" } },
+      { $unwind: "$userInfo" },
+      { $sort: { totalAmount: -1 } },
+    ]));
+
+    const receivedPerformers = mapAgg(await Analytic.aggregate([
+      { $match: { ...match, member: { $exists: true }, onBehalf: true } },
+      { $group: { _id: "$member", totalAmount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "userInfo" } },
+      { $unwind: "$userInfo" },
+      { $sort: { totalAmount: -1 } },
+    ]));
+
+    //  Zone Analytics
+    const zoneAnalytics = await Analytic.aggregate([
+      { $match: match },
+      { $group: { _id: "$zone", totalAmount: { $sum: "$amount" }, count: { $sum: 1 } } },
+      { $sort: { totalAmount: -1 } }
+    ]).then(zones => zones.map(z => ({
+      name: z._id || "N/A",
+      totalAmount: z.totalAmount,
+      count: z.count
+    })));
+
+    // Send response
     res.status(200).json({
       status: "success",
-      message: "Analytics report fetched successfully",
-      data: result, //  highest performer
+      message: "Analytics fetched successfully",
+      data: {
+        cards: {
+          total: totalCount,
+          sent: sentCount,
+          received: receivedCount,
+          topPerformer,
+        },
+        topPerformer,
+        remainingPerformers,
+        sentPerformers,
+        receivedPerformers,
+        zoneAnalytics,
+      },
     });
   } catch (err) {
-    res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    console.error("Error in getHighestPerformer:", err);
+    res.status(500).json({ status: "error", message: err.message });
   }
 };

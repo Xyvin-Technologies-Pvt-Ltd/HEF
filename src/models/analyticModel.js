@@ -14,6 +14,7 @@ const analyticSchema = mongoose.Schema(
     state: { type: String },
     district: { type: String },
     chapter: { type: String },
+    zone: { type: String },
 
     referral: {
       name: { type: String },

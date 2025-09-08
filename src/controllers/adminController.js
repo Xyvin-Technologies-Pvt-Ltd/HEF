@@ -428,6 +428,8 @@ exports.fetchLogActivityById = async (req, res) => {
 
 exports.fetchDashboard = async (req, res) => {
   try {
+    const types = ["Business", "Referral", "One v One Meeting"];
+
     const [
       memberShipCount,
       businessCount,
@@ -652,6 +654,20 @@ exports.fetchDashboard = async (req, res) => {
     const calculateAdmins = (data) =>
       data.reduce((sum, item) => sum + item.admins.length, 0);
 
+    const totalsArray = await Promise.all(
+      types.map(async (t) => {
+        const sent = await Analytic.countDocuments({ type: t, sender: { $exists: true } });
+        const received = await Analytic.countDocuments({ type: t, member: { $exists: true }, onBehalf: true });
+
+        return {
+          type: t,
+          total: sent + received,
+          sent,
+          received,
+        };
+      })
+    );
+
     return responseHandler(res, 200, "Dashboard fetched successfully", {
       memberShipCount,
       memberShipRevenue: memberShipCount * 1000,
@@ -672,6 +688,7 @@ exports.fetchDashboard = async (req, res) => {
       inactiveUsers,
       installedUsers,
       graph,
+      totals: totalsArray,
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
