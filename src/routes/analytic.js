@@ -10,7 +10,7 @@ analyticRoute
   .post(analyticControler.sendRequest)
   .get(analyticControler.getRequests)
 
-analyticRoute.get("/top-performer",analyticControler.getHighestPerformer);
+
 analyticRoute.get("/download", analyticControler.downloadRequests);
 analyticRoute.post("/status", analyticControler.updateRequestStatus);
 analyticRoute.delete("/:requestId", analyticControler.deleteRequestById);
