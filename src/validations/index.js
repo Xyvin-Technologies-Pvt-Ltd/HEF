@@ -443,7 +443,6 @@ exports.createAnalyticSchema = Joi.object({
   type: Joi.string().required(),
   member: Joi.string().required(),
   sender: Joi.string(),
-  onBehalf: Joi.boolean().default(false),
   title: Joi.string().required(),
   description: Joi.string(),
   amount: Joi.number(),

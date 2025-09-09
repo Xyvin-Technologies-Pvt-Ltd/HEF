@@ -24,23 +24,20 @@ exports.sendRequest = async (req, res) => {
     if (error) {
       return responseHandler(res, 400, `Invalid input: ${error.message}`);
     }
-    if (req.body.onBehalf) {
-      if (!req.body.sender) {
-        return responseHandler(res, 400, "Sender ID is required for on-behalf request");
-      }
-      req.body.member = req.userId;  
-    } else {
-      if (req.role !== "admin") {
-        req.body.sender = req.userId
-      }
+
+    if (req.role !== "admin") {
+      req.body.sender = req.userId;
     }
+    req.body.status = "pending";
+     
     const user = await User.findById(req.body.member);
+
     const analytic = await Analytic.create(req.body);
-    if (analytic) {
+    if (analytic) {    const fcmUser = [user.fcm];
       await sendInAppNotification(
         user.fcm,
         "You have a new request",
-        "You have a new request",
+        `You have a new request. Regarding the ${req.body.type} request.`,
         null,
         "analytic",
         analytic._id.toString()
@@ -90,7 +87,6 @@ exports.getRequests = async (req, res) => {
         matchStage.sender = { $exists: true };
       } else if (filter === "received") {
         matchStage.member = { $exists: true };
-        matchStage.onBehalf = true;
       }
 
       if (status) matchStage.status = status;
@@ -168,7 +164,7 @@ exports.getRequests = async (req, res) => {
 
       let data = await Analytic.aggregate(pipeline);
 
-      // 🔹 Sorting: top performer + remaining in desc
+      //Sorting: top performer + remaining in desc
       let topPerformer = null;
       if (data.length > 0) {
         topPerformer = data.reduce((prev, current) =>
@@ -187,7 +183,7 @@ exports.getRequests = async (req, res) => {
 
       data = topPerformer ? [topPerformer, ...remaining] : remaining;
 
-      // --- Count pipeline unchanged ---
+      
       const totalCount = await Analytic.aggregate([
         {
           $lookup: {
@@ -237,7 +233,7 @@ exports.getRequests = async (req, res) => {
           ...matchStage,
           type: t,
           member: { $exists: true },
-          onBehalf: true,
+        
         });
         totalsArray.push({ type: t, total: sent + received, sent, received });
       }
@@ -249,7 +245,7 @@ exports.getRequests = async (req, res) => {
       });
     }
 
-    // 🔹 For App API
+    //For App API
     const { userId } = req;
     const {
       filter,
@@ -267,9 +263,9 @@ exports.getRequests = async (req, res) => {
     if (filter === "sent") {
       query = { sender: userId };
     } else if (filter === "received") {
-      query = { member: userId, onBehalf: true };
+      query = { member: userId };
     } else {
-      query = { $or: [{ sender: userId }, { member: userId, onBehalf: true }] };
+      query = { $or: [{ sender: userId }, { member: userId }] };
     }
 
     if (requestType) query.type = requestType;
@@ -335,7 +331,7 @@ exports.getRequests = async (req, res) => {
       };
     });
 
-    // 🔹 Sorting: top performer + remaining in desc
+    // Sorting: top performer + remaining in desc
     let topPerformer = null;
     if (mappedData.length > 0) {
       topPerformer = mappedData.reduce((prev, current) =>

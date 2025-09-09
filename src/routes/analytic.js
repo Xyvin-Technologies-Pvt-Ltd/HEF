@@ -8,9 +8,7 @@ analyticRoute.use(authVerify);
 analyticRoute
   .route("/")
   .post(analyticControler.sendRequest)
-  .get(analyticControler.getRequests)
-
-
+  .get(analyticControler.getRequests);
 analyticRoute.get("/download", analyticControler.downloadRequests);
 analyticRoute.post("/status", analyticControler.updateRequestStatus);
 analyticRoute.delete("/:requestId", analyticControler.deleteRequestById);
