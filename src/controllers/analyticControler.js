@@ -1,6 +1,6 @@
 const responseHandler = require("../helpers/responseHandler");
 const validations = require("../validations");
-const Analytic = require("../models/analyticModel")
+const Analytic = require("../models/analyticModel");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
@@ -18,6 +18,7 @@ exports.sendRequest = async (req, res) => {
         );
       }
     }
+
     const { error } = validations.createAnalyticSchema.validate(req.body, {
       abortEarly: true,
     });
@@ -28,12 +29,13 @@ exports.sendRequest = async (req, res) => {
     if (req.role !== "admin") {
       req.body.sender = req.userId;
     }
-        req.body.status = "pending";
-        
+    req.body.status = "pending";
+
     const user = await User.findById(req.body.member);
 
     const analytic = await Analytic.create(req.body);
-    if (analytic) {    const fcmUser = [user.fcm];
+    if (analytic) {
+      const fcmUser = [user.fcm];
       await sendInAppNotification(
         user.fcm,
         "You have a new request",
@@ -70,14 +72,14 @@ exports.getRequests = async (req, res) => {
         startDate,
         endDate,
         chapter,
-        sortByAmount, 
+        sortByAmount,
       } = req.query;
       const skipCount = Number(limit) * (pageNo - 1);
 
       const matchStage = {};
 
       if (user) {
-        matchStage.$or = [{ sender:  new mongoose.Types.ObjectId(user) }, { member:  new mongoose.Types.ObjectId(user) }];
+        matchStage.$or = [{ sender: new mongoose.Types.ObjectId(user) }, { member: new mongoose.Types.ObjectId(user) }];
       }
 
       if (status) {
@@ -151,8 +153,8 @@ exports.getRequests = async (req, res) => {
           },
         },
         sortByAmount === "true"
-        ? { $sort: { amount: -1 } } 
-        :{ $sort: { createdAt: -1, _id: 1 } },
+          ? { $sort: { amount: -1 } }
+          : { $sort: { createdAt: -1, _id: 1 } },
         { $skip: skipCount },
         { $limit: Number(limit) }
       );
@@ -179,23 +181,23 @@ exports.getRequests = async (req, res) => {
         { $unwind: "$memberData" },
         ...(chapter
           ? [
-              {
-                $match: {
-                  $or: [
-                    {
-                      "senderData.chapter": new mongoose.Types.ObjectId(
-                        chapter
-                      ),
-                    },
-                    {
-                      "memberData.chapter": new mongoose.Types.ObjectId(
-                        chapter
-                      ),
-                    },
-                  ],
-                },
+            {
+              $match: {
+                $or: [
+                  {
+                    "senderData.chapter": new mongoose.Types.ObjectId(
+                      chapter
+                    ),
+                  },
+                  {
+                    "memberData.chapter": new mongoose.Types.ObjectId(
+                      chapter
+                    ),
+                  },
+                ],
               },
-            ]
+            },
+          ]
           : []),
 
         { $match: matchStage },
@@ -203,7 +205,7 @@ exports.getRequests = async (req, res) => {
       ]);
 
       const count = totalCount.length > 0 ? totalCount[0].total : 0;
-      
+
       return responseHandler(
         res,
         200,
@@ -301,109 +303,13 @@ exports.getRequests = async (req, res) => {
         referral: data?.referral,
       };
     });
-      return responseHandler(
+    return responseHandler(
       res,
       200,
       "Requests fetched successfully",
       mappedData,
       totalCount
     );
-  } catch (error) {
-    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
-  }
-};
-
-exports.downloadRequests = async (req, res) => {
-  try {
-    const { startDate, endDate, chapter, type } = req.query;
-    const matchStage = {};
-
-    if (startDate && endDate) {
-      const start = new Date(`${startDate}T00:00:00.000Z`);
-      const end = new Date(`${endDate}T23:59:59.999Z`);
-      matchStage.date = { $gte: start, $lte: end };
-    }
-
-    if (type) {
-      matchStage.type = type;
-    }
-
-    const pipeline = [{ $match: matchStage }];
-
-    pipeline.push(
-      {
-        $lookup: {
-          from: "users",
-          localField: "sender",
-          foreignField: "_id",
-          as: "senderData",
-        },
-      },
-      { $unwind: "$senderData" },
-      {
-        $lookup: {
-          from: "users",
-          localField: "member",
-          foreignField: "_id",
-          as: "memberData",
-        },
-      },
-      { $unwind: "$memberData" }
-    );
-
-    if (chapter) {
-      pipeline.push({
-        $match: {
-          $or: [
-            { "senderData.chapter": new mongoose.Types.ObjectId(chapter) },
-            { "memberData.chapter": new mongoose.Types.ObjectId(chapter) },
-          ],
-        },
-      });
-    }
-
-    pipeline.push(
-      {
-        $project: {
-          _id: 1,
-          status: 1,
-          type: 1,
-          date: 1,
-          title: 1,
-          description: 1,
-          referral: 1,
-          contact: 1,
-          amount: 1,
-          time: 1,
-          meetingLink: 1,
-          location: 1,
-          supportingDocuments: 1,
-          createdAt: 1,
-          senderName: "$senderData.name",
-          memberName: "$memberData.name",
-          referralName: "$referral.name",
-        },
-      },
-      { $sort: { createdAt: -1, _id: 1 } }
-    );
-    const data = await Analytic.aggregate(pipeline);
-
-    const headers = [
-      { header: "Sender", key: "senderName" },
-      { header: "Receiver", key: "memberName" },
-      { header: "Business Type", key: "type" },
-      { header: "Title", key: "title" },
-      { header: "Description", key: "description" },
-      { header: "Status", key: "status" },
-      { header: "Date", key: "date" },
-      { header: "Referral", key: "referralName" },
-      { header: "Amount", key: "amount" },
-    ];
-
-    return responseHandler(res, 200, "Requests fetched successfully", {
-      headers,
-      body: data,
-    });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

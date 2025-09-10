@@ -657,7 +657,7 @@ exports.fetchDashboard = async (req, res) => {
     const totalsArray = await Promise.all(
       types.map(async (t) => {
         const sent = await Analytic.countDocuments({ type: t, sender: { $exists: true } });
-        const received = await Analytic.countDocuments({ type: t, member: { $exists: true }, onBehalf: true });
+        const received = await Analytic.countDocuments({ type: t, member: { $exists: true }});
 
         return {
           type: t,

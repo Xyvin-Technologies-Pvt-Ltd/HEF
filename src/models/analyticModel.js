@@ -10,11 +10,6 @@ const analyticSchema = mongoose.Schema(
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     title: { type: String },
     description: { type: String },
-    state: { type: String },
-    district: { type: String },
-    chapter: { type: String },
-    zone: { type: String },
-
     referral: {
       name: { type: String },
       email: { type: String },

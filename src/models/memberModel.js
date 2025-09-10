@@ -6,10 +6,7 @@ const memberSchema = mongoose.Schema(
     memberId: { type: String },
     chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" },
     contactInfo: Object,
-    state: { type: String },     
-    district: { type: String },    
-    zone: { type: String },        
-
+    
     subscription: {
       type: String,
       enum: ["active", "inactive"],
