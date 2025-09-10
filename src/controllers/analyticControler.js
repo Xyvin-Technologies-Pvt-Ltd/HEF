@@ -29,11 +29,13 @@ exports.sendRequest = async (req, res) => {
     if (req.role !== "admin") {
       req.body.sender = req.userId;
     }
+    req.body.status = "pending";
 
     const user = await User.findById(req.body.member);
 
     const analytic = await Analytic.create(req.body);
-    if (analytic) {    const fcmUser = [user.fcm];
+    if (analytic) {
+      const fcmUser = [user.fcm];
       await sendInAppNotification(
         user.fcm,
         "You have a new request",
@@ -70,13 +72,14 @@ exports.getRequests = async (req, res) => {
         startDate,
         endDate,
         chapter,
+        sortByAmount,
       } = req.query;
       const skipCount = Number(limit) * (pageNo - 1);
 
       const matchStage = {};
 
       if (user) {
-        matchStage.$or = [{ sender:  new mongoose.Types.ObjectId(user) }, { member:  new mongoose.Types.ObjectId(user) }];
+        matchStage.$or = [{ sender: new mongoose.Types.ObjectId(user) }, { member: new mongoose.Types.ObjectId(user) }];
       }
 
       if (status) {
@@ -138,7 +141,7 @@ exports.getRequests = async (req, res) => {
             description: 1,
             referral: 1,
             contact: 1,
-            amount: 1,
+            amount: { $toDouble: { $ifNull: ["$amount", 0] } },
             time: 1,
             meetingLink: 1,
             location: 1,
@@ -149,7 +152,9 @@ exports.getRequests = async (req, res) => {
             referralName: "$referral.name",
           },
         },
-        { $sort: { createdAt: -1, _id: 1 } },
+        sortByAmount === "true"
+          ? { $sort: { amount: -1 } }
+          : { $sort: { createdAt: -1, _id: 1 } },
         { $skip: skipCount },
         { $limit: Number(limit) }
       );
@@ -176,23 +181,23 @@ exports.getRequests = async (req, res) => {
         { $unwind: "$memberData" },
         ...(chapter
           ? [
-              {
-                $match: {
-                  $or: [
-                    {
-                      "senderData.chapter": new mongoose.Types.ObjectId(
-                        chapter
-                      ),
-                    },
-                    {
-                      "memberData.chapter": new mongoose.Types.ObjectId(
-                        chapter
-                      ),
-                    },
-                  ],
-                },
+            {
+              $match: {
+                $or: [
+                  {
+                    "senderData.chapter": new mongoose.Types.ObjectId(
+                      chapter
+                    ),
+                  },
+                  {
+                    "memberData.chapter": new mongoose.Types.ObjectId(
+                      chapter
+                    ),
+                  },
+                ],
               },
-            ]
+            },
+          ]
           : []),
 
         { $match: matchStage },
@@ -298,7 +303,6 @@ exports.getRequests = async (req, res) => {
         referral: data?.referral,
       };
     });
-
     return responseHandler(
       res,
       200,
@@ -534,4 +538,5 @@ exports.getRequestsByChapter = async (req, res) => {
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
-};
+}
+

@@ -170,7 +170,7 @@ exports.createReport = Joi.object({
   reportType: Joi.string()
     .valid("Feeds", "Chat", "User", "Message", "Product")
     .required(),
-    reason: Joi.string().allow(""),
+  reason: Joi.string().allow(""),
 });
 
 exports.createStateSchema = Joi.object({
