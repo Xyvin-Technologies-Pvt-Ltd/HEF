@@ -539,4 +539,49 @@ exports.getRequestsByChapter = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 }
+exports.updateRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    if (!requestId) {
+      return responseHandler(res, 400, "Request ID is required.");
+    }
+    const request = await Analytic.findById(requestId);
 
+    if (!request) {
+      return responseHandler(res, 404, "Request not found.");
+    }
+    if (request.status !== "pending") {
+      return responseHandler(
+        res,
+        400,
+        "Request can only be edited while it is pending."
+      );
+    }
+    if (request.sender.toString() !== req.userId) {
+      return responseHandler(
+        res,
+        403,
+        "You are not authorized to edit this request."
+      );
+    }
+    const { error } = validations.createAnalyticSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const updatedRequest = await Analytic.findByIdAndUpdate(
+      requestId,
+      req.body,
+      { new: true }
+    );
+    return responseHandler(
+      res,
+      200,
+      "Request updated successfully.",
+      updatedRequest
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

@@ -17,5 +17,5 @@ analyticRoute.get(
   "/chapter/:chapterId",
   analyticControler.getRequestsByChapter
 );
-
+analyticRoute.put("/:requestId", analyticControler.updateRequest);
 module.exports = analyticRoute;
