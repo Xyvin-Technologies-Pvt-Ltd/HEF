@@ -550,11 +550,11 @@ exports.updateRequest = async (req, res) => {
     if (!request) {
       return responseHandler(res, 404, "Request not found.");
     }
-    if (request.status !== "pending") {
+    if (["accepted",  "completed"].includes(request.status)) {
       return responseHandler(
         res,
         400,
-        "Request can only be edited while it is pending."
+        `Request cannot be edited after it is ${request.status}.`
       );
     }
     if (request.sender.toString() !== req.userId) {

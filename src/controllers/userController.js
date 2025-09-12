@@ -289,6 +289,7 @@ exports.getUser = async (req, res) => {
 
     const mappedData = {
       ...findUser,
+      role: findUser.role || "member",
       level,
       state,
       zone,
@@ -351,6 +352,7 @@ exports.getSingleUser = async (req, res) => {
 
     const mappedData = {
       ...findUser._doc,
+      role: findUser.role || "member",
       level,
       isAdmin: adminDetails ? true : false,
       adminType: adminDetails?.type || null,
@@ -631,8 +633,9 @@ exports.listUsers = async (req, res) => {
     }
 
     if (tags) {
-      const tagSearchQueries = tags.split(",").map((tag) => ({
-        businessTags: { $regex: `${tag.trim()}`, $options: "i" },
+      const tagArray = tags.split(",").map((t) => t.trim());
+      const tagSearchQueries = tagArray.map((tag) => ({
+        businessTags: { $regex: `${tag.substring(0, Math.floor(tag.length * 0.7))}`, $options: "i" },
       }));
       searchConditions.push(...tagSearchQueries);
     }
@@ -644,115 +647,260 @@ exports.listUsers = async (req, res) => {
     const districtMatch = district
       ? { "chapter.districtId": new mongoose.Types.ObjectId(district) }
       : {};
+      
+    // Levenshtein distance function
+    function levenshtein(a, b) {
+      const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
+        Array(b.length + 1).fill(0)
+      );
+      for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+      for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[a.length][b.length];
+    }
 
-    const result = await User.aggregate([
-      {
-        $lookup: {
-          from: "chapters",
-          localField: "chapter",
-          foreignField: "_id",
-          as: "chapter",
+    function similarity(a, b) {
+      const distance = levenshtein(a, b);
+      const maxLen = Math.max(a.length, b.length);
+      return 1 - distance / maxLen;
+    }
+    let result;
+    let users;
+    let totalCount;
+    if (tags) {
+      const tagArray = tags.split(",").map((t) => t.trim().toLowerCase());
+      const allUsersResult = await User.aggregate([
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "chapter",
+            foreignField: "_id",
+            as: "chapter",
+          },
         },
-      },
-      { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
-      ...(district ? [{ $match: districtMatch }] : []),
-      {
-        $lookup: {
-          from: "districts",
-          localField: "chapter.districtId",
-          foreignField: "_id",
-          as: "district",
+        { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+        ...(district ? [{ $match: districtMatch }] : []),
+        {
+          $lookup: {
+            from: "districts",
+            localField: "chapter.districtId",
+            foreignField: "_id",
+            as: "district",
+          },
         },
-      },
-      { $unwind: { path: "$district", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "zones",
-          localField: "district.zoneId",
-          foreignField: "_id",
-          as: "zone",
+        { $unwind: { path: "$district", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "zones",
+            localField: "district.zoneId",
+            foreignField: "_id",
+            as: "zone",
+          },
         },
-      },
-      { $unwind: { path: "$zone", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "states",
-          localField: "zone.stateId",
-          foreignField: "_id",
-          as: "state",
+        { $unwind: { path: "$zone", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "states",
+            localField: "zone.stateId",
+            foreignField: "_id",
+            as: "state",
+          },
         },
-      },
-      { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
-      { $match: matchQuery },
-      {
-        $facet: {
-          metadata: [{ $count: "total" }],
-          users: [
-            { $sort: { name: 1 } },
-            { $skip: skipCount },
-            { $limit: parseInt(limit) },
-            {
-              $project: {
-                _id: 1,
-                name: 1,
-                status: 1,
-                memberId: 1,
-                businessTags: 1,
-                level: {
-                  $concat: [
-                    { $ifNull: ["$state.name", ""] },
-                    { $cond: [{ $ne: ["$state.name", null] }, " State ", ""] },
-                    { $ifNull: ["$zone.name", ""] },
-                    { $cond: [{ $ne: ["$zone.name", null] }, " Zone ", ""] },
-                    { $ifNull: ["$district.name", ""] },
-                    {
-                      $cond: [
-                        { $ne: ["$district.name", null] },
-                        " District ",
-                        "",
-                      ],
-                    },
-                    { $ifNull: ["$chapter.name", ""] },
-                    {
-                      $cond: [{ $ne: ["$chapter.name", null] }, " Chapter", ""],
-                    },
+        { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
+        {
+          $match: {
+            status: { $in: ["active", "awaiting_payment"] },
+            _id: {
+              $ne: new mongoose.Types.ObjectId(req.userId),
+              $nin: blockedUsersList,
+            },
+            ...(search ? { name: { $regex: `${search}`, $options: "i" } } : {}),
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            status: 1,
+            memberId: 1,
+            businessTags: 1,
+            level: {
+              $concat: [
+                { $ifNull: ["$state.name", ""] },
+                { $cond: [{ $ne: ["$state.name", null] }, " State ", ""] },
+                { $ifNull: ["$zone.name", ""] },
+                { $cond: [{ $ne: ["$zone.name", null] }, " Zone ", ""] },
+                { $ifNull: ["$district.name", ""] },
+                {
+                  $cond: [
+                    { $ne: ["$district.name", null] },
+                    " District ",
+                    "",
                   ],
                 },
-                state: { _id: "$state._id", name: "$state.name" },
-                zone: { _id: "$zone._id", name: "$zone.name" },
-                district: { _id: "$district._id", name: "$district.name" },
-                chapter: {
-                  _id: "$chapter._id",
-                  name: "$chapter.name",
-                  shortCode: "$chapter.shortCode",
+                { $ifNull: ["$chapter.name", ""] },
+                {
+                  $cond: [{ $ne: ["$chapter.name", null] }, " Chapter", ""],
                 },
-                image: 1,
-                email: 1,
-                phone: 1,
-                secondaryPhone: 1,
-                bio: 1,
-                address: 1,
-                company: 1,
-                dateOfJoining: 1,
-                createdAt: 1,
-                updatedAt: 1,
-                websites: 1,
-                awards: 1,
-                social: 1,
-                file: 1,
-                videos: 1,
-                certificates: 1,
-              },
+              ],
             },
-          ],
+            state: { _id: "$state._id", name: "$state.name" },
+            zone: { _id: "$zone._id", name: "$zone.name" },
+            district: { _id: "$district._id", name: "$district.name" },
+            chapter: {
+              _id: "$chapter._id",
+              name: "$chapter.name",
+              shortCode: "$chapter.shortCode",
+            },
+            image: 1,
+            email: 1,
+            phone: 1,
+            secondaryPhone: 1,
+            bio: 1,
+            address: 1,
+            company: 1,
+            dateOfJoining: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            websites: 1,
+            awards: 1,
+            social: 1,
+            file: 1,
+            videos: 1,
+            certificates: 1,
+          },
         },
-      },
-    ]);
+      ]);
+      const filteredUsers = allUsersResult.filter((user) => {
+        if (!user.businessTags || !user.businessTags.length) return false;
+        return user.businessTags.some((tag) =>
+          tagArray.some(
+            (searchTag) =>
+              tag.toLowerCase() === searchTag ||
+              similarity(tag.toLowerCase(), searchTag) > 0.6
+          )
+        );
+      });
+      filteredUsers.sort((a, b) => a.name.localeCompare(b.name));
+      totalCount = filteredUsers.length;
+      users = filteredUsers.slice(skipCount, skipCount + parseInt(limit));
+    } else {
+      result = await User.aggregate([
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "chapter",
+            foreignField: "_id",
+            as: "chapter",
+          },
+        },
+        { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+        ...(district ? [{ $match: districtMatch }] : []),
+        {
+          $lookup: {
+            from: "districts",
+            localField: "chapter.districtId",
+            foreignField: "_id",
+            as: "district",
+          },
+        },
+        { $unwind: { path: "$district", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "zones",
+            localField: "district.zoneId",
+            foreignField: "_id",
+            as: "zone",
+          },
+        },
+        { $unwind: { path: "$zone", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "states",
+            localField: "zone.stateId",
+            foreignField: "_id",
+            as: "state",
+          },
+        },
+        { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
+        { $match: matchQuery },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }],
+            users: [
+              { $sort: { name: 1 } },
+              { $skip: skipCount },
+              { $limit: parseInt(limit) },
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  status: 1,
+                  memberId: 1,
+                  businessTags: 1,
+                  level: {
+                    $concat: [
+                      { $ifNull: ["$state.name", ""] },
+                      { $cond: [{ $ne: ["$state.name", null] }, " State ", ""] },
+                      { $ifNull: ["$zone.name", ""] },
+                      { $cond: [{ $ne: ["$zone.name", null] }, " Zone ", ""] },
+                      { $ifNull: ["$district.name", ""] },
+                      {
+                        $cond: [
+                          { $ne: ["$district.name", null] },
+                          " District ",
+                          "",
+                        ],
+                      },
+                      { $ifNull: ["$chapter.name", ""] },
+                      {
+                        $cond: [{ $ne: ["$chapter.name", null] }, " Chapter", ""],
+                      },
+                    ],
+                  },
+                  state: { _id: "$state._id", name: "$state.name" },
+                  zone: { _id: "$zone._id", name: "$zone.name" },
+                  district: { _id: "$district._id", name: "$district.name" },
+                  chapter: {
+                    _id: "$chapter._id",
+                    name: "$chapter.name",
+                    shortCode: "$chapter.shortCode",
+                  },
+                  image: 1,
+                  email: 1,
+                  phone: 1,
+                  secondaryPhone: 1,
+                  bio: 1,
+                  address: 1,
+                  company: 1,
+                  dateOfJoining: 1,
+                  createdAt: 1,
+                  updatedAt: 1,
+                  websites: 1,
+                  awards: 1,
+                  social: 1,
+                  file: 1,
+                  videos: 1,
+                  certificates: 1,
+                },
+              },
+            ],
+          },
+        },
+      ]);
 
-    const totalCount =
-      result[0].metadata.length > 0 ? result[0].metadata[0].total : 0;
-    const users = result[0].users;
-
+      totalCount = result[0].metadata.length > 0 ? result[0].metadata[0].total : 0;
+      users = result[0].users;
+    }
     return responseHandler(
       res,
       200,
