@@ -289,7 +289,6 @@ exports.getUser = async (req, res) => {
 
     const mappedData = {
       ...findUser,
-      role: findUser.role || "member",
       level,
       state,
       zone,
@@ -298,6 +297,7 @@ exports.getUser = async (req, res) => {
       isAdmin: adminDetails ? true : false,
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
+      role: adminDetails?.role || null
     };
 
     status = "success";
@@ -352,12 +352,12 @@ exports.getSingleUser = async (req, res) => {
 
     const mappedData = {
       ...findUser._doc,
-      role: findUser.role || "member",
       level,
       isAdmin: adminDetails ? true : false,
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
       levelId: adminDetails?.id,
+      role: adminDetails?.role || null
     };
 
     if (findUser) {
@@ -647,7 +647,7 @@ exports.listUsers = async (req, res) => {
     const districtMatch = district
       ? { "chapter.districtId": new mongoose.Types.ObjectId(district) }
       : {};
-      
+
     // Levenshtein distance function
     function levenshtein(a, b) {
       const matrix = Array.from({ length: a.length + 1 }, (_, i) =>

@@ -28,9 +28,12 @@ const isUserAdmin = async (userId) => {
 
     const chapterAdmin = await Chapter.findOne({
       "admins.user": userId,
-    }).select("name");
+    }).select("name admins");
     if (chapterAdmin) {
-      return { type: "Chapter Admin", name: chapterAdmin.name, id: chapterAdmin._id };
+      const adminEntry = chapterAdmin.admins.find(a => a.user.toString() === userId.toString());
+      return {
+        type: "Chapter Admin", name: chapterAdmin.name, id: chapterAdmin._id, role: adminEntry?.role || null
+      };
     }
 
     return null;
