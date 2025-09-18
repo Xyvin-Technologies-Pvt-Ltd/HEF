@@ -631,7 +631,22 @@ exports.listUsers = async (req, res) => {
     if (search) {
       searchConditions.push({ name: { $regex: `${search}`, $options: "i" } });
     }
-
+    
+    if (tags) {
+      const tag = tags.trim();
+      function splitByLength(str, len = 3) {
+        const result = [];
+        for (let i = 0; i <= str.length - len; i++) {
+          result.push(str.substr(i, len));
+        }
+        return [...new Set(result)];
+      }
+      const substrings = splitByLength(tag, 3);
+      const tagSearchQueries = substrings.map((sub) => ({
+        businessTags: { $regex: sub, $options: "i" },
+      }));
+      searchConditions.push(...tagSearchQueries);
+    }
     if (searchConditions.length > 0) {
       matchQuery.$or = searchConditions;
     }
@@ -640,25 +655,7 @@ exports.listUsers = async (req, res) => {
       ? { "chapter.districtId": new mongoose.Types.ObjectId(district) }
       : {};
 
-    const aggregationPipeline = [
-      ...(tags
-        ? [
-          {
-            $search: {
-              index: "misspelled_search",
-              compound: {
-                should: tags.split(",").map((tag) => ({
-                  text: {
-                    query: tag.trim(),
-                    path: "businessTags",
-                    fuzzy: { maxEdits: 2 },
-                  },
-                })),
-              },
-            },
-          },
-        ]
-        : []),
+    const result = await User.aggregate([
       {
         $lookup: {
           from: "chapters",
@@ -760,9 +757,8 @@ exports.listUsers = async (req, res) => {
           ],
         },
       },
-    ];
-    
-    const result = await User.aggregate(aggregationPipeline);
+    ]);
+
     const totalCount =
       result[0].metadata.length > 0 ? result[0].metadata[0].total : 0;
     const users = result[0].users;

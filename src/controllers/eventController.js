@@ -166,6 +166,39 @@ exports.deleteEvent = async (req, res) => {
     });
   }
 };
+exports.addGuest = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { guests } = req.body;
+    const userId = req.userId;
+    if (!guests || !Array.isArray(guests) || guests.length === 0) {
+      return res.status(400).json({ success: false, message: "Guests array is required" });
+    }
+    const newGuests = guests.map(g => ({
+      name: g.name,
+      contact: g.contact,
+      category: g.category,
+      addedBy: userId,
+      createdAt: new Date()
+    }));
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+    event.guests.push(...newGuests);
+    await event.save();
+    return res.status(201).json({
+      success: true,
+      message: "Guests added successfully",
+      guests: event.guests
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 exports.getSingleEvent = async (req, res) => {
   try {
