@@ -35,8 +35,23 @@ exports.createEvent = async (req, res) => {
         `An event with the name "${req.body.eventName}" already exists.`
       );
     }
+    const allowedFields = [
+      "eventName", "description", "type", "image",
+      "eventDate", "eventEndDate", "startDate", "startTime",
+      "endDate", "endTime", "platform", "link", "venue",
+      "organiserName", "coordinator", "limit", "allowGuestRegistration",
+      "speakers"
+    ];
+
+    const eventData = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) eventData[field] = req.body[field];
+    });
+
+    eventData.allowGuestRegistration =
+      req.body.allowGuestRegistration === true || req.body.allowGuestRegistration === "true";
     status = "success";
-    const newEvent = await Event.create(req.body);
+    const newEvent = await Event.create(eventData);
     const users = await User.find({
       status: "active",
     }).select("fcm");
@@ -169,28 +184,38 @@ exports.deleteEvent = async (req, res) => {
 exports.addGuest = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { guests } = req.body;
-    const userId = req.userId;
-    if (!guests || !Array.isArray(guests) || guests.length === 0) {
-      return res.status(400).json({ success: false, message: "Guests array is required" });
+    const { name, contact, category, userId } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Guest name is required" });
     }
-    const newGuests = guests.map(g => ({
-      name: g.name,
-      contact: g.contact,
-      category: g.category,
-      addedBy: userId,
-      createdAt: new Date()
-    }));
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ success: false, message: "Event not found" });
     }
-    event.guests.push(...newGuests);
+    if (!event.allowGuestRegistration) {
+      return res.status(403).json({
+        success: false,
+        message: "Guest registration is disabled for this event"
+      });
+    }
+    const newGuest = {
+      name,
+      contact,
+      category,
+      addedBy: userId,
+      createdAt: new Date()
+    };
+    event.guests.push(newGuest);
     await event.save();
     return res.status(201).json({
       success: true,
-      message: "Guests added successfully",
-      guests: event.guests
+      message: "Guest added successfully",
+      guest: newGuest,
+      totalGuests: event.guests.length
     });
 
   } catch (error) {

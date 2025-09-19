@@ -46,6 +46,7 @@ const eventSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    allowGuestRegistration: { type: Boolean, default: false },
     guests: [
       {
         name: { type: String, required: true },
