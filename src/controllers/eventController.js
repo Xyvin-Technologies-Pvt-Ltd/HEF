@@ -35,23 +35,7 @@ exports.createEvent = async (req, res) => {
         `An event with the name "${req.body.eventName}" already exists.`
       );
     }
-    const allowedFields = [
-      "eventName", "description", "type", "image",
-      "eventDate", "eventEndDate", "startDate", "startTime",
-      "endDate", "endTime", "platform", "link", "venue",
-      "organiserName", "coordinator", "limit", "allowGuestRegistration",
-      "speakers"
-    ];
-
-    const eventData = {};
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) eventData[field] = req.body[field];
-    });
-
-    eventData.allowGuestRegistration =
-      req.body.allowGuestRegistration === true || req.body.allowGuestRegistration === "true";
-    status = "success";
-    const newEvent = await Event.create(eventData);
+    const newEvent = await Event.create(req.body);
     const users = await User.find({
       status: "active",
     }).select("fcm");
