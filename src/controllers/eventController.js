@@ -193,8 +193,7 @@ exports.addGuest = async (req, res) => {
     };
     event.guests.push(newGuest);
     await event.save();
-    const addedGuest = event.guests[event.guests.length - 1];
-
+    
     return res.status(201).json({
       success: true,
       message: "Guest added successfully",
