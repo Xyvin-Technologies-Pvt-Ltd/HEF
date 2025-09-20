@@ -169,7 +169,7 @@ exports.addGuest = async (req, res) => {
   try {
     const { eventId } = req.params;
     const { name, contact, category } = req.body;
-    
+    const userId = req.userId;
     if (!name) {
       return res.status(400).json({ success: false, message: "Guest name is required" });
     }
@@ -188,10 +188,13 @@ exports.addGuest = async (req, res) => {
       name,
       contact,
       category,
+      addedBy: userId,
       createdAt: new Date()
     };
     event.guests.push(newGuest);
     await event.save();
+    const addedGuest = event.guests[event.guests.length - 1];
+
     return res.status(201).json({
       success: true,
       message: "Guest added successfully",
