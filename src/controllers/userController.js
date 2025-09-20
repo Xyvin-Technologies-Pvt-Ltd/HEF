@@ -631,12 +631,44 @@ exports.listUsers = async (req, res) => {
     if (search) {
       searchConditions.push({ name: { $regex: `${search}`, $options: "i" } });
     }
-     if (tags) {
-      const tag = tags.trim();
-      const characters = [...new Set(tag.split(""))].filter((ch) => ch.trim() !== "");
+    if (tags) {
+      const words = tags
+        .trim()
+        .split(/\s+/)
+        .map((w) => w.trim())
+        .filter(Boolean);
 
-      const tagSearchQueries = characters.map((char) => ({
-        businessTags: { $regex: char, $options: "i" },
+      const chunks = [];
+
+      words.forEach((word) => {
+        const length = word.length;
+
+        // Decide number of chunks dynamically
+        const numChunks = length <= 4 ? 2 : Math.ceil(length / 4);
+        let chunkSize = Math.ceil(length / numChunks);
+
+        let i = 0;
+        const wordChunks = [];
+
+        while (i < length) {
+          let end = i + chunkSize;
+          if (end > length) end = length;
+          wordChunks.push(word.substring(i, end));
+          i = end;
+        }
+
+        // Merge last chunk if it's a single character
+        if (wordChunks.length > 1 && wordChunks[wordChunks.length - 1].length === 1) {
+          const last = wordChunks.pop();
+          wordChunks[wordChunks.length - 1] += last;
+        }
+
+        chunks.push(...wordChunks);
+      });
+
+      // Convert chunks into regex queries
+      const tagSearchQueries = chunks.map((sub) => ({
+        businessTags: { $regex: sub, $options: "i" },
       }));
       searchConditions.push(...tagSearchQueries);
     }

@@ -2,7 +2,6 @@ const express = require("express");
 const chatController = require("../controllers/chatController");
 const authVerify = require("../middlewares/authVerify");
 const chatRoute = express.Router();
-const upload = require("../middlewares/uploads");
 
 chatRoute.use(authVerify);
 

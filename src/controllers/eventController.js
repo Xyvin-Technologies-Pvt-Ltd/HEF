@@ -171,7 +171,10 @@ exports.addGuest = async (req, res) => {
     const { name, contact, category } = req.body;
     const userId = req.userId;
     if (!name) {
-      return res.status(400).json({ success: false, message: "Guest name is required" });
+      return responseHandler(res, 400, "Guest name is required");
+    }
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
     }
 
     const event = await Event.findById(eventId);
@@ -179,11 +182,8 @@ exports.addGuest = async (req, res) => {
       return res.status(404).json({ success: false, message: "Event not found" });
     }
     if (!event.allowGuestRegistration) {
-      return res.status(403).json({
-        success: false,
-        message: "Guest registration is disabled for this event"
-      });
-    }
+      return responseHandler(res, 403, "Guest registration is disabled for this event");
+    }    
     const newGuest = {
       name,
       contact,
@@ -203,7 +203,7 @@ exports.addGuest = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return responseHandler(res, 500, "Server error");
   }
 };
 
@@ -211,7 +211,13 @@ exports.addGuest = async (req, res) => {
 exports.getSingleEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate("rsvp", "name phone memberId")
+      .populate({
+        path: "rsvp", select: "name phone memberId chapter",
+        populate: {
+          path: "chapter",
+          select: "name",
+        },
+      })
       .populate("attented", "name phone memberId")
       .populate("coordinator", "name phone memberId image role")
       .populate("guests.addedBy", "name ")
@@ -222,7 +228,7 @@ exports.getSingleEvent = async (req, res) => {
         return {
           name: rsvp.name,
           phone: rsvp.phone,
-          memberId: rsvp.memberId,
+          chaptername: rsvp.chapter.name,
         };
       }),
       guestCount: event?.guests?.length,
@@ -231,7 +237,7 @@ exports.getSingleEvent = async (req, res) => {
           name: g.name,
           contact: g.contact,
           category: g.category,
-          addedBy: g.addedBy.name,
+          addedBy: g.addedBy ? g.addedBy.name : "Unknown",
         }
       }),
       attendedCount: event?.attented?.length,
