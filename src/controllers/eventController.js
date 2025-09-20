@@ -168,14 +168,12 @@ exports.deleteEvent = async (req, res) => {
 exports.addGuest = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { name, contact, category, userId } = req.body;
-
+    const { name, contact, category } = req.body;
+    
     if (!name) {
       return res.status(400).json({ success: false, message: "Guest name is required" });
     }
-    if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
-    }
+
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ success: false, message: "Event not found" });
@@ -190,7 +188,6 @@ exports.addGuest = async (req, res) => {
       name,
       contact,
       category,
-      addedBy: userId,
       createdAt: new Date()
     };
     event.guests.push(newGuest);
@@ -214,7 +211,8 @@ exports.getSingleEvent = async (req, res) => {
     const event = await Event.findById(req.params.id)
       .populate("rsvp", "name phone memberId")
       .populate("attented", "name phone memberId")
-      .populate("coordinator", "name phone memberId image role");
+      .populate("coordinator", "name phone memberId image role")
+      .populate("guests.addedBy", "name ")
     const mappedData = {
       ...event._doc,
       rsvpCount: event?.rsvp?.length,
@@ -224,6 +222,15 @@ exports.getSingleEvent = async (req, res) => {
           phone: rsvp.phone,
           memberId: rsvp.memberId,
         };
+      }),
+      guestCount: event?.guests?.length,
+      guests: event?.guests?.map((g) => {
+        return {
+          name: g.name,
+          contact: g.contact,
+          category: g.category,
+          addedBy: g.addedBy.name,
+        }
       }),
       attendedCount: event?.attented?.length,
       attented: event?.attented?.map((attented) => {

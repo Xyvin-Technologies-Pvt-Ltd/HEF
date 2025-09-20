@@ -631,19 +631,12 @@ exports.listUsers = async (req, res) => {
     if (search) {
       searchConditions.push({ name: { $regex: `${search}`, $options: "i" } });
     }
-    
-    if (tags) {
+     if (tags) {
       const tag = tags.trim();
-      function splitByLength(str, len = 3) {
-        const result = [];
-        for (let i = 0; i <= str.length - len; i++) {
-          result.push(str.substr(i, len));
-        }
-        return [...new Set(result)];
-      }
-      const substrings = splitByLength(tag, 3);
-      const tagSearchQueries = substrings.map((sub) => ({
-        businessTags: { $regex: sub, $options: "i" },
+      const characters = [...new Set(tag.split(""))].filter((ch) => ch.trim() !== "");
+
+      const tagSearchQueries = characters.map((char) => ({
+        businessTags: { $regex: char, $options: "i" },
       }));
       searchConditions.push(...tagSearchQueries);
     }

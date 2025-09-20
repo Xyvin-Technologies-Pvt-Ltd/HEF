@@ -8,21 +8,10 @@ const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.sendMessage = async (req, res) => {
-  const { content, isGroup, feed, product, messageType } = req.body;
+  const { content, isGroup, feed, product, attachments } = req.body;
   const to = req.params.id;
   const from = req.userId;
 
-  const mediaUrl = req.file ? req.file.path : undefined;
-  const mediaMimeType = req.file ? req.file.mimetype : undefined;
-
-  let finalMessageType = messageType || "text";
-  if (req.file && !messageType) {
-    const mainType = mediaMimeType.split("/")[0];
-    if (mainType === "image") finalMessageType = "image";
-    else if (mainType === "video") finalMessageType = "video";
-    else if (mainType === "audio") finalMessageType = "audio";
-    else finalMessageType = "document";
-  }
   try {
     let chat;
 
@@ -39,9 +28,7 @@ exports.sendMessage = async (req, res) => {
       from,
       to,
       content,
-      messageType: finalMessageType,
-      mediaUrl,
-      mediaMimeType,
+      ...(attachments && { attachments }),
       status: "sent",
     };
     if (product) {
@@ -92,7 +79,7 @@ exports.sendMessage = async (req, res) => {
       path: "feed",
       select: "media",
     });
-
+    
     if (isGroup) {
       await newMessage.populate("from", "name image");
       let allUsers = chat.participants;
