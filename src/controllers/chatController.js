@@ -8,7 +8,7 @@ const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.sendMessage = async (req, res) => {
-  const { content, isGroup, feed, product, attachments } = req.body;
+  const { content, isGroup, feed, product, attachments = [] } = req.body;
   const to = req.params.id;
   const from = req.userId;
 
@@ -79,7 +79,7 @@ exports.sendMessage = async (req, res) => {
       path: "feed",
       select: "media",
     });
-    
+
     if (isGroup) {
       await newMessage.populate("from", "name image");
       let allUsers = chat.participants;

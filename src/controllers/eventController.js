@@ -168,38 +168,33 @@ exports.deleteEvent = async (req, res) => {
 exports.addGuest = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { name, contact, category } = req.body;
     const userId = req.userId;
-    if (!name) {
-      return responseHandler(res, 400, "Guest name is required");
-    }
-    if (!userId) {
-      return res.status(401).json({ success: false, message: "User not authenticated" });
-    }
 
+    if (!userId) {
+      return responseHandler(res, 404, "User not found")
+    }
+    const { error } = validations.addGuestUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ success: false, message: "Event not found" });
+      return responseHandler(res, 404, "Event not found");
     }
     if (!event.allowGuestRegistration) {
       return responseHandler(res, 403, "Guest registration is disabled for this event");
-    }    
+    }
     const newGuest = {
-      name,
-      contact,
-      category,
+      ...req.body,
       addedBy: userId,
       createdAt: new Date()
     };
     event.guests.push(newGuest);
     await event.save();
-    
-    return res.status(201).json({
-      success: true,
-      message: "Guest added successfully",
-      guest: newGuest,
-      totalGuests: event.guests.length
-    });
+
+    return responseHandler(res, 200, "Guest added successfully", event);
 
   } catch (error) {
     console.error(error);
