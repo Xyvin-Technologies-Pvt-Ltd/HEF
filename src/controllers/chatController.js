@@ -8,7 +8,7 @@ const sendInAppNotification = require("../utils/sendInAppNotification");
 const validations = require("../validations");
 
 exports.sendMessage = async (req, res) => {
-  const { content, isGroup, feed, product } = req.body;
+  const { content, isGroup, feed, product, attachments = [] } = req.body;
   const to = req.params.id;
   const from = req.userId;
 
@@ -28,6 +28,7 @@ exports.sendMessage = async (req, res) => {
       from,
       to,
       content,
+      ...(attachments && { attachments }),
       status: "sent",
     };
     if (product) {

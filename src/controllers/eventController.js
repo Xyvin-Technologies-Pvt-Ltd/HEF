@@ -35,7 +35,6 @@ exports.createEvent = async (req, res) => {
         `An event with the name "${req.body.eventName}" already exists.`
       );
     }
-    status = "success";
     const newEvent = await Event.create(req.body);
     const users = await User.find({
       status: "active",
@@ -166,13 +165,57 @@ exports.deleteEvent = async (req, res) => {
     });
   }
 };
+exports.addGuest = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return responseHandler(res, 404, "User not found")
+    }
+    const { error } = validations.addGuestUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    if (!event.allowGuestRegistration) {
+      return responseHandler(res, 403, "Guest registration is disabled for this event");
+    }
+    const newGuest = {
+      ...req.body,
+      addedBy: userId,
+      createdAt: new Date()
+    };
+    event.guests.push(newGuest);
+    await event.save();
+
+    return responseHandler(res, 200, "Guest added successfully", event);
+
+  } catch (error) {
+    console.error(error);
+    return responseHandler(res, 500, "Server error");
+  }
+};
+
 
 exports.getSingleEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate("rsvp", "name phone memberId")
+      .populate({
+        path: "rsvp", select: "name phone memberId chapter",
+        populate: {
+          path: "chapter",
+          select: "name",
+        },
+      })
       .populate("attented", "name phone memberId")
-      .populate("coordinator", "name phone memberId image role");
+      .populate("coordinator", "name phone memberId image role")
+      .populate("guests.addedBy", "name ")
     const mappedData = {
       ...event._doc,
       rsvpCount: event?.rsvp?.length,
@@ -180,8 +223,17 @@ exports.getSingleEvent = async (req, res) => {
         return {
           name: rsvp.name,
           phone: rsvp.phone,
-          memberId: rsvp.memberId,
+          chaptername: rsvp.chapter.name,
         };
+      }),
+      guestCount: event?.guests?.length,
+      guests: event?.guests?.map((g) => {
+        return {
+          name: g.name,
+          contact: g.contact,
+          category: g.category,
+          addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+        }
       }),
       attendedCount: event?.attented?.length,
       attented: event?.attented?.map((attented) => {

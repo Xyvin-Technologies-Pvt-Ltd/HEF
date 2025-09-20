@@ -46,6 +46,16 @@ const eventSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    allowGuestRegistration: { type: Boolean, default: false },
+    guests: [
+      {
+        name: { type: String, required: true },
+        contact: { type: String },
+        category: { type: String },
+        addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
