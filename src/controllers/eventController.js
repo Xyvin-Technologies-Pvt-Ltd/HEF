@@ -35,7 +35,6 @@ exports.createEvent = async (req, res) => {
         `An event with the name "${req.body.eventName}" already exists.`
       );
     }
-    status = "success";
     const newEvent = await Event.create(req.body);
     const users = await User.find({
       status: "active",
@@ -166,13 +165,57 @@ exports.deleteEvent = async (req, res) => {
     });
   }
 };
+exports.addGuest = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return responseHandler(res, 404, "User not found")
+    }
+    const { error } = validations.addGuestUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    if (!event.allowGuestRegistration) {
+      return responseHandler(res, 403, "Guest registration is disabled for this event");
+    }
+    const newGuest = {
+      ...req.body,
+      addedBy: userId,
+      createdAt: new Date()
+    };
+    event.guests.push(newGuest);
+    await event.save();
+
+    return responseHandler(res, 200, "Guest added successfully", event);
+
+  } catch (error) {
+    console.error(error);
+    return responseHandler(res, 500, "Server error");
+  }
+};
+
 
 exports.getSingleEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate("rsvp", "name phone memberId")
+      .populate({
+        path: "rsvp", select: "name phone memberId chapter",
+        populate: {
+          path: "chapter",
+          select: "name",
+        },
+      })
       .populate("attented", "name phone memberId")
-      .populate("coordinator", "name phone memberId image role");
+      .populate("coordinator", "name phone memberId image role")
+      .populate("guests.addedBy", "name ")
     const mappedData = {
       ...event._doc,
       rsvpCount: event?.rsvp?.length,
@@ -180,8 +223,17 @@ exports.getSingleEvent = async (req, res) => {
         return {
           name: rsvp.name,
           phone: rsvp.phone,
-          memberId: rsvp.memberId,
+          chaptername: rsvp.chapter.name,
         };
+      }),
+      guestCount: event?.guests?.length,
+      guests: event?.guests?.map((g) => {
+        return {
+          name: g.name,
+          contact: g.contact,
+          category: g.category,
+          addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+        }
       }),
       attendedCount: event?.attented?.length,
       attented: event?.attented?.map((attented) => {
@@ -456,6 +508,85 @@ exports.getAttendedUsers = async (req, res) => {
         uniqueUsersCount,
       }
     );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.downloadEvents = async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "organizer",
+          foreignField: "_id",
+          as: "organizerData",
+        },
+      },
+      { $unwind: { path: "$organizerData", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          title: "$eventName",
+          type: 1,
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$eventDate" } },
+          time: { $dateToString: { format: "%H:%M", date: "$startTime" } },
+          location: "$venue",
+          createdAt: { $dateToString: { format: "%Y-%m-%d %H:%M", date: "$createdAt" } },
+          organizerName: { $ifNull: ["$organiserName", "Unknown"] },
+        }
+
+      },
+      { $sort: { createdAt: -1, _id: 1 } },
+    ];
+
+    const data = await Event.aggregate(pipeline);
+
+    const headers = [
+      { header: "Title", key: "title" },
+      { header: "Type", key: "type" },
+      { header: "Date", key: "date" },
+      { header: "Time", key: "time" },
+      { header: "Location", key: "location" },
+      { header: "Organizer", key: "organizerName" },
+    ];
+
+    return responseHandler(res, 200, "Events fetched successfully", {
+      headers,
+      body: data,
+    });
+  } catch (error) {
+    console.error("Download Events Error:", error);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.getGuests = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { filterMode } = req.query; 
+
+    const event = await Event.findById(eventId).populate("guests.addedBy", "name");
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+
+    let guests = event.guests.map((g) => ({
+      name: g.name,
+      contact: g.contact,
+      category: g.category,
+      addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+    }));
+
+    if (filterMode === "guestOnly") {
+      guests = guests.map(({ name, contact, category }) => ({ name, contact, category }));
+    } else if (filterMode === "guestWithCoMember") {
+      guests = guests.map(({ name, addedBy }) => ({ name, addedBy }));
+    } 
+
+    return responseHandler(res, 200, "Guests retrieved successfully", guests);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

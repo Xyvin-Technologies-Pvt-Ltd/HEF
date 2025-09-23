@@ -234,13 +234,31 @@ exports.getPayments = async (req, res) => {
       filter.$or = [{ "user.name": { $regex: search, $options: "i" } }];
     }
 
-    const payments = await Payment.find(filter)
-      .populate("user", "name")
-      .populate("parentSub", "expiryDate")
-      .skip(skipCount)
-      .limit(limit)
-      .sort({ _id: -1 })
-      .lean();
+    const payments = await Payment.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "parentSub",
+          foreignField: "_id",
+          as: "parentSub",
+        },
+      },
+      { $unwind: { path: "$parentSub", preserveNullAndEmptyArrays: true } },
+      { $sort: { "user.name": 1 } }, 
+      { $skip: skipCount },
+      { $limit: parseInt(limit) },
+    ]);
+
 
     const totalCount = await Payment.countDocuments(filter);
 

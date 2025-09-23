@@ -142,14 +142,19 @@ exports.updateProduct = async (req, res) => {
         const toUser = await User.findById(updatedProduct.seller).select("fcm");
         const fcmUser = [toUser.fcm];
 
-        await sendInAppNotification(
+         const title = "Product Approved";
+         const content = `Your request for ${updatedProduct.name} has been accepted`;
+
+
+          await sendInAppNotification(
           fcmUser,
-          `Your Product request has been ${req.body.status}`,
-          `Your Product request has been ${req.body.status} for ${updatedProduct.name}`,
-          null,
+          title,
+          content,
+           null,
           "my_products"
-        );
-      }
+          );
+          }
+
       return responseHandler(
         res,
         200,

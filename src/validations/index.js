@@ -34,6 +34,7 @@ exports.createEventSchema = Joi.object({
   venue: Joi.string(),
   organiserName: Joi.string().required(),
   coordinator: Joi.array().items(Joi.string()),
+  allowGuestRegistration: Joi.boolean(),
   speakers: Joi.array()
     .items(
       Joi.object({
@@ -108,6 +109,12 @@ exports.editAdminSchema = Joi.object({
   status: Joi.boolean(),
 });
 
+exports.resetAdminPasswordSchema = Joi.object({
+  adminId: Joi.string().required(),
+  sendEmail: Joi.boolean().default(true),
+  customEmail: Joi.string().email().optional(),
+});
+
 exports.createNewsSchema = Joi.object({
   category: Joi.string(),
   title: Joi.string(),
@@ -164,7 +171,7 @@ exports.createReport = Joi.object({
   reportType: Joi.string()
     .valid("Feeds", "Chat", "User", "Message", "Product")
     .required(),
-    reason: Joi.string().allow(""),
+  reason: Joi.string().allow(""),
 });
 
 exports.createStateSchema = Joi.object({
@@ -570,3 +577,10 @@ exports.bulkCreateUserSchema = Joi.array().items(
     designation: Joi.string(),
   })
 );
+
+exports.addGuestUserSchema =
+  Joi.object({
+    name: Joi.string().required(),
+    contact: Joi.string().required(),
+    category: Joi.string().required(),
+  })
