@@ -512,3 +512,82 @@ exports.getAttendedUsers = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+exports.downloadEvents = async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "organizer",
+          foreignField: "_id",
+          as: "organizerData",
+        },
+      },
+      { $unwind: { path: "$organizerData", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          title: "$eventName",
+          type: 1,
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$eventDate" } },
+          time: { $dateToString: { format: "%H:%M", date: "$startTime" } },
+          location: "$venue",
+          createdAt: { $dateToString: { format: "%Y-%m-%d %H:%M", date: "$createdAt" } },
+          organizerName: { $ifNull: ["$organiserName", "Unknown"] },
+        }
+
+      },
+      { $sort: { createdAt: -1, _id: 1 } },
+    ];
+
+    const data = await Event.aggregate(pipeline);
+
+    const headers = [
+      { header: "Title", key: "title" },
+      { header: "Type", key: "type" },
+      { header: "Date", key: "date" },
+      { header: "Time", key: "time" },
+      { header: "Location", key: "location" },
+      { header: "Organizer", key: "organizerName" },
+    ];
+
+    return responseHandler(res, 200, "Events fetched successfully", {
+      headers,
+      body: data,
+    });
+  } catch (error) {
+    console.error("Download Events Error:", error);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.getGuests = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { filterMode } = req.query; 
+
+    const event = await Event.findById(eventId).populate("guests.addedBy", "name");
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+
+    let guests = event.guests.map((g) => ({
+      name: g.name,
+      contact: g.contact,
+      category: g.category,
+      addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+    }));
+
+    if (filterMode === "guestOnly") {
+      guests = guests.map(({ name, contact, category }) => ({ name, contact, category }));
+    } else if (filterMode === "guestWithCoMember") {
+      guests = guests.map(({ name, addedBy }) => ({ name, addedBy }));
+    } 
+
+    return responseHandler(res, 200, "Guests retrieved successfully", guests);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};

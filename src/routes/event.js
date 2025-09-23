@@ -22,5 +22,8 @@ eventRoute.get("/reg-events", eventController.getRegEvents);
 eventRoute.post("/attend/:eventId", eventController.markAttendance);
 eventRoute.get("/attend/:eventId", eventController.getAttendedUsers);
 eventRoute.post("/:eventId/guests/add", eventController.addGuest);
+eventRoute.get("/download", eventController.downloadEvents);
+eventRoute.get("/:eventId/getguest", eventController.getGuests);
+
 
 module.exports = eventRoute;
