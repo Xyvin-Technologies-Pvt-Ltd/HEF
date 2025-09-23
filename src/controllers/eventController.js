@@ -561,33 +561,56 @@ exports.downloadEvents = async (req, res) => {
   }
 };
 
-exports.getGuests = async (req, res) => {
+exports.downloadGuests = async (req, res) => {
   try {
-    const { eventId } = req.params;
-    const { filterMode } = req.query; 
+    const { eventId } = req.query;
 
-    const event = await Event.findById(eventId).populate("guests.addedBy", "name");
+    // Fetch guests for the event, populate addedBy
+    const guests = await Event.findById({ event: eventId} ).populate("addedBy", "name");
+
+    const headers = [
+      { header: "GuestName", key: "name" },
+      { header: "Contact", key: "contact" },
+      { header: "Category", key: "category" },
+      { header: "C/O Member", key: "addedBy.name" }, // nested key
+    ];
+
+    return responseHandler(res, 200, "Guests fetched successfully", {
+      headers,
+      body: data,
+    });
+  } catch (error) {
+    console.error("Download Guests Error:", error);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.downloadRsvp = async (req, res) => {
+  try {
+    const { eventId } = req.query;
+
+    const event = await Event.findById(eventId)
+      .populate({
+        path: "rsvp",
+        select: "name phone chapter",
+        populate: { path: "chapter", select: "name" },
+      });
 
     if (!event) {
       return responseHandler(res, 404, "Event not found");
     }
 
+    const headers = [
+      { header: "Name", key: "name" },
+      { header: "Phone", key: "phone" },
+      { header: "Chapter", key: "chapter.name" }, // nested key
+    ];
 
-    let guests = event.guests.map((g) => ({
-      name: g.name,
-      contact: g.contact,
-      category: g.category,
-      addedBy: g.addedBy ? g.addedBy.name : "Unknown",
-    }));
-
-    if (filterMode === "guestOnly") {
-      guests = guests.map(({ name, contact, category }) => ({ name, contact, category }));
-    } else if (filterMode === "guestWithCoMember") {
-      guests = guests.map(({ name, addedBy }) => ({ name, addedBy }));
-    } 
-
-    return responseHandler(res, 200, "Guests retrieved successfully", guests);
+    return responseHandler(res, 200, "RSVP fetched successfully", {
+      headers,
+      body: event.rsvp,
+    });
   } catch (error) {
+    console.error("Download RSVP Error:", error);
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
