@@ -614,13 +614,13 @@ exports.downloadRsvp = async (req, res) => {
     const headers = [
       { header: "Name", key: "name" },
       { header: "Phone", key: "phone" },
-      { header: "Chapter", key: "chapter.name" },
+      { header: "Chapter", key: "chaptername" },
     ];
 
     const data = event.rsvp.map((user) => ({
       name: user.name,
       phone: user.phone,
-      chapter: user.chapter.name,
+      chaptername: user.chapter.name,
     }));
 
     return responseHandler(res, 200, "RSVP fetched successfully", {
