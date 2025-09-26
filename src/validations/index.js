@@ -65,6 +65,7 @@ exports.editEventSchema = Joi.object({
   venue: Joi.string(),
   organiserName: Joi.string(),
   coordinator: Joi.array().items(Joi.string()),
+  allowGuestRegistration: Joi.boolean(),
   speakers: Joi.array().items(
     Joi.object({
       name: Joi.string(),
