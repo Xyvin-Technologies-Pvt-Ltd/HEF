@@ -357,7 +357,8 @@ exports.getSingleUser = async (req, res) => {
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
       levelId: adminDetails?.id,
-      role: adminDetails?.role || null
+      adminType: adminDetails?.type || null,
+      role: adminDetails?.role || "member",
     };
 
     if (findUser) {
@@ -580,6 +581,7 @@ exports.getAllUsers = async (req, res) => {
           chapterName: user.chapter?.name || "",
           isAdmin: adminDetails ? true : false,
           adminType: adminDetails?.type || null,
+          role: adminDetails?.role || "member",
           levelName: adminDetails?.name || null,
         };
       })
