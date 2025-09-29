@@ -34,10 +34,11 @@ const eventSchema = mongoose.Schema(
       enum: ["pending", "live", "completed", "cancelled"],
       default: "pending",
     },
-    rsvp: [
+    rsvp: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", },],
+    rsvpnew: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        registeredDate: { type: Date, default: Date.now, },
       },
     ],
     attented: [
