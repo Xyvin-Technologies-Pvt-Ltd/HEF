@@ -365,8 +365,11 @@ exports.addRSVP = async (req, res) => {
     if (!findEvent) {
       return responseHandler(res, 404, "Event not found");
     }
+    const alreadyRSVP = findEvent.rsvpnew.some(
+      (rsvp) => rsvp.user.toString() === req.userId.toString()
+    );
 
-    if (findEvent.rsvpnew.includes(req.userId)) {
+    if (alreadyRSVP) {
       return responseHandler(res, 400, "You have already RSVPed to this event");
     }
 
@@ -385,7 +388,7 @@ exports.addRSVP = async (req, res) => {
     await getMessaging().subscribeToTopic(fcmToken, topic);
 
     return responseHandler(res, 200, "RSVP added successfully", {
-      regCount: findEvent.regCount,
+      regCount: findEvent.rsvpnew.length,
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
