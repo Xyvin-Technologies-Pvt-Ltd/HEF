@@ -366,11 +366,11 @@ exports.addRSVP = async (req, res) => {
       return responseHandler(res, 404, "Event not found");
     }
 
-    if (findEvent.rsvp.includes(req.userId)) {
+    if (findEvent.rsvpnew.includes(req.userId)) {
       return responseHandler(res, 400, "You have already RSVPed to this event");
     }
 
-    if (findEvent.rsvp.length >= findEvent.limit) {
+    if (findEvent.rsvpnew.length >= findEvent.limit) {
       return responseHandler(res, 400, "Event registration limit reached");
     }
 
