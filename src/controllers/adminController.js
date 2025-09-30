@@ -8,6 +8,7 @@ const Event = require("../models/eventModel");
 const logActivity = require("../models/logActivityModel");
 const News = require("../models/newsModel");
 const Notification = require("../models/notificationModel");
+const Payment = require("../models/paymentModel");
 const Promotion = require("../models/promotionModel");
 const State = require("../models/stateModel");
 const Subscription = require("../models/subscriptionModel");
@@ -782,7 +783,7 @@ exports.fetchDashboard = async (req, res) => {
     const totalsArray = await Promise.all(
       types.map(async (t) => {
         const sent = await Analytic.countDocuments({ type: t, sender: { $exists: true } });
-        const received = await Analytic.countDocuments({ type: t, member: { $exists: true }});
+        const received = await Analytic.countDocuments({ type: t, member: { $exists: true } });
 
         return {
           type: t,
@@ -792,10 +793,18 @@ exports.fetchDashboard = async (req, res) => {
         };
       })
     );
-
+    const totalActiveAmount = await Payment.aggregate([
+      { $match: { status: "active" } },
+      {
+        $group: {
+          _id: null, // we don’t need grouping key
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
     return responseHandler(res, 200, "Dashboard fetched successfully", {
       memberShipCount,
-      memberShipRevenue: memberShipCount * 1000,
+      memberShipRevenue: totalActiveAmount[0]?.totalAmount || 0,
       businessCount,
       oneVOneMeetingCount,
       referralsCount,
@@ -900,7 +909,7 @@ exports.downloadUser = async (req, res) => {
       from,
       to,
     } = req.query;
-    const filter = {};
+    const filter = { status: { $ne: "deleted" } };
     if (status) {
       filter.status = status;
     }
@@ -957,7 +966,7 @@ exports.downloadUser = async (req, res) => {
         $lte: new Date(`${to}T23:59:59.999Z`),
       };
     }
-    const users = await User.find(filter).populate("chapter", "name").lean();
+    const users = await User.find(filter).populate("chapter", "name").sort({ name: 1 }).lean();
     if (users.length === 0) {
       return responseHandler(res, 404, "No users found");
     }
