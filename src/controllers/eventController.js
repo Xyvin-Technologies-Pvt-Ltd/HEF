@@ -204,6 +204,100 @@ exports.addGuest = async (req, res) => {
     return responseHandler(res, 500, "Server error");
   }
 };
+exports.editGuest = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+
+  try {
+
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("eventManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const { error } = validations.editGuestUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const event = await Event.findById(req.params.eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    const guest = event.guests.id(req.params.guestId);
+    if (!guest) {
+      return responseHandler(res, 404, "Guest not found");
+    }
+    Object.assign(guest, req.body, {
+      updatedAt: new Date(),
+      updatedBy: req.userId,
+    });
+    await event.save();
+    status = "success";
+    return responseHandler(res, 200, "Guest updated successfully", guest);
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Guest update",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
+exports.deleteGuest = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+    const check = await checkAccess(req.roleId, "permissions");
+    if (!check || !check.includes("eventManagement_modify")) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+    const event = await Event.findById(req.params.eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    const guest = event.guests.id(req.params.guestId);
+    if (!guest) {
+      return responseHandler(res, 404, "Guest not found");
+    }
+    guest.deleteOne();
+    await event.save();
+    status = "success";
+    return responseHandler(res, 200, "Guest deleted successfully");
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Guest deletion",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
+
 
 exports.getSingleEvent = async (req, res) => {
   try {
