@@ -209,15 +209,6 @@ exports.editGuest = async (req, res) => {
   let errorMessage = null;
 
   try {
-
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("eventManagement_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
     const { error } = validations.editGuestUserSchema.validate(req.body, {
       abortEarly: true,
     });
@@ -232,9 +223,12 @@ exports.editGuest = async (req, res) => {
     if (!guest) {
       return responseHandler(res, 404, "Guest not found");
     }
+    if (String(guest.addedBy) !== String(req.userId)) {
+      return responseHandler(res, 403, "You are not allowed to edit this guest");
+    }
     Object.assign(guest, req.body, {
-      updatedAt: new Date(),
-      updatedBy: req.userId,
+      createdAt: new Date(),
+      addedBy: req.userId,
     });
     await event.save();
     status = "success";
@@ -260,14 +254,6 @@ exports.deleteGuest = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const check = await checkAccess(req.roleId, "permissions");
-    if (!check || !check.includes("eventManagement_modify")) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
     const event = await Event.findById(req.params.eventId);
     if (!event) {
       return responseHandler(res, 404, "Event not found");
@@ -275,6 +261,9 @@ exports.deleteGuest = async (req, res) => {
     const guest = event.guests.id(req.params.guestId);
     if (!guest) {
       return responseHandler(res, 404, "Guest not found");
+    }
+    if (String(guest.addedBy) !== String(req.userId)) {
+      return responseHandler(res, 403, "You are not allowed to delete this guest");
     }
     guest.deleteOne();
     await event.save();
