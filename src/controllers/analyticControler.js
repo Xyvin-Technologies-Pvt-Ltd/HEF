@@ -142,6 +142,7 @@ exports.getRequests = async (req, res) => {
             referral: 1,
             contact: 1,
             amount: { $toDouble: { $ifNull: ["$amount", 0] } },
+            count: { $ifNull: ["$count", 0] },
             time: 1,
             meetingLink: 1,
             location: 1,
@@ -550,7 +551,7 @@ exports.updateRequest = async (req, res) => {
     if (!request) {
       return responseHandler(res, 404, "Request not found.");
     }
-    if (["accepted",  "completed"].includes(request.status)) {
+    if (["accepted", "completed"].includes(request.status)) {
       return responseHandler(
         res,
         400,

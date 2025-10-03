@@ -585,3 +585,10 @@ exports.addGuestUserSchema =
     contact: Joi.string().required(),
     category: Joi.string().required(),
   })
+
+exports.editGuestUserSchema =
+  Joi.object({
+    name: Joi.string().optional(),
+    contact: Joi.string().optional(),
+    category: Joi.string().optional(),
+  })

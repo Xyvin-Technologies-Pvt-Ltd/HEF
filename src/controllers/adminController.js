@@ -594,106 +594,97 @@ exports.fetchDashboard = async (req, res) => {
       News.countDocuments(),
       Promotion.countDocuments(),
       Notification.countDocuments(),
-      Analytic.aggregate([
-        {
-          $match: { status: "accepted" },
-        },
-        {
-          $group: {
-            _id: null,
-            memberIds: { $push: "$member" },
-            senderIds: { $push: "$sender" },
-            referralIds: { $push: "$referral" },
-          },
-        },
-        {
-          $project: {
-            allUsers: {
-              $concatArrays: ["$memberIds", "$senderIds", "$referralIds"],
+
+      Promise.all(
+        types.map(async (t) => {
+          const result = await Analytic.aggregate([
+
+            {
+              $match: { status: "accepted", type: t },
             },
-          },
-        },
-        { $unwind: "$allUsers" },
-        {
-          $group: {
-            _id: "$allUsers",
-            count: { $sum: 1 },
-          },
-        },
-        {
-          $sort: { count: -1 },
-        },
-        {
-          $limit: 4,
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
-          },
-        },
-        {
-          $unwind: "$user",
-        },
-        {
-          $lookup: {
-            from: "chapters",
-            localField: "user.chapter",
-            foreignField: "_id",
-            as: "chapter",
-          },
-        },
-        {
-          $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "districts",
-            localField: "chapter.districtId",
-            foreignField: "_id",
-            as: "district",
-          },
-        },
-        {
-          $unwind: { path: "$district", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "zones",
-            localField: "district.zoneId",
-            foreignField: "_id",
-            as: "zone",
-          },
-        },
-        {
-          $unwind: { path: "$zone", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "states",
-            localField: "zone.stateId",
-            foreignField: "_id",
-            as: "state",
-          },
-        },
-        {
-          $unwind: { path: "$state", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $project: {
-            _id: 1,
-            count: 1,
-            name: "$user.name",
-            email: "$user.email",
-            chapter: "$chapter.name",
-            district: "$district.name",
-            zone: "$zone.name",
-            state: "$state.name",
-          },
-        },
-      ]),
+            {
+              $group: {
+                _id: "$member", count: { $sum: 1 }
+              },
+            },
+            {
+              $sort: { count: -1 },
+            },
+            {
+              $limit: 1,
+            },
+            {
+              $lookup: {
+                from: "users",
+                localField: "_id",
+                foreignField: "_id",
+                as: "user",
+              },
+            },
+            {
+              $unwind: "$user",
+            },
+            {
+              $lookup: {
+                from: "chapters",
+                localField: "user.chapter",
+                foreignField: "_id",
+                as: "chapter",
+              },
+            },
+            {
+              $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "districts",
+                localField: "chapter.districtId",
+                foreignField: "_id",
+                as: "district",
+              },
+            },
+            {
+              $unwind: { path: "$district", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "zones",
+                localField: "district.zoneId",
+                foreignField: "_id",
+                as: "zone",
+              },
+            },
+            {
+              $unwind: { path: "$zone", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "states",
+                localField: "zone.stateId",
+                foreignField: "_id",
+                as: "state",
+              },
+            },
+            {
+              $unwind: { path: "$state", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $project: {
+                _id: 1,
+                count: 1,
+                type: t,
+                name: "$user.name",
+                email: "$user.email",
+                chapter: "$chapter.name",
+                district: "$district.name",
+                zone: "$zone.name",
+                state: "$state.name",
+              },
+            },
+          ]);
+          return result;
+        })
+      ).then(arrays => arrays.flat()),
       User.countDocuments(),
       User.countDocuments({ status: "active" }),
       User.countDocuments({ status: "inactive" }),
@@ -966,7 +957,31 @@ exports.downloadUser = async (req, res) => {
         $lte: new Date(`${to}T23:59:59.999Z`),
       };
     }
-    const users = await User.find(filter).populate("chapter", "name").sort({ name: 1 }).lean();
+    const aggregatePipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapter",
+          foreignField: "_id",
+          as: "chapter",
+        },
+      },
+      { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          lowerName: { $toLower: { $ifNull: ["$name", ""] } }, // safe lowercase
+        },
+      },
+      { $sort: { lowerName: 1 } }, // case-insensitive alphabetical sort
+      {
+        $project: {
+          lowerName: 0,
+        },
+      },
+    ];
+
+    const users = await User.aggregate(aggregatePipeline);
     if (users.length === 0) {
       return responseHandler(res, 404, "No users found");
     }
