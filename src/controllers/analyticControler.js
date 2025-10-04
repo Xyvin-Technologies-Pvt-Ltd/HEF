@@ -155,7 +155,9 @@ exports.getRequests = async (req, res) => {
         },
         sortByAmount === "true"
           ? { $sort: { amount: -1 } }
-          : { $sort: { createdAt: -1, _id: 1 } },
+          : type === "One v One Meeting"
+            ? { $sort: { oneOnOneCount: -1, createdAt: -1, _id: 1 } }
+            : { $sort: { createdAt: -1, _id: 1 } },
         { $skip: skipCount },
         { $limit: Number(limit) }
       );
