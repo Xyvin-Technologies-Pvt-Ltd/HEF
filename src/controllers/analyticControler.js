@@ -129,6 +129,52 @@ exports.getRequests = async (req, res) => {
           },
         });
       }
+      if (type === "One v One Meeting") {
+        pipeline.push(
+          {
+            $lookup: {
+              from: "analytics",
+              let: { senderId: "$sender", memberId: "$member" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$type", "One v One Meeting"] },
+                        {
+                          $or: [
+                            {
+                              $and: [
+                                { $eq: ["$sender", "$$senderId"] },
+                                { $eq: ["$member", "$$memberId"] },
+                              ],
+                            },
+                            {
+                              $and: [
+                                { $eq: ["$sender", "$$memberId"] },
+                                { $eq: ["$member", "$$senderId"] },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+                { $count: "meetingCount" },
+              ],
+              as: "meetingStats",
+            },
+          },
+          {
+            $addFields: {
+              oneOnOneCount: {
+                $ifNull: [{ $arrayElemAt: ["$meetingStats.meetingCount", 0] }, 0],
+              },
+            },
+          }
+        );
+      }
 
       pipeline.push(
         {
@@ -142,7 +188,6 @@ exports.getRequests = async (req, res) => {
             referral: 1,
             contact: 1,
             amount: { $toDouble: { $ifNull: ["$amount", 0] } },
-            count: { $ifNull: ["$count", 0] },
             time: 1,
             meetingLink: 1,
             location: 1,
@@ -151,6 +196,7 @@ exports.getRequests = async (req, res) => {
             senderName: "$senderData.name",
             memberName: "$memberData.name",
             referralName: "$referral.name",
+            oneOnOneCount: 1,
           },
         },
         sortByAmount === "true"
