@@ -570,9 +570,6 @@ exports.fetchDashboard = async (req, res) => {
       promotionCount,
       notificationCount,
       topPerformers,
-      totalUsers,
-      activeUsers,
-      inactiveUsers,
       installedUsers,
       graph,
     ] = await Promise.all([
@@ -767,6 +764,9 @@ exports.fetchDashboard = async (req, res) => {
         },
       ]),
     ]);
+    const activeUsers = await User.countDocuments({ status: "active" });
+    const inactiveUsers = await User.countDocuments({ status: "inactive" });
+    const totalUsers = activeUsers + inactiveUsers;
 
     const calculateAdmins = (data) =>
       data.reduce((sum, item) => sum + item.admins.length, 0);
