@@ -366,7 +366,7 @@ exports.getRequests = async (req, res) => {
 
 exports.downloadRequests = async (req, res) => {
   try {
-    const { startDate, endDate, chapter, type } = req.query;
+    const { startDate, endDate, chapter, type, status } = req.query;
     const matchStage = {};
 
     if (startDate && endDate) {
@@ -377,6 +377,9 @@ exports.downloadRequests = async (req, res) => {
 
     if (type) {
       matchStage.type = type;
+    }
+    if (status) {
+      matchStage.status = status;
     }
 
     const pipeline = [{ $match: matchStage }];
