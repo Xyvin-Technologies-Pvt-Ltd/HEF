@@ -366,18 +366,20 @@ exports.getRequests = async (req, res) => {
 
 exports.downloadRequests = async (req, res) => {
   try {
-    const { startDate, endDate, chapter, type, status, sortByAmount } = req.query;
+    const { startDate, endDate, chapter, type, status } = req.query;
     const matchStage = {};
-    let typeFilter = type;
-    if (typeFilter === "One v One Meeting") typeFilter = "One on One Meeting";
-    if (typeFilter) matchStage.type = typeFilter;
-
-    if (status) matchStage.status = status;
 
     if (startDate && endDate) {
       const start = new Date(`${startDate}T00:00:00.000Z`);
       const end = new Date(`${endDate}T23:59:59.999Z`);
       matchStage.date = { $gte: start, $lte: end };
+    }
+
+    if (type) {
+      matchStage.type = type;
+    }
+    if (status) {
+      matchStage.status = status;
     }
 
     const pipeline = [{ $match: matchStage }];
@@ -436,15 +438,8 @@ exports.downloadRequests = async (req, res) => {
           referralName: "$referral.name",
         },
       },
+      { $sort: { createdAt: -1, _id: 1 } }
     );
-    const sortStage = sortByAmount === "true"
-      ? { amount: -1 }
-      : typeFilter === "One on One Meeting"
-        ? { createdAt: -1, _id: 1 }
-        : { createdAt: -1, _id: 1 };
-
-    pipeline.push({ $sort: sortStage });
-
     const data = await Analytic.aggregate(pipeline);
 
     const headers = [
