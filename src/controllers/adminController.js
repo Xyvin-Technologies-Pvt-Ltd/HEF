@@ -562,21 +562,10 @@ exports.fetchDashboard = async (req, res) => {
       User.countDocuments({ status: "inactive" }),
       User.countDocuments({
         $or: [
-          {
-            $and: [
-              { uid: { $exists: true } },
-              { uid: { $ne: null } },
-              { uid: { $ne: "" } },
-            ],
-          },
-          {
-            $and: [
-              { fcm: { $exists: true } },
-              { fcm: { $ne: null } },
-              { fcm: { $ne: "" } },
-            ],
-          },
+          { uid: { $exists: true, $ne: null, $ne: "" } },
+          { fcm: { $exists: true, $ne: null, $ne: "" } },
         ],
+        status: { $in: ["inactive", "active"] },
       }),
       Analytic.aggregate([
         {
@@ -643,6 +632,25 @@ exports.fetchDashboard = async (req, res) => {
     const inactiveUsers = await User.countDocuments({ status: "inactive" });
     const totalUsers = activeUsers + inactiveUsers;
 
+    const installedCount = await User.countDocuments({
+      $or: [
+        {
+          $and: [
+            { uid: { $exists: true } },
+            { uid: { $ne: null } },
+            { uid: { $ne: "" } },
+          ],
+        },
+        {
+          $and: [
+            { fcm: { $exists: true } },
+            { fcm: { $ne: null } },
+            { fcm: { $ne: "" } },
+          ],
+        },
+      ],
+      status: { $in: ["inactive", "active"] },
+    })
     const calculateAdmins = (data) =>
       data.reduce((sum, item) => sum + item.admins.length, 0);
 
@@ -686,7 +694,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
-      installedUsers,
+      installedUsers: installedCount,
       graph,
       totals: totalsArray,
     });
