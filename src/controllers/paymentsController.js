@@ -247,7 +247,7 @@ exports.getPayments = async (req, res) => {
       { $unwind: "$user" },
       {
         $lookup: {
-          from: "subscriptions",
+          from: "parentsubs",
           localField: "parentSub",
           foreignField: "_id",
           as: "parentSub",
