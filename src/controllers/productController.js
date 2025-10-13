@@ -270,30 +270,46 @@ exports.getAllProducts = async (req, res) => {
 
     const { pageNo = 1, limit = 10, search, status, category } = req.query;
     const skipCount = (pageNo - 1) * limit;
-    const filter = {};
 
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "seller",
+          foreignField: "_id",
+          as: "seller",
+        },
+      },
+      { $unwind: { path: "$seller", preserveNullAndEmptyArrays: true } },
+    ];
+    if (search && search.trim() !== "") {
+      const regex = new RegExp(search, "i");
+      pipeline.push({
+        $match: {
+          $or: [
+            { name: regex },
+            { description: regex },
+            { "seller.name": regex },
+          ],
+        },
+      });
     }
 
-    if (status) {
-      filter.status = status;
-    }
+    const countPipeline = [...pipeline, { $count: "total" }];
 
-    if (category) {
-      filter.category = category;
-    }
+    pipeline.push(
+      { $sort: { createdAt: -1, _id: 1 } },
+      { $skip: skipCount },
+      { $limit: Number(limit) }
+    );
 
-    const totalCount = await Product.countDocuments(filter);
-    const products = await Product.find(filter)
-      .populate("seller", "name")
-      .skip(skipCount)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 })
-      .lean();
+    const [products, countResult] = await Promise.all([
+      Product.aggregate(pipeline),
+      Product.aggregate(countPipeline),
+    ]);
+
+    const totalCount = countResult[0]?.total || 0;
 
     const mappedData = products.map((item) => {
       return {

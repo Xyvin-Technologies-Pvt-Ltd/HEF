@@ -102,7 +102,7 @@ app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
 app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 app.use(`${BASE_PATH}/payment`, paymentRoute);
 
-app.post(`${BASE_PATH}/upload`, upload.single("image"), async (req, res) => {
+app.post(`${BASE_PATH}/upload`, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return responseHandler(res, 400, "No file uploaded");
