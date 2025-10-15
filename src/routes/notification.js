@@ -18,5 +18,7 @@ notificationRoute.post(
 );
 
 notificationRoute.get("/:id", notificationController.getNotification);
+notificationRoute.put("/clear-all", notificationController.clearAllUserNotifications);
+notificationRoute.put("/clear/:id", notificationController.clearSingleNotification);
 
 module.exports = notificationRoute;

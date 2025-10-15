@@ -152,6 +152,7 @@ exports.getUserNotifications = async (req, res) => {
       users: {
         $elemMatch: {
           user: userId,
+          cleared: false,
         },
       },
     })
@@ -307,3 +308,37 @@ exports.createLevelNotification = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+exports.clearAllUserNotifications = async (req, res) => {
+  try {
+    const { userId } = req;
+
+    await Notification.updateMany(
+      {
+        users: { $elemMatch: { user: userId } },
+      },
+      {
+        $set: { "users.$.cleared": true },
+      }
+    );
+
+    return responseHandler(res, 200, "All notifications cleared successfully!");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.clearSingleNotification = async (req, res) => {
+  try {
+    const { userId } = req;
+    const { id } = req.params;
+
+    await Notification.updateOne(
+      { _id: id, "users.user": userId },
+      { $set: { "users.$.cleared": true } }
+    );
+
+    return responseHandler(res, 200, "Notification cleared successfully!");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
