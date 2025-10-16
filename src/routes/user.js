@@ -18,6 +18,7 @@ userRoute.get("/users", userController.getUsers);
 userRoute.patch("/update", userController.updateUser);
 userRoute.post("/", userController.createNewUser);
 userRoute.post("/admin", userController.createUser);
+userRoute.post("/new-member", userController.createNewMember);
 userRoute.post("/member", userController.createMember);
 userRoute
   .route("/admin/single/:id")
