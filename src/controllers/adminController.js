@@ -498,7 +498,7 @@ The Admin Team`,
 
 exports.fetchLogActivity = async (req, res) => {
   try {
-    const { page = 1, limit = 10, date, status, method } = req.query;
+    const { page = 1, limit = 10, date, status, method, search } = req.query;
 
     const filter = {};
 
@@ -509,9 +509,11 @@ exports.fetchLogActivity = async (req, res) => {
     if (status) {
       filter.status = status;
     }
-
-    if (method) {
-      filter.httpMethod = method;
+    if (method || (search && search.trim() !== "")) {
+      filter.httpMethod = {};
+      if (method) filter.httpMethod.$eq = method;
+      if (search && search.trim() !== "") filter.httpMethod.$regex = search.trim();
+      if (search && search.trim() !== "") filter.httpMethod.$options = "i";
     }
 
     const skipCount = 10 * (page - 1);

@@ -441,7 +441,7 @@ exports.getChapter = async (req, res) => {
 
     const findChapter = await Chapter.findById(id).populate(
       "admins.user",
-      "name phone"
+      "name phone uid designation "
     );
     if (findChapter) {
       return responseHandler(
@@ -1040,8 +1040,19 @@ exports.getAllDistricts = async (req, res) => {
 
 exports.getAllChapters = async (req, res) => {
   try {
-    const getAllChapters = await Chapter.find().select("-admins -districtId");
-    if (getAllChapters) {
+    const getAllChapters = await Chapter.aggregate([
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          shortCode: 1,
+        },
+      },
+      {
+        $sort: { name: 1 },
+      },
+    ]);
+    if (getAllChapters.length > 0) {
       const headers = [
         { header: "ID", key: "Name" },
         { header: "Chapter Name", key: "ChapterName" },
