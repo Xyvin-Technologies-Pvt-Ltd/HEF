@@ -498,7 +498,7 @@ The Admin Team`,
 
 exports.fetchLogActivity = async (req, res) => {
   try {
-    const { page = 1, limit = 10, date, status, method, search } = req.query;
+    const { pageNo = 1, limit = 10, date, status, method, search } = req.query;
 
     const filter = {};
 
@@ -509,14 +509,15 @@ exports.fetchLogActivity = async (req, res) => {
     if (status) {
       filter.status = status;
     }
-    if (method || (search && search.trim() !== "")) {
-      filter.httpMethod = {};
-      if (method) filter.httpMethod.$eq = method;
-      if (search && search.trim() !== "") filter.httpMethod.$regex = search.trim();
-      if (search && search.trim() !== "") filter.httpMethod.$options = "i";
+
+    if (method) {
+      filter.httpMethod = method;
+    }
+    if (search && search.trim() !== "") {
+      filter.endpoint = { $regex: search.trim(), $options: "i" };
     }
 
-    const skipCount = 10 * (page - 1);
+    const skipCount = 10 * (pageNo - 1);
 
     const logs = await logActivity
       .find(filter)
@@ -1002,9 +1003,7 @@ exports.downloadUser = async (req, res) => {
       { header: "Email", key: "Email" },
       { header: "Chapter Name", key: "ChapterName" },
       { header: "Date of Joining", key: "DateOfJoining" },
-      { header: "Address", key: "Address" },
       { header: "Business Catogary", key: "BusinessCatogary" },
-      { header: "Business Sub Catogary", key: "BusinessSubCatogary" },
       { header: "Subscription", key: "Subscription" },
     ];
 
