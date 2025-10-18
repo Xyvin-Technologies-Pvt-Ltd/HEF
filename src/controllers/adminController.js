@@ -503,7 +503,11 @@ exports.fetchLogActivity = async (req, res) => {
     const filter = {};
 
     if (date) {
-      filter.createdAt = date;
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      filter.createdAt = { $gte: start, $lte: end };
     }
 
     if (status) {
@@ -514,7 +518,7 @@ exports.fetchLogActivity = async (req, res) => {
       filter.httpMethod = method;
     }
     if (search && search.trim() !== "") {
-      filter.endpoint = { $regex: search.trim(), $options: "i" };
+      filter.apiEndpoint = { $regex: search.trim(), $options: "i" };
     }
 
     const skipCount = 10 * (pageNo - 1);
