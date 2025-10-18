@@ -448,7 +448,6 @@ exports.fetchDashboard = async (req, res) => {
       promotionCount,
       notificationCount,
       topPerformers,
-      installedUsers,
       graph,
     ] = await Promise.all([
       Subscription.countDocuments({ status: "active" }),
@@ -560,16 +559,16 @@ exports.fetchDashboard = async (req, res) => {
           return result;
         })
       ).then(arrays => arrays.flat()),
-      User.countDocuments(),
-      User.countDocuments({ status: "active" }),
-      User.countDocuments({ status: "inactive" }),
-      User.countDocuments({
-        $or: [
-          { uid: { $exists: true, $ne: null, $ne: "" } },
-          { fcm: { $exists: true, $ne: null, $ne: "" } },
-        ],
-        status: { $in: ["inactive", "active"] },
-      }),
+      // User.countDocuments(),
+      // User.countDocuments({ status: "active" }),
+      // User.countDocuments({ status: "inactive" }),
+      // User.countDocuments({
+      //   $or: [
+      //     { uid: { $exists: true, $ne: null, $ne: "" } },
+      //     { fcm: { $exists: true, $ne: null, $ne: "" } },
+      //   ],
+      //   status: { $in: ["inactive", "active"] },
+      // }),
       Analytic.aggregate([
         {
           $lookup: {
