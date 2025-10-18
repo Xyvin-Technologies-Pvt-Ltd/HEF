@@ -171,7 +171,7 @@ exports.addGuest = async (req, res) => {
     const userId = req.userId;
 
     if (!userId) {
-      return responseHandler(res, 404, "User not found")
+      return responseHandler(res, 404, "User not found");
     }
     const { error } = validations.addGuestUserSchema.validate(req.body, {
       abortEarly: true,
@@ -184,21 +184,106 @@ exports.addGuest = async (req, res) => {
       return responseHandler(res, 404, "Event not found");
     }
     if (!event.allowGuestRegistration) {
-      return responseHandler(res, 403, "Guest registration is disabled for this event");
+      return responseHandler(
+        res,
+        403,
+        "Guest registration is disabled for this event"
+      );
     }
     const newGuest = {
       ...req.body,
       addedBy: userId,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     event.guests.push(newGuest);
     await event.save();
 
     return responseHandler(res, 200, "Guest added successfully", event);
-
   } catch (error) {
     console.error(error);
     return responseHandler(res, 500, "Server error");
+  }
+};
+exports.editGuest = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+
+  try {
+    const { error } = validations.editGuestUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+    const event = await Event.findById(req.params.eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    const guest = event.guests.id(req.params.guestId);
+    if (!guest) {
+      return responseHandler(res, 404, "Guest not found");
+    }
+    if (String(guest.addedBy) !== String(req.userId)) {
+      return responseHandler(res, 403, "You are not allowed to edit this guest");
+    }
+    Object.assign(guest, req.body, {
+      createdAt: new Date(),
+      addedBy: req.userId,
+    });
+    await event.save();
+    status = "success";
+    return responseHandler(res, 200, "Guest updated successfully", guest);
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Guest update",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
+exports.deleteGuest = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+    const guest = event.guests.id(req.params.guestId);
+    if (!guest) {
+      return responseHandler(res, 404, "Guest not found");
+    }
+    if (String(guest.addedBy) !== String(req.userId)) {
+      return responseHandler(res, 403, "You are not allowed to delete this guest");
+    }
+    guest.deleteOne();
+    await event.save();
+    status = "success";
+    return responseHandler(res, 200, "Guest deleted successfully");
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "event",
+      description: "Guest deletion",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
   }
 };
 
@@ -207,47 +292,63 @@ exports.getSingleEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
       .populate({
-        path: "rsvp", select: "name phone memberId chapter",
-        populate: {
-          path: "chapter",
-          select: "name",
-        },
+        path: "rsvp",
+        select: "name phone memberId chapter",
+        populate: { path: "chapter", select: "name" },
+      })
+      .populate({
+        path: "rsvpnew.user",
+        select: "name phone memberId chapter",
+        populate: { path: "chapter", select: "name" },
       })
       .populate("attented", "name phone memberId")
       .populate("coordinator", "name phone memberId image role")
-      .populate("guests.addedBy", "name ")
-    const mappedData = {
-      ...event._doc,
-      rsvpCount: event?.rsvp?.length,
-      rsvp: event?.rsvp?.map((rsvp) => {
-        return {
-          name: rsvp.name,
-          phone: rsvp.phone,
-          chaptername: rsvp.chapter.name,
-        };
-      }),
-      guestCount: event?.guests?.length,
-      guests: event?.guests?.map((g) => {
-        return {
-          name: g.name,
-          contact: g.contact,
-          category: g.category,
-          addedBy: g.addedBy ? g.addedBy.name : "Unknown",
-        }
-      }),
-      attendedCount: event?.attented?.length,
-      attented: event?.attented?.map((attented) => {
-        return {
-          name: attented.name,
-          phone: attented.phone,
-          memberId: attented.memberId,
-        };
-      }),
-    };
+      .populate("guests.addedBy", "name");
 
     if (!event) {
       return responseHandler(res, 404, "Event not found");
     }
+
+    // Map old RSVPs
+    const oldRsvp = (event.rsvp || []).map(user => ({
+      name: user.name || "Unknown",
+      phone: user.phone || "-",
+      chaptername: user.chapter?.name || "-",
+      registeredDate: "unknown", // old RSVPs have no registered date
+    }));
+
+    // Map new RSVPs
+    const newRsvp = (event.rsvpnew || []).map(rsvp => ({
+      name: rsvp.user?.name || "Unknown",
+      phone: rsvp.user?.phone || "-",
+      chaptername: rsvp.user?.chapter?.name || "-",
+      registeredDate: rsvp.registeredDate
+        ? new Date(rsvp.registeredDate).toLocaleString()
+        : "unknown",
+    }));
+    const mergedRsvp = [...oldRsvp, ...newRsvp]
+    const mappedData = {
+      ...event._doc,
+      rsvpCount: mergedRsvp.length,
+      rsvp: mergedRsvp,
+      guestCount: event?.guests?.length,
+      guests: event?.guests?.map(g => ({
+        name: g.name,
+        contact: g.contact,
+        category: g.category,
+        addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+        registrationDate: g.createdAt
+          ? new Date(g.createdAt).toLocaleString()
+          : "Unknown",
+      })),
+      attendedCount: event?.attented?.length,
+      attented: event?.attented?.map(a => ({
+        name: a.name,
+        phone: a.phone,
+        memberId: a.memberId,
+      })),
+    };
+
     return responseHandler(
       res,
       200,
@@ -347,16 +448,19 @@ exports.addRSVP = async (req, res) => {
     if (!findEvent) {
       return responseHandler(res, 404, "Event not found");
     }
+    const alreadyRSVP = findEvent.rsvpnew.some(
+      (rsvp) => rsvp.user.toString() === req.userId.toString()
+    );
 
-    if (findEvent.rsvp.includes(req.userId)) {
+    if (alreadyRSVP) {
       return responseHandler(res, 400, "You have already RSVPed to this event");
     }
 
-    if (findEvent.rsvp.length >= findEvent.limit) {
+    if (findEvent.rsvpnew.length >= findEvent.limit) {
       return responseHandler(res, 400, "Event registration limit reached");
     }
 
-    findEvent.rsvp.push(req.userId);
+    findEvent.rsvpnew.push({ user: req.userId, registeredDate: new Date() });
 
     await findEvent.save();
 
@@ -367,7 +471,7 @@ exports.addRSVP = async (req, res) => {
     await getMessaging().subscribeToTopic(fcmToken, topic);
 
     return responseHandler(res, 200, "RSVP added successfully", {
-      regCount: findEvent.regCount,
+      regCount: findEvent.rsvpnew.length,
     });
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
@@ -532,10 +636,11 @@ exports.downloadEvents = async (req, res) => {
           date: { $dateToString: { format: "%Y-%m-%d", date: "$eventDate" } },
           time: { $dateToString: { format: "%H:%M", date: "$startTime" } },
           location: "$venue",
-          createdAt: { $dateToString: { format: "%Y-%m-%d %H:%M", date: "$createdAt" } },
+          createdAt: {
+            $dateToString: { format: "%Y-%m-%d %H:%M", date: "$createdAt" },
+          },
           organizerName: { $ifNull: ["$organiserName", "Unknown"] },
-        }
-
+        },
       },
       { $sort: { createdAt: -1, _id: 1 } },
     ];
@@ -561,33 +666,91 @@ exports.downloadEvents = async (req, res) => {
   }
 };
 
-exports.getGuests = async (req, res) => {
+exports.downloadGuests = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { filterMode } = req.query; 
 
-    const event = await Event.findById(eventId).populate("guests.addedBy", "name");
+    const guests = await Event.findById(eventId).populate(
+      "guests.addedBy",
+      "name"
+    );
+
+    const headers = [
+      { header: "GuestName", key: "name" },
+      { header: "Contact", key: "contact" },
+      { header: "Category", key: "category" },
+      { header: "C/O Member", key: "addedBy" },
+      { header: "Registration Date", key: "registrationDate" },
+    ];
+
+    const data = guests?.guests.map((guest) => ({
+      name: guest.name,
+      contact: guest.contact,
+      category: guest.category,
+      addedBy: guest.addedBy?.name || "Unknown",
+      registrationDate: guest.createdAt
+        ? new Date(guest.createdAt).toLocaleString()
+        : "-",
+    }));
+
+    return responseHandler(res, 200, "Guests fetched successfully", {
+      headers,
+      body: data,
+    });
+  } catch (error) {
+    console.error("Download Guests Error:", error);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.downloadRsvp = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId)
+      .populate({
+        path: "rsvp",
+        select: "name phone chapter",
+        populate: { path: "chapter", select: "name" },
+      })
+      .populate({
+        path: "rsvpnew.user",
+        select: "name phone chapter",
+        populate: { path: "chapter", select: "name" },
+      });
 
     if (!event) {
       return responseHandler(res, 404, "Event not found");
     }
 
+    const headers = [
+      { header: "Name", key: "name" },
+      { header: "Phone", key: "phone" },
+      { header: "Chapter", key: "chaptername" },
+      { header: "Registration Date", key: "registeredDate" },
+    ];
 
-    let guests = event.guests.map((g) => ({
-      name: g.name,
-      contact: g.contact,
-      category: g.category,
-      addedBy: g.addedBy ? g.addedBy.name : "Unknown",
+    const oldRsvp = (event.rsvp || []).map(user => ({
+      name: user.name || "-",
+      phone: user.phone || "-",
+      chaptername: user.chapter?.name || "-",
+      registeredDate: "unknown",
     }));
+    const newRsvp = (event.rsvpnew || []).map(rsvp => ({
+      name: rsvp.user?.name || "-",
+      phone: rsvp.user?.phone || "-",
+      chaptername: rsvp.user?.chapter?.name || "-",
+      registeredDate: rsvp.registeredDate
+        ? new Date(rsvp.registeredDate).toLocaleString()
+        : "unknown",
+    }));
+    const body = [...oldRsvp, ...newRsvp];
 
-    if (filterMode === "guestOnly") {
-      guests = guests.map(({ name, contact, category }) => ({ name, contact, category }));
-    } else if (filterMode === "guestWithCoMember") {
-      guests = guests.map(({ name, addedBy }) => ({ name, addedBy }));
-    } 
-
-    return responseHandler(res, 200, "Guests retrieved successfully", guests);
+    return responseHandler(res, 200, "RSVPs fetched successfully", {
+      headers,
+      body,
+    });
   } catch (error) {
+    console.error("Download RSVP Error:", error);
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };

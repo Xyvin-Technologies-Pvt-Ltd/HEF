@@ -6,6 +6,7 @@ const notificationSchema = mongoose.Schema(
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         read: { type: Boolean, default: false },
+        cleared: { type: Boolean, default: false },
       },
     ],
     subject: { type: String },

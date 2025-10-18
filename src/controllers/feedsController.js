@@ -121,18 +121,43 @@ exports.getAllFeedsForAdmin = async (req, res) => {
     const { pageNo = 1, limit = 10, search } = req.query;
     const skipCount = 10 * (pageNo - 1);
 
-    const filter = {};
-
-    if (search) {
-      filter.$or = [{ type: { $regex: search, $options: "i" } }];
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      { $unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
+    ];
+    if (search && search.trim() !== "") {
+      const regex = new RegExp(search, "i");
+      pipeline.push({
+        $match: {
+          $or: [
+            { type: regex },
+            { content: regex },
+            { link: regex },
+            { "author.name": regex },
+          ],
+        },
+      });
     }
-    const totalCount = await Feeds.countDocuments(filter);
-    const data = await Feeds.find(filter)
-      .populate("author", "name")
-      .skip(skipCount)
-      .limit(limit)
-      .sort({ createdAt: -1, _id: 1 })
-      .lean();
+    const countPipeline = [...pipeline, { $count: "total" }];
+    pipeline.push(
+      { $sort: { createdAt: -1, _id: 1 } },
+      { $skip: skipCount },
+      { $limit: Number(limit) }
+    );
+    const [data, countResult] = await Promise.all([
+      Feeds.aggregate(pipeline),
+      Feeds.aggregate(countPipeline),
+    ]);
+
+    const totalCount = countResult[0]?.total || 0;
+
     const mappedData = data.map((user) => {
       return {
         ...user,

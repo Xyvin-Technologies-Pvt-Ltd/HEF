@@ -170,6 +170,46 @@ exports.createUser = async (req, res) => {
   }
 };
 
+exports.createNewMember = async (req, res) => {
+  try {
+    const { error } = validations.createUserSchema.validate(req.body, {
+      abortEarly: true,
+    });
+    if (error) {
+      return responseHandler(res, 400, `Invalid input: ${error.message}`);
+    }
+
+    const checkExist = await User.findOne({
+      $or: [{ phone: req.body.phone }],
+    });
+
+    if (checkExist) {
+      return responseHandler(
+        res,
+        409,
+        `User with this email or phone already exists`
+      );
+    }
+    const chapter = await Chapter.findById(req.body.chapter);
+    const uniqueMemberId = await generateUniqueMemberId(
+      req.body.name,
+      chapter.shortCode
+    );
+
+    req.body.memberId = uniqueMemberId;
+    const newUser = await User.create(req.body);
+
+    if (newUser)
+      return responseHandler(
+        res,
+        201,
+        `New User created successfull..!`,
+        newUser
+      );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
 exports.editUser = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
@@ -357,7 +397,8 @@ exports.getSingleUser = async (req, res) => {
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
       levelId: adminDetails?.id,
-      role: adminDetails?.role || null
+      adminType: adminDetails?.type || null,
+      role: adminDetails?.role || "member",
     };
 
     if (findUser) {
@@ -564,12 +605,32 @@ exports.getAllUsers = async (req, res) => {
     }
 
     const totalCount = await User.countDocuments(filter);
-    const data = await User.find(filter)
-      .populate("chapter")
-      .skip(skipCount)
-      .limit(limit)
-      .sort({ name: 1 })
-      .lean();
+    const aggregatePipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapter",
+          foreignField: "_id",
+          as: "chapter",
+        },
+      },
+      { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          lowerName: { $toLower: "$name" }
+        },
+      },
+      { $sort: { lowerName: 1 } },
+      { $skip: skipCount },
+      { $limit: Number(limit) },
+      {
+        $project: {
+          lowerName: 0,
+        },
+      },
+    ];
+    const data = await User.aggregate(aggregatePipeline);
 
     const mappedData = await Promise.all(
       data.map(async (user) => {
@@ -580,6 +641,7 @@ exports.getAllUsers = async (req, res) => {
           chapterName: user.chapter?.name || "",
           isAdmin: adminDetails ? true : false,
           adminType: adminDetails?.type || null,
+          role: adminDetails?.role || "member",
           levelName: adminDetails?.name || null,
         };
       })
@@ -843,8 +905,9 @@ exports.fetchUser = async (req, res) => {
         feedsCount,
         productCount,
         isAdmin: adminDetails ? true : false,
-        adminType: adminDetails?.type || null,
         levelName: adminDetails?.name || null,
+        adminType: adminDetails?.type || null,
+        role: adminDetails?.role || "member",
       };
 
       return responseHandler(

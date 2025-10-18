@@ -213,9 +213,12 @@ exports.deleteRole = async (req, res) => {
 
 exports.getAllRoles = async (req, res) => {
   try {
-    const { pageNo = 1, status, limit = 10 } = req.query;
+    const { pageNo = 1, status, limit = 10 , search = " "} = req.query;
     const skipCount = 10 * (pageNo - 1);
     const filter = {};
+    if (search) {
+      filter.roleName = { $regex: search, $options: "i" };
+    }
     const totalCount = await Role.countDocuments(filter);
     const data = await Role.find(filter)
       .skip(skipCount)

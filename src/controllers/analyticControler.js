@@ -129,6 +129,52 @@ exports.getRequests = async (req, res) => {
           },
         });
       }
+      if (type === "One v One Meeting") {
+        pipeline.push(
+          {
+            $lookup: {
+              from: "analytics",
+              let: { senderId: "$sender", memberId: "$member" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$type", "One v One Meeting"] },
+                        {
+                          $or: [
+                            {
+                              $and: [
+                                { $eq: ["$sender", "$$senderId"] },
+                                { $eq: ["$member", "$$memberId"] },
+                              ],
+                            },
+                            {
+                              $and: [
+                                { $eq: ["$sender", "$$memberId"] },
+                                { $eq: ["$member", "$$senderId"] },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+                { $count: "meetingCount" },
+              ],
+              as: "meetingStats",
+            },
+          },
+          {
+            $addFields: {
+              oneOnOneCount: {
+                $ifNull: [{ $arrayElemAt: ["$meetingStats.meetingCount", 0] }, 0],
+              },
+            },
+          }
+        );
+      }
 
       pipeline.push(
         {
@@ -150,11 +196,14 @@ exports.getRequests = async (req, res) => {
             senderName: "$senderData.name",
             memberName: "$memberData.name",
             referralName: "$referral.name",
+            oneOnOneCount: 1,
           },
         },
         sortByAmount === "true"
           ? { $sort: { amount: -1 } }
-          : { $sort: { createdAt: -1, _id: 1 } },
+          : type === "One v One Meeting"
+            ? { $sort: { oneOnOneCount: -1, createdAt: -1, _id: 1 } }
+            : { $sort: { createdAt: -1, _id: 1 } },
         { $skip: skipCount },
         { $limit: Number(limit) }
       );
@@ -317,17 +366,27 @@ exports.getRequests = async (req, res) => {
 
 exports.downloadRequests = async (req, res) => {
   try {
-    const { startDate, endDate, chapter, type } = req.query;
+    const { startDate, endDate, chapter, type, status, user, sortByAmount } =
+      req.query;
+
+
     const matchStage = {};
 
-    if (startDate && endDate) {
-      const start = new Date(`${startDate}T00:00:00.000Z`);
-      const end = new Date(`${endDate}T23:59:59.999Z`);
-      matchStage.date = { $gte: start, $lte: end };
+    if (user) {
+      matchStage.$or = [
+        { sender: new mongoose.Types.ObjectId(user) },
+        { member: new mongoose.Types.ObjectId(user) },
+      ];
     }
 
-    if (type) {
-      matchStage.type = type;
+    if (status) matchStage.status = status;
+    if (type) matchStage.type = type;
+
+    if (startDate && endDate) {
+      matchStage.date = {
+        $gte: new Date(`${startDate}T00:00:00.000Z`),
+        $lte: new Date(`${endDate}T23:59:59.999Z`),
+      };
     }
 
     const pipeline = [{ $match: matchStage }];
@@ -341,7 +400,7 @@ exports.downloadRequests = async (req, res) => {
           as: "senderData",
         },
       },
-      { $unwind: "$senderData" },
+      { $unwind: { path: "$senderData", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -350,45 +409,106 @@ exports.downloadRequests = async (req, res) => {
           as: "memberData",
         },
       },
-      { $unwind: "$memberData" }
+      { $unwind: { path: "$memberData", preserveNullAndEmptyArrays: true } }
     );
 
     if (chapter) {
+      const chapterId = new mongoose.Types.ObjectId(chapter);
       pipeline.push({
         $match: {
           $or: [
-            { "senderData.chapter": new mongoose.Types.ObjectId(chapter) },
-            { "memberData.chapter": new mongoose.Types.ObjectId(chapter) },
+            { "senderData.chapter": chapterId },
+            { "memberData.chapter": chapterId },
           ],
         },
       });
     }
 
-    pipeline.push(
-      {
-        $project: {
-          _id: 1,
-          status: 1,
-          type: 1,
-          date: 1,
-          title: 1,
-          description: 1,
-          referral: 1,
-          contact: 1,
-          amount: 1,
-          time: 1,
-          meetingLink: 1,
-          location: 1,
-          supportingDocuments: 1,
-          createdAt: 1,
-          senderName: "$senderData.name",
-          memberName: "$memberData.name",
-          referralName: "$referral.name",
+    if (type === "One v One Meeting") {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "analytics",
+            let: { senderId: "$sender", memberId: "$member" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$type", "One v One Meeting"] },
+                      {
+                        $or: [
+                          {
+                            $and: [
+                              { $eq: ["$sender", "$$senderId"] },
+                              { $eq: ["$member", "$$memberId"] },
+                            ],
+                          },
+                          {
+                            $and: [
+                              { $eq: ["$sender", "$$memberId"] },
+                              { $eq: ["$member", "$$senderId"] },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+              { $count: "meetingCount" },
+            ],
+            as: "meetingStats",
+          },
         },
+        {
+          $addFields: {
+            oneOnOneCount: {
+              $ifNull: [{ $arrayElemAt: ["$meetingStats.meetingCount", 0] }, 0],
+            },
+          },
+        }
+      );
+    }
+
+
+    pipeline.push({
+      $project: {
+        _id: 1,
+        status: 1,
+        type: 1,
+        date: 1,
+        title: 1,
+        description: 1,
+        referral: 1,
+        contact: 1,
+        amount: { $toDouble: { $ifNull: ["$amount", 0] } },
+        time: 1,
+        meetingLink: 1,
+        location: 1,
+        supportingDocuments: 1,
+        createdAt: 1,
+        senderName: "$senderData.name",
+        memberName: "$memberData.name",
+        referralName: "$referral.name",
+        oneOnOneCount: 1,
       },
-      { $sort: { createdAt: -1, _id: 1 } }
-    );
+    });
+
+    if (sortByAmount === "true") {
+      pipeline.push({ $sort: { amount: -1 } });
+    } else if (type === "One v One Meeting") {
+      pipeline.push({ $sort: { oneOnOneCount: -1, createdAt: -1, _id: 1 } });
+    } else {
+      pipeline.push({ $sort: { createdAt: -1, _id: 1 } });
+    }
+
+
     const data = await Analytic.aggregate(pipeline);
+
+    if (!data || data.length === 0) {
+      return responseHandler(res, 404, "No requests found");
+    }
 
     const headers = [
       { header: "Sender", key: "senderName" },
@@ -398,8 +518,11 @@ exports.downloadRequests = async (req, res) => {
       { header: "Description", key: "description" },
       { header: "Status", key: "status" },
       { header: "Date", key: "date" },
+      { header: "Time", key: "time" },
       { header: "Referral", key: "referralName" },
       { header: "Amount", key: "amount" },
+      { header: "Meeting Link", key: "meetingLink" },
+      { header: "One on One Count", key: "oneOnOneCount" },
     ];
 
     return responseHandler(res, 200, "Requests fetched successfully", {
@@ -410,6 +533,7 @@ exports.downloadRequests = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
+
 
 exports.updateRequestStatus = async (req, res) => {
   try {
@@ -550,7 +674,7 @@ exports.updateRequest = async (req, res) => {
     if (!request) {
       return responseHandler(res, 404, "Request not found.");
     }
-    if (["accepted",  "completed"].includes(request.status)) {
+    if (["accepted", "completed"].includes(request.status)) {
       return responseHandler(
         res,
         400,

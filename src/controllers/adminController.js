@@ -8,6 +8,7 @@ const Event = require("../models/eventModel");
 const logActivity = require("../models/logActivityModel");
 const News = require("../models/newsModel");
 const Notification = require("../models/notificationModel");
+const Payment = require("../models/paymentModel");
 const Promotion = require("../models/promotionModel");
 const State = require("../models/stateModel");
 const Subscription = require("../models/subscriptionModel");
@@ -497,7 +498,7 @@ The Admin Team`,
 
 exports.fetchLogActivity = async (req, res) => {
   try {
-    const { page = 1, limit = 10, date, status, method } = req.query;
+    const { pageNo = 1, limit = 10, date, status, method, search } = req.query;
 
     const filter = {};
 
@@ -512,8 +513,11 @@ exports.fetchLogActivity = async (req, res) => {
     if (method) {
       filter.httpMethod = method;
     }
+    if (search && search.trim() !== "") {
+      filter.endpoint = { $regex: search.trim(), $options: "i" };
+    }
 
-    const skipCount = 10 * (page - 1);
+    const skipCount = 10 * (pageNo - 1);
 
     const logs = await logActivity
       .find(filter)
@@ -569,9 +573,6 @@ exports.fetchDashboard = async (req, res) => {
       promotionCount,
       notificationCount,
       topPerformers,
-      totalUsers,
-      activeUsers,
-      inactiveUsers,
       installedUsers,
       graph,
     ] = await Promise.all([
@@ -593,126 +594,106 @@ exports.fetchDashboard = async (req, res) => {
       News.countDocuments(),
       Promotion.countDocuments(),
       Notification.countDocuments(),
-      Analytic.aggregate([
-        {
-          $match: { status: "accepted" },
-        },
-        {
-          $group: {
-            _id: null,
-            memberIds: { $push: "$member" },
-            senderIds: { $push: "$sender" },
-            referralIds: { $push: "$referral" },
-          },
-        },
-        {
-          $project: {
-            allUsers: {
-              $concatArrays: ["$memberIds", "$senderIds", "$referralIds"],
+
+      Promise.all(
+        types.map(async (t) => {
+          const result = await Analytic.aggregate([
+
+            {
+              $match: { status: "accepted", type: t },
             },
-          },
-        },
-        { $unwind: "$allUsers" },
-        {
-          $group: {
-            _id: "$allUsers",
-            count: { $sum: 1 },
-          },
-        },
-        {
-          $sort: { count: -1 },
-        },
-        {
-          $limit: 4,
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
-          },
-        },
-        {
-          $unwind: "$user",
-        },
-        {
-          $lookup: {
-            from: "chapters",
-            localField: "user.chapter",
-            foreignField: "_id",
-            as: "chapter",
-          },
-        },
-        {
-          $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "districts",
-            localField: "chapter.districtId",
-            foreignField: "_id",
-            as: "district",
-          },
-        },
-        {
-          $unwind: { path: "$district", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "zones",
-            localField: "district.zoneId",
-            foreignField: "_id",
-            as: "zone",
-          },
-        },
-        {
-          $unwind: { path: "$zone", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $lookup: {
-            from: "states",
-            localField: "zone.stateId",
-            foreignField: "_id",
-            as: "state",
-          },
-        },
-        {
-          $unwind: { path: "$state", preserveNullAndEmptyArrays: true },
-        },
-        {
-          $project: {
-            _id: 1,
-            count: 1,
-            name: "$user.name",
-            email: "$user.email",
-            chapter: "$chapter.name",
-            district: "$district.name",
-            zone: "$zone.name",
-            state: "$state.name",
-          },
-        },
-      ]),
+            {
+              $group: {
+                _id: "$member", count: { $sum: 1 }
+              },
+            },
+            {
+              $sort: { count: -1 },
+            },
+            {
+              $limit: 1,
+            },
+            {
+              $lookup: {
+                from: "users",
+                localField: "_id",
+                foreignField: "_id",
+                as: "user",
+              },
+            },
+            {
+              $unwind: "$user",
+            },
+            {
+              $lookup: {
+                from: "chapters",
+                localField: "user.chapter",
+                foreignField: "_id",
+                as: "chapter",
+              },
+            },
+            {
+              $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "districts",
+                localField: "chapter.districtId",
+                foreignField: "_id",
+                as: "district",
+              },
+            },
+            {
+              $unwind: { path: "$district", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "zones",
+                localField: "district.zoneId",
+                foreignField: "_id",
+                as: "zone",
+              },
+            },
+            {
+              $unwind: { path: "$zone", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $lookup: {
+                from: "states",
+                localField: "zone.stateId",
+                foreignField: "_id",
+                as: "state",
+              },
+            },
+            {
+              $unwind: { path: "$state", preserveNullAndEmptyArrays: true },
+            },
+            {
+              $project: {
+                _id: 1,
+                count: 1,
+                type: t,
+                name: "$user.name",
+                email: "$user.email",
+                chapter: "$chapter.name",
+                district: "$district.name",
+                zone: "$zone.name",
+                state: "$state.name",
+              },
+            },
+          ]);
+          return result;
+        })
+      ).then(arrays => arrays.flat()),
       User.countDocuments(),
       User.countDocuments({ status: "active" }),
       User.countDocuments({ status: "inactive" }),
       User.countDocuments({
         $or: [
-          {
-            $and: [
-              { uid: { $exists: true } },
-              { uid: { $ne: null } },
-              { uid: { $ne: "" } },
-            ],
-          },
-          {
-            $and: [
-              { fcm: { $exists: true } },
-              { fcm: { $ne: null } },
-              { fcm: { $ne: "" } },
-            ],
-          },
+          { uid: { $exists: true, $ne: null, $ne: "" } },
+          { fcm: { $exists: true, $ne: null, $ne: "" } },
         ],
+        status: { $in: ["inactive", "active"] },
       }),
       Analytic.aggregate([
         {
@@ -775,14 +756,36 @@ exports.fetchDashboard = async (req, res) => {
         },
       ]),
     ]);
+    const activeUsers = await User.countDocuments({ status: "active" });
+    const inactiveUsers = await User.countDocuments({ status: "inactive" });
+    const totalUsers = activeUsers + inactiveUsers;
 
+    const installedCount = await User.countDocuments({
+      $or: [
+        {
+          $and: [
+            { uid: { $exists: true } },
+            { uid: { $ne: null } },
+            { uid: { $ne: "" } },
+          ],
+        },
+        {
+          $and: [
+            { fcm: { $exists: true } },
+            { fcm: { $ne: null } },
+            { fcm: { $ne: "" } },
+          ],
+        },
+      ],
+      status: { $in: ["inactive", "active"] },
+    })
     const calculateAdmins = (data) =>
       data.reduce((sum, item) => sum + item.admins.length, 0);
 
     const totalsArray = await Promise.all(
       types.map(async (t) => {
         const sent = await Analytic.countDocuments({ type: t, sender: { $exists: true } });
-        const received = await Analytic.countDocuments({ type: t, member: { $exists: true }});
+        const received = await Analytic.countDocuments({ type: t, member: { $exists: true } });
 
         return {
           type: t,
@@ -792,10 +795,18 @@ exports.fetchDashboard = async (req, res) => {
         };
       })
     );
-
+    const totalActiveAmount = await Payment.aggregate([
+      { $match: { status: "active" } },
+      {
+        $group: {
+          _id: null, // we don’t need grouping key
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
     return responseHandler(res, 200, "Dashboard fetched successfully", {
       memberShipCount,
-      memberShipRevenue: memberShipCount * 1000,
+      memberShipRevenue: totalActiveAmount[0]?.totalAmount || 0,
       businessCount,
       oneVOneMeetingCount,
       referralsCount,
@@ -811,7 +822,7 @@ exports.fetchDashboard = async (req, res) => {
       totalUsers,
       activeUsers,
       inactiveUsers,
-      installedUsers,
+      installedUsers: installedCount,
       graph,
       totals: totalsArray,
     });
@@ -900,7 +911,7 @@ exports.downloadUser = async (req, res) => {
       from,
       to,
     } = req.query;
-    const filter = {};
+    const filter = { status: { $ne: "deleted" } };
     if (status) {
       filter.status = status;
     }
@@ -957,7 +968,31 @@ exports.downloadUser = async (req, res) => {
         $lte: new Date(`${to}T23:59:59.999Z`),
       };
     }
-    const users = await User.find(filter).populate("chapter", "name").lean();
+    const aggregatePipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapter",
+          foreignField: "_id",
+          as: "chapter",
+        },
+      },
+      { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          lowerName: { $toLower: { $ifNull: ["$name", ""] } }, // safe lowercase
+        },
+      },
+      { $sort: { lowerName: 1 } }, // case-insensitive alphabetical sort
+      {
+        $project: {
+          lowerName: 0,
+        },
+      },
+    ];
+
+    const users = await User.aggregate(aggregatePipeline);
     if (users.length === 0) {
       return responseHandler(res, 404, "No users found");
     }
@@ -968,9 +1003,7 @@ exports.downloadUser = async (req, res) => {
       { header: "Email", key: "Email" },
       { header: "Chapter Name", key: "ChapterName" },
       { header: "Date of Joining", key: "DateOfJoining" },
-      { header: "Address", key: "Address" },
       { header: "Business Catogary", key: "BusinessCatogary" },
-      { header: "Business Sub Catogary", key: "BusinessSubCatogary" },
       { header: "Subscription", key: "Subscription" },
     ];
 
