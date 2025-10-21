@@ -16,6 +16,8 @@ const Review = require("../models/reviewModel");
 const { isUserAdmin } = require("../utils/adminCheck");
 const logActivity = require("../models/logActivityModel");
 const Analytic = require("../models/analyticModel");
+const Chat = require("../models/chatModel");
+const Product = require("../models/productModel");
 const mongoose = require("mongoose");
 
 exports.sendOtp = async (req, res) => {
@@ -302,6 +304,18 @@ exports.getUser = async (req, res) => {
         },
       })
       .lean();
+    const totalGroups = await Chat.countDocuments({
+      isGroup: true,
+      participants: id,
+    });
+    const totalBusinessRequirements = await Feeds.countDocuments({
+      author: id,
+      status: "published"
+    });
+    const totalBusinessPosts = await Product.countDocuments({
+      seller: id,
+      status: "accepted"
+    });
 
     const adminDetails = await isUserAdmin(id);
 
@@ -337,7 +351,10 @@ exports.getUser = async (req, res) => {
       isAdmin: adminDetails ? true : false,
       adminType: adminDetails?.type || null,
       levelName: adminDetails?.name || null,
-      role: adminDetails?.role || null
+      role: adminDetails?.role || null,
+      totalGroups,
+      businessRequirements: totalBusinessRequirements,
+      businessPosts: totalBusinessPosts,
     };
 
     status = "success";
