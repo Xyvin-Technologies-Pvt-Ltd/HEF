@@ -310,11 +310,11 @@ exports.getUser = async (req, res) => {
     });
     const totalBusinessRequirements = await Feeds.countDocuments({
       author: id,
-      status: "published"
+      status: "published",
     });
     const totalBusinessPosts = await Product.countDocuments({
       seller: id,
-      status: "accepted"
+      status: "accepted",
     });
 
     const adminDetails = await isUserAdmin(id);
@@ -635,7 +635,7 @@ exports.getAllUsers = async (req, res) => {
       { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          lowerName: { $toLower: "$name" }
+          lowerName: { $toLower: "$name" },
         },
       },
       { $sort: { lowerName: 1 } },
@@ -722,9 +722,15 @@ exports.listUsers = async (req, res) => {
       words.forEach((word) => {
         const length = word.length;
 
-        // Decide number of chunks dynamically
-        const numChunks = length <= 4 ? 2 : Math.ceil(length / 4);
+        if (length <= 4) {
+          chunks.push(word);
+          return;
+        }
+
+        let numChunks = length <= 8 ? 2 : 3;
         let chunkSize = Math.ceil(length / numChunks);
+
+        if (chunkSize < 3) chunkSize = 3;
 
         let i = 0;
         const wordChunks = [];
@@ -732,12 +738,19 @@ exports.listUsers = async (req, res) => {
         while (i < length) {
           let end = i + chunkSize;
           if (end > length) end = length;
-          wordChunks.push(word.substring(i, end));
+          const sub = word.substring(i, end);
+
+          if (sub.length >= 3) {
+            wordChunks.push(sub);
+          }
+
           i = end;
         }
 
-        // Merge last chunk if it's a single character
-        if (wordChunks.length > 1 && wordChunks[wordChunks.length - 1].length === 1) {
+        if (
+          wordChunks.length > 1 &&
+          wordChunks[wordChunks.length - 1].length < 3
+        ) {
           const last = wordChunks.pop();
           wordChunks[wordChunks.length - 1] += last;
         }
@@ -747,7 +760,7 @@ exports.listUsers = async (req, res) => {
 
       // Convert chunks into regex queries
       const tagSearchQueries = chunks.map((sub) => ({
-        businessTags: { $regex: sub, $options: "i" },
+        businessTags: { $regex: new RegExp(`\\b${sub}`, "i") },
       }));
       searchConditions.push(...tagSearchQueries);
     }
