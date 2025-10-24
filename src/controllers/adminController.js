@@ -1028,6 +1028,7 @@ exports.downloadUser = async (req, res) => {
     const data = {
       headers,
       body: mappedData,
+      totalCount: users.length,
     };
     return responseHandler(res, 200, "Users found successfully", data);
   } catch (error) {
