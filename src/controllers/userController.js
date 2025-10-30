@@ -1408,7 +1408,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Business",
             sender: new mongoose.Types.ObjectId(user),
-            status: "accepted",
+            status: { $in: ["accepted", "completed"] },
             ...filter,
           },
         },
@@ -1424,7 +1424,7 @@ exports.fetchDashboard = async (req, res) => {
           $match: {
             type: "Business",
             member: new mongoose.Types.ObjectId(user),
-            status: "accepted",
+            status: { $in: ["accepted", "completed"] },
             ...filter,
           },
         },
@@ -1438,13 +1438,13 @@ exports.fetchDashboard = async (req, res) => {
       Analytic.countDocuments({
         type: "Referral",
         sender: new mongoose.Types.ObjectId(user),
-        status: "accepted",
+        status: { $in: ["accepted", "completed"] },
         ...filter,
       }),
       Analytic.countDocuments({
         type: "Referral",
         member: new mongoose.Types.ObjectId(user),
-        status: "accepted",
+        status: { $in: ["accepted", "completed"] },
         ...filter,
       }),
       Analytic.countDocuments({
