@@ -332,6 +332,7 @@ exports.getAllProducts = async (req, res) => {
 
 exports.createProductByUser = async (req, res) => {
   try {
+       req.body.status = "accepted";
     const createProductValidator = validations.createProductSchema.validate(
       req.body,
       { abortEarly: true }
