@@ -343,7 +343,7 @@ exports.createProductByUser = async (req, res) => {
         `Invalid input: ${createProductValidator.error.message}`
       );
     }
-
+      req.body.status = "accepted";
     const productData = {
       ...req.body,
       seller: req.userId,
