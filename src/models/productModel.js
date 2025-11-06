@@ -16,7 +16,7 @@ const productSchema = new mongoose.Schema(
     tags: [{ type: String }],
     status: {
       type: String,
-      default: "pending",
+      default: "accepted",
       enum: ["pending", "accepted", "rejected", "reported"],
     },
     reason: { type: String },
