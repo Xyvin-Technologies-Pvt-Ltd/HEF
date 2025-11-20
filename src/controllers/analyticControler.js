@@ -27,7 +27,9 @@ exports.sendRequest = async (req, res) => {
     }
 
     if (req.role !== "admin") {
+      if(!req.body.sender){
       req.body.sender = req.userId;
+      }
     }
     req.body.status = "pending";
 
