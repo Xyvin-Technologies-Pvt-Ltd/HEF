@@ -636,14 +636,46 @@ exports.getAllUsers = async (req, res) => {
       {
         $addFields: {
           lowerName: { $toLower: "$name" },
+          ...(search && {
+            searchRelevance: {
+              $cond: {
+                if: { 
+                  $regexMatch: { 
+                    input: "$name", 
+                    regex: `^${search.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}`, 
+                    options: "i" 
+                  } 
+                },
+                then: 1, 
+                else: {
+                  $cond: {
+                    if: { 
+                      $regexMatch: { 
+                        input: "$name", 
+                        regex: search.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), 
+                        options: "i" 
+                      } 
+                    },
+                    then: 2, 
+                    else: 3 
+                  }
+                }
+              }
+            }
+          })
         },
       },
-      { $sort: { lowerName: 1 } },
+      { 
+        $sort: search 
+          ? { searchRelevance: 1, lowerName: 1 } 
+          : { lowerName: 1 } 
+      },
       { $skip: skipCount },
       { $limit: Number(limit) },
       {
         $project: {
           lowerName: 0,
+          searchRelevance: 0,
         },
       },
     ];
