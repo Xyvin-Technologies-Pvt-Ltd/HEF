@@ -547,6 +547,7 @@ exports.getAllUsers = async (req, res) => {
       chapter,
       from,
       to,
+      businessCategory,
     } = req.query;
     const skipCount = limit * (pageNo - 1);
     const filter = {};
@@ -575,6 +576,9 @@ exports.getAllUsers = async (req, res) => {
 
     if (chapter && chapter !== "") {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
+    }
+    if (businessCategory && businessCategory !== "") {
+      filter.businessCatogary = { $regex: businessCategory, $options: "i" };
     }
     if (installed === "false") {
       filter.$and = [
