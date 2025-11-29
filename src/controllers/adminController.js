@@ -913,6 +913,7 @@ exports.downloadUser = async (req, res) => {
       chapter,
       from,
       to,
+      businessCategory,
     } = req.query;
     const filter = { status: { $ne: "deleted" } };
     if (status) {
@@ -926,6 +927,9 @@ exports.downloadUser = async (req, res) => {
     }
     if (chapter && chapter !== "") {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
+    }
+    if (businessCategory && businessCategory !== "") {
+      filter.businessCatogary = { $regex: businessCategory, $options: "i" };
     }
     if (installed === "false") {
       filter.$and = [

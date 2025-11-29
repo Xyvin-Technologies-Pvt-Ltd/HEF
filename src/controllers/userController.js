@@ -547,6 +547,7 @@ exports.getAllUsers = async (req, res) => {
       chapter,
       from,
       to,
+      businessCategory,
     } = req.query;
     const skipCount = limit * (pageNo - 1);
     const filter = {};
@@ -575,6 +576,9 @@ exports.getAllUsers = async (req, res) => {
 
     if (chapter && chapter !== "") {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
+    }
+    if (businessCategory && businessCategory !== "") {
+      filter.businessCatogary = { $regex: businessCategory, $options: "i" };
     }
     if (installed === "false") {
       filter.$and = [
@@ -636,14 +640,46 @@ exports.getAllUsers = async (req, res) => {
       {
         $addFields: {
           lowerName: { $toLower: "$name" },
+          ...(search && {
+            searchRelevance: {
+              $cond: {
+                if: { 
+                  $regexMatch: { 
+                    input: "$name", 
+                    regex: `^${search.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}`, 
+                    options: "i" 
+                  } 
+                },
+                then: 1, 
+                else: {
+                  $cond: {
+                    if: { 
+                      $regexMatch: { 
+                        input: "$name", 
+                        regex: search.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), 
+                        options: "i" 
+                      } 
+                    },
+                    then: 2, 
+                    else: 3 
+                  }
+                }
+              }
+            }
+          })
         },
       },
-      { $sort: { lowerName: 1 } },
+      { 
+        $sort: search 
+          ? { searchRelevance: 1, lowerName: 1 } 
+          : { lowerName: 1 } 
+      },
       { $skip: skipCount },
       { $limit: Number(limit) },
       {
         $project: {
           lowerName: 0,
+          searchRelevance: 0,
         },
       },
     ];
