@@ -1040,40 +1040,15 @@ exports.getAllDistricts = async (req, res) => {
 
 exports.getAllChapters = async (req, res) => {
   try {
-    const getAllChapters = await Chapter.aggregate([
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          shortCode: 1,
-        },
-      },
-      {
-        $sort: { name: 1 },
-      },
-    ]);
+    const getAllChapters = await Chapter.find({})
+      .select("_id name shortCode districtId")
+      .populate("districtId", "name")
+      .sort({ name: 1 });
+    
     if (getAllChapters.length > 0) {
-      const headers = [
-        { header: "ID", key: "Name" },
-        { header: "Chapter Name", key: "ChapterName" },
-        { header: "Short Code", key: "ShortCode" },
-      ];
-
-      const mappedData = getAllChapters.map((item) => {
-        return {
-          Name: item._id,
-          ChapterName: item.name,
-          ShortCode: item.shortCode,
-        };
-      });
-
-      const data = {
-        headers,
-        body: mappedData,
-      };
-      return responseHandler(res, 200, `chapters found successfully..!`, data);
+      return responseHandler(res, 200, `chapters found successfully..!`, getAllChapters);
     }
-    return responseHandler(res, 400, `Chapter not found...!`);
+    return responseHandler(res, 404, `Chapter not found...!`, []);
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
