@@ -727,7 +727,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.listUsers = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10, search, district, tags } = req.query;
+    const { pageNo = 1, limit = 10, search, district, tags, chapter } = req.query;
     const skipCount = limit * (pageNo - 1);
 
     const currentUser = await User.findById(req.userId).select("blockedUsers");
@@ -808,6 +808,10 @@ exports.listUsers = async (req, res) => {
       ? { "chapter.districtId": new mongoose.Types.ObjectId(district) }
       : {};
 
+    const chapterMatch = chapter
+      ? { "chapter._id": new mongoose.Types.ObjectId(chapter) }
+      : {};
+
     const result = await User.aggregate([
       {
         $lookup: {
@@ -819,6 +823,7 @@ exports.listUsers = async (req, res) => {
       },
       { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
       ...(district ? [{ $match: districtMatch }] : []),
+      ...(chapter ? [{ $match: chapterMatch }] : []),
       {
         $lookup: {
           from: "districts",
