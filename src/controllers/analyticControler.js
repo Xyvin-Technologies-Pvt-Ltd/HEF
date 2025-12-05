@@ -34,15 +34,20 @@ exports.sendRequest = async (req, res) => {
     }
     req.body.status = "pending";
 
-    const user = await User.findById(req.body.member);
+    const notifyUserId = req.userId == req.body.sender ? req.body.member : req.body.sender;   
+    const user = await User.findById(notifyUserId);
 
     const analytic = await Analytic.create(req.body);
     if (analytic) {
+      const notificationMsg = req.userId == req.body.sender
+        ? `You have a new request. Regarding the ${req.body.type} request.`
+        : `A request has been sent. Regarding the ${req.body.type} request.`;
+      
       const fcmUser = [user.fcm];
       await sendInAppNotification(
         fcmUser,
         "You have a new request",
-        `You have a new request. Regarding the ${req.body.type} request.`,
+        notificationMsg,
         null,
         "analytic",
         analytic._id.toString()
@@ -51,7 +56,7 @@ exports.sendRequest = async (req, res) => {
       await Notification.create({
         users: [user._id],
         subject: "You have a new request",
-        content: `You have a new request. Regarding the ${req.body.type} request.`,
+        content: notificationMsg,
         type: "in-app",
       });
     }
