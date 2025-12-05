@@ -851,7 +851,13 @@ exports.listUsers = async (req, res) => {
         },
       },
       { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
-      { $match: matchQuery },
+      {
+        $match: {
+          ...matchQuery,
+          ...(chapter ? { "chapter._id": new mongoose.Types.ObjectId(chapter) } : {}),
+          ...(district ? { "chapter.districtId": new mongoose.Types.ObjectId(district) } : {}),
+        },
+      },
       {
         $facet: {
           metadata: [{ $count: "total" }],
