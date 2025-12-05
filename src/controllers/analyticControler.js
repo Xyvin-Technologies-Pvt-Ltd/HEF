@@ -39,7 +39,7 @@ exports.sendRequest = async (req, res) => {
     if (analytic) {
       const fcmUser = [user.fcm];
       await sendInAppNotification(
-        user.fcm,
+        fcmUser,
         "You have a new request",
         `You have a new request. Regarding the ${req.body.type} request.`,
         null,
