@@ -4,6 +4,7 @@ const Analytic = require("../models/analyticModel");
 const checkAccess = require("../helpers/checkAccess");
 const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
+const Notification = require("../models/notificationModel");
 const mongoose = require("mongoose");
 
 exports.sendRequest = async (req, res) => {
@@ -46,6 +47,13 @@ exports.sendRequest = async (req, res) => {
         "analytic",
         analytic._id.toString()
       );
+
+      await Notification.create({
+        users: [user._id],
+        subject: "You have a new request",
+        content: `You have a new request. Regarding the ${req.body.type} request.`,
+        type: "in-app",
+      });
     }
     return responseHandler(res, 201, "Request created successfully", analytic);
   } catch (error) {
