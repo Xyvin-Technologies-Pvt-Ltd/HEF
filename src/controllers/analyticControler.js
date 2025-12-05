@@ -27,8 +27,8 @@ exports.sendRequest = async (req, res) => {
     }
 
     if (req.role !== "admin") {
-      if(!req.body.sender){
-      req.body.sender = req.userId;
+      if (!req.body.sender) {
+        req.body.sender = req.userId;
       }
     }
     req.body.status = "pending";
@@ -39,7 +39,7 @@ exports.sendRequest = async (req, res) => {
     if (analytic) {
       const fcmUser = [user.fcm];
       await sendInAppNotification(
-        user.fcm,
+        fcmUser,
         "You have a new request",
         `You have a new request. Regarding the ${req.body.type} request.`,
         null,
@@ -81,7 +81,10 @@ exports.getRequests = async (req, res) => {
       const matchStage = {};
 
       if (user) {
-        matchStage.$or = [{ sender: new mongoose.Types.ObjectId(user) }, { member: new mongoose.Types.ObjectId(user) }];
+        matchStage.$or = [
+          { sender: new mongoose.Types.ObjectId(user) },
+          { member: new mongoose.Types.ObjectId(user) },
+        ];
       }
 
       if (status) {
@@ -171,7 +174,10 @@ exports.getRequests = async (req, res) => {
           {
             $addFields: {
               oneOnOneCount: {
-                $ifNull: [{ $arrayElemAt: ["$meetingStats.meetingCount", 0] }, 0],
+                $ifNull: [
+                  { $arrayElemAt: ["$meetingStats.meetingCount", 0] },
+                  0,
+                ],
               },
             },
           }
@@ -204,8 +210,8 @@ exports.getRequests = async (req, res) => {
         sortByAmount === "true"
           ? { $sort: { amount: -1 } }
           : type === "One v One Meeting"
-            ? { $sort: { oneOnOneCount: -1, createdAt: -1, _id: 1 } }
-            : { $sort: { createdAt: -1, _id: 1 } },
+          ? { $sort: { oneOnOneCount: -1, createdAt: -1, _id: 1 } }
+          : { $sort: { createdAt: -1, _id: 1 } },
         { $skip: skipCount },
         { $limit: Number(limit) }
       );
@@ -232,23 +238,23 @@ exports.getRequests = async (req, res) => {
         { $unwind: "$memberData" },
         ...(chapter
           ? [
-            {
-              $match: {
-                $or: [
-                  {
-                    "senderData.chapter": new mongoose.Types.ObjectId(
-                      chapter
-                    ),
-                  },
-                  {
-                    "memberData.chapter": new mongoose.Types.ObjectId(
-                      chapter
-                    ),
-                  },
-                ],
+              {
+                $match: {
+                  $or: [
+                    {
+                      "senderData.chapter": new mongoose.Types.ObjectId(
+                        chapter
+                      ),
+                    },
+                    {
+                      "memberData.chapter": new mongoose.Types.ObjectId(
+                        chapter
+                      ),
+                    },
+                  ],
+                },
               },
-            },
-          ]
+            ]
           : []),
 
         { $match: matchStage },
@@ -371,7 +377,6 @@ exports.downloadRequests = async (req, res) => {
     const { startDate, endDate, chapter, type, status, user, sortByAmount } =
       req.query;
 
-
     const matchStage = {};
 
     if (user) {
@@ -473,7 +478,6 @@ exports.downloadRequests = async (req, res) => {
       );
     }
 
-
     pipeline.push({
       $project: {
         _id: 1,
@@ -505,7 +509,6 @@ exports.downloadRequests = async (req, res) => {
       pipeline.push({ $sort: { createdAt: -1, _id: 1 } });
     }
 
-
     const data = await Analytic.aggregate(pipeline);
 
     if (!data || data.length === 0) {
@@ -535,7 +538,6 @@ exports.downloadRequests = async (req, res) => {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };
-
 
 exports.updateRequestStatus = async (req, res) => {
   try {
@@ -664,7 +666,7 @@ exports.getRequestsByChapter = async (req, res) => {
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
-}
+};
 exports.updateRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
