@@ -36,6 +36,7 @@ exports.sendRequest = async (req, res) => {
     const user = await User.findById(req.body.member);
 
     const analytic = await Analytic.create(req.body);
+    console.log("🚀 ~ analytic:", analytic)
     if (analytic) {
       const fcmUser = [user.fcm];
       console.log("🚀 ~ fcmUser:", fcmUser)
