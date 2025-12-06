@@ -54,7 +54,13 @@ exports.sendRequest = async (req, res) => {
       );
 
       await Notification.create({
-        users: [user._id],
+        users: [
+          {
+            user: user._id,
+            read: false,
+            cleared: false
+          }
+        ],
         subject: "You have a new request",
         content: notificationMsg,
         type: "in-app",
@@ -593,6 +599,15 @@ exports.updateRequestStatus = async (req, res) => {
         null,
         "analytics"
       );
+      await Notification.create({
+      users: [
+        { user: updatedRequest.sender?._id, read: false, cleared: false },
+        { user: updatedRequest.member?._id, read: false, cleared: false },
+      ],
+      subject:`Your request for ${updatedRequest.type} has been ${action}`,
+      content:`Your request for ${updatedRequest.title} with ${updatedRequest.type} has been ${action}`,
+      type: "in-app",
+    });
     }
 
     return responseHandler(
