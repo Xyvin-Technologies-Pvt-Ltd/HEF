@@ -730,7 +730,39 @@ exports.updateRequest = async (req, res) => {
       requestId,
       req.body,
       { new: true }
-    );
+    )
+      .populate("sender", "fcm")
+      .populate("member", "fcm");
+
+    if (updatedRequest) {
+      const notificationMsg = `Request details updated. Regarding the ${updatedRequest.type} request.`;
+      const fcmUser = [updatedRequest.member?.fcm].filter(Boolean);
+
+      if (fcmUser.length > 0) {
+        await sendInAppNotification(
+          fcmUser,
+          "Request Updated",
+          notificationMsg,
+          null,
+          "analytic",
+          updatedRequest._id.toString()
+        );
+      }
+
+      await Notification.create({
+        users: [
+          {
+            user: updatedRequest.member?._id,
+            read: false,
+            cleared: false,
+          },
+        ],
+        subject: "Request Updated",
+        content: notificationMsg,
+        type: "in-app",
+      });
+    }
+
     return responseHandler(
       res,
       200,
