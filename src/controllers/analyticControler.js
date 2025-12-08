@@ -735,14 +735,13 @@ exports.updateRequest = async (req, res) => {
       .populate("member", "fcm");
 
     if (updatedRequest) {
-      const notificationMsg = `Request details updated. Regarding the ${updatedRequest.type} request.`;
       const fcmUser = [updatedRequest.member?.fcm].filter(Boolean);
 
       if (fcmUser.length > 0) {
         await sendInAppNotification(
           fcmUser,
-          "Request Updated",
-          notificationMsg,
+          `Your request for ${updatedRequest.type} has been updated`,
+          `Your request for ${updatedRequest.title} with ${updatedRequest.type} has been updated`,
           null,
           "analytic",
           updatedRequest._id.toString()
@@ -757,8 +756,8 @@ exports.updateRequest = async (req, res) => {
             cleared: false,
           },
         ],
-        subject: "Request Updated",
-        content: notificationMsg,
+        subject: `Your request for ${updatedRequest.type} has been updated`,
+        content: `Your request for ${updatedRequest.title} with ${updatedRequest.type} has been updated`,
         type: "in-app",
       });
     }
