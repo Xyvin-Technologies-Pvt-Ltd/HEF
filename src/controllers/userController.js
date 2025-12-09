@@ -746,59 +746,66 @@ exports.listUsers = async (req, res) => {
     if (search) {
       searchConditions.push({ name: { $regex: `${search}`, $options: "i" } });
     }
+    // if (tags) {
+    //   const words = tags
+    //     .trim()
+    //     .split(/\s+/)
+    //     .map((w) => w.trim())
+    //     .filter(Boolean);
+
+    //   const chunks = [];
+
+    //   words.forEach((word) => {
+    //     const length = word.length;
+
+    //     if (length <= 4) {
+    //       chunks.push(word);
+    //       return;
+    //     }
+
+    //     let numChunks = length <= 8 ? 2 : 3;
+    //     let chunkSize = Math.ceil(length / numChunks);
+
+    //     if (chunkSize < 3) chunkSize = 3;
+
+    //     let i = 0;
+    //     const wordChunks = [];
+
+    //     while (i < length) {
+    //       let end = i + chunkSize;
+    //       if (end > length) end = length;
+    //       const sub = word.substring(i, end);
+
+    //       if (sub.length >= 3) {
+    //         wordChunks.push(sub);
+    //       }
+
+    //       i = end;
+    //     }
+
+    //     if (
+    //       wordChunks.length > 1 &&
+    //       wordChunks[wordChunks.length - 1].length < 3
+    //     ) {
+    //       const last = wordChunks.pop();
+    //       wordChunks[wordChunks.length - 1] += last;
+    //     }
+
+    //     chunks.push(...wordChunks);
+    //   });
+
+    //   // Convert chunks into regex queries
+    //   const tagSearchQueries = chunks.map((sub) => ({
+    //     businessTags: { $regex: new RegExp(`\\b${sub}`, "i") },
+    //   }));
+    //   searchConditions.push(...tagSearchQueries);
+    // }
+    
     if (tags) {
-      const words = tags
-        .trim()
-        .split(/\s+/)
-        .map((w) => w.trim())
-        .filter(Boolean);
-
-      const chunks = [];
-
-      words.forEach((word) => {
-        const length = word.length;
-
-        if (length <= 4) {
-          chunks.push(word);
-          return;
-        }
-
-        let numChunks = length <= 8 ? 2 : 3;
-        let chunkSize = Math.ceil(length / numChunks);
-
-        if (chunkSize < 3) chunkSize = 3;
-
-        let i = 0;
-        const wordChunks = [];
-
-        while (i < length) {
-          let end = i + chunkSize;
-          if (end > length) end = length;
-          const sub = word.substring(i, end);
-
-          if (sub.length >= 3) {
-            wordChunks.push(sub);
-          }
-
-          i = end;
-        }
-
-        if (
-          wordChunks.length > 1 &&
-          wordChunks[wordChunks.length - 1].length < 3
-        ) {
-          const last = wordChunks.pop();
-          wordChunks[wordChunks.length - 1] += last;
-        }
-
-        chunks.push(...wordChunks);
+      const words = tags.trim().split(/\s+/);
+      searchConditions.push({
+        businessTags: { $in: words.map(w => new RegExp(w, "i")) }
       });
-
-      // Convert chunks into regex queries
-      const tagSearchQueries = chunks.map((sub) => ({
-        businessTags: { $regex: new RegExp(`\\b${sub}`, "i") },
-      }));
-      searchConditions.push(...tagSearchQueries);
     }
     if (searchConditions.length > 0) {
       matchQuery.$or = searchConditions;
