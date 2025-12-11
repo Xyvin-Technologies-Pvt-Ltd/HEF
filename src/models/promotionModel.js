@@ -14,7 +14,7 @@ const promotionSchema = mongoose.Schema(
     link: { type: String },
     status:{
       type: String,
-      enum: ["active","experied"],
+      enum: ["active","expired"],
       default: "active",
     }
   },

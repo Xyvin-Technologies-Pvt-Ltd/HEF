@@ -802,10 +802,17 @@ exports.listUsers = async (req, res) => {
     // }
     
     if (tags) {
-      const words = tags.trim().split(/\s+/);
-      searchConditions.push({
-        businessTags: { $in: words.map(w => new RegExp(w, "i")) }
-      });
+      const words = tags
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      const andConditions = words.map(word => ({
+        businessTags: { $regex: new RegExp(word, "i") }
+      }));
+
+      searchConditions.push({ $and: andConditions });
     }
     if (searchConditions.length > 0) {
       matchQuery.$or = searchConditions;
