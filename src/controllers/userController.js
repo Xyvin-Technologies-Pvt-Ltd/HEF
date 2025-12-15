@@ -639,7 +639,7 @@ exports.getAllUsers = async (req, res) => {
       { $unwind: { path: "$chapter", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          lowerName: { $toLower: "$name" },
+          lowerName: { $toLower: { $trim: { input: "$name" } } },
           ...(search && {
             searchRelevance: {
               $cond: {
