@@ -133,6 +133,16 @@ exports.editNewsSchema = Joi.object({
   status: Joi.string(),
   pdf: Joi.string(),
 });
+exports.createCategorySchema = Joi.object({
+  name: Joi.string().required(),
+  icon: Joi.string().required(),
+});
+
+exports.editCategorySchema = Joi.object({
+  name: Joi.string(),
+  icon: Joi.string(),
+  status: Joi.boolean(),
+});
 
 exports.createPromotionSchema = Joi.object({
   title: Joi.string(),
@@ -282,6 +292,7 @@ exports.createUserSchema = Joi.object({
   status: Joi.string(),
   address: Joi.string(),
   businessCatogary: Joi.string(),
+  category: Joi.string(),
   businessSubCatogary: Joi.string(),
   businessTags: Joi.array(),
   dateOfJoining: Joi.date(),
@@ -316,6 +327,7 @@ exports.editUserSchema = Joi.object({
   status: Joi.string(),
   address: Joi.string(),
   businessCatogary: Joi.string(),
+  category: Joi.string(),
   businessSubCatogary: Joi.string(),
   businessTags: Joi.array(),
   dateOfJoining: Joi.date(),
@@ -385,6 +397,7 @@ exports.updateUserSchema = Joi.object({
   status: Joi.string(),
   address: Joi.string(),
   businessCatogary: Joi.string(),
+  category: Joi.string(),
   businessSubCatogary: Joi.string(),
   businessTags: Joi.array(),
   company: Joi.array().items(

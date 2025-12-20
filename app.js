@@ -22,6 +22,7 @@ const productRoute = require("./src/routes/product");
 const userRoute = require("./src/routes/user");
 const feedsRoute = require("./src/routes/feeds");
 const reviewRoute = require("./src/routes/review");
+const categoryRoute = require("./src/routes/category");
 const analyticRoute = require("./src/routes/analytic");
 const chatRoute = require("./src/routes/chat");
 const subscriptionRoute = require("./src/routes/subscription");
@@ -101,6 +102,7 @@ app.use(`${BASE_PATH}/chat`, chatRoute);
 app.use(`${BASE_PATH}/subscription`, subscriptionRoute);
 app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 app.use(`${BASE_PATH}/payment`, paymentRoute);
+app.use(`${BASE_PATH}/category`, categoryRoute);
 
 app.post(`${BASE_PATH}/upload`, upload.single("image"), async (req, res) => {
   try {

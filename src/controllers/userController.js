@@ -287,6 +287,7 @@ exports.getUser = async (req, res) => {
     }
 
     const findUser = await User.findById(id)
+      .populate("category")
       .populate({
         path: "chapter",
         select: "name",
@@ -386,7 +387,7 @@ exports.getSingleUser = async (req, res) => {
       return responseHandler(res, 400, "User ID is required");
     }
 
-    const findUser = await User.findById(id).populate({
+    const findUser = await User.findById(id).populate("category").populate({
       path: "chapter",
       select: "name",
       populate: {

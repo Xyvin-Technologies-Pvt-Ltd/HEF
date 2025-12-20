@@ -23,6 +23,7 @@ const sendMail = require("../utils/sendMail");
 const validations = require("../validations");
 const moment = require("moment-timezone");
 const mongoose = require("mongoose");
+const { isUserAdmin } = require("../utils/adminCheck");
 
 exports.loginAdmin = async (req, res) => {
   try {
@@ -1009,25 +1010,27 @@ exports.downloadUser = async (req, res) => {
       { header: "Phone", key: "Phone" },
       { header: "Email", key: "Email" },
       { header: "Chapter Name", key: "ChapterName" },
-      { header: "Date of Joining", key: "DateOfJoining" },
+      { header: "Role", key: "Role" },
       { header: "Business Catogary", key: "BusinessCatogary" },
       { header: "Subscription", key: "Subscription" },
     ];
 
-    const mappedData = users.map((item) => {
+    const mappedData = await Promise.all(
+    users.map(async (item) => {
+      const adminDetails = await isUserAdmin(item._id);
       return {
         ID: item.memberId,
         Name: item.name,
         Phone: item.phone,
         Email: item.email,
         ChapterName: item.chapter?.name,
-        DateOfJoining: moment(item.dateOfJoining).format("DD-MM-YYYY"),
+        Role: adminDetails?.role || "member",
         Address: item.address,
         BusinessCatogary: item.businessCatogary,
         BusinessSubCatogary: item.businessSubCatogary,
         Subscription: item.subscription,
       };
-    });
+    }));
 
     const data = {
       headers,
