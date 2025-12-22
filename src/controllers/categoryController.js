@@ -4,6 +4,7 @@ const Category = require("../models/categoryModel");
 const validations = require("../validations");
 const checkAccess = require("../helpers/checkAccess");
 const logActivity = require("../models/logActivityModel");
+const User = require("../models/userModel");
 
 exports.getCategories = async (req, res) => {
   let status = "failure";
@@ -30,7 +31,7 @@ exports.getCategories = async (req, res) => {
       isAll = false,
       status: categoryStatus,
     } = req.query;
-    const skipCount = Number(limit) * (Number(pageNo) - 1);
+     const skipCount = 10 * (pageNo - 1);
     const filter = {};
 
     if (name) {
@@ -402,3 +403,68 @@ exports.downloadCategories = async (req, res) => {
   }
 };
 
+exports.getCategoryMembers = async (req, res) => {
+  let status = "failure";
+  let errorMessage = null;
+  try {
+    const access = await checkAccess(req.roleId, "permissions");
+    if (
+      !access || (!access.includes("categoryManagement_view") && !access.includes("memberManagement_view"))
+    ) {
+      return responseHandler(
+        res,
+        403,
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const { id } = req.params;
+    const { pageNo = 1, limit = 10, search } = req.query;
+     const skipCount = 10 * (pageNo - 1);
+
+    if (!id) {
+      return responseHandler(res, 400, "Category ID is required");
+    }
+    const filter = {
+      category: id,
+      status: { $ne: "deleted" },
+    };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { memberId: { $regex: search, $options: "i" } },
+      ];
+    }
+    const totalCount = await User.countDocuments(filter);
+    const members = await User.find(filter)
+      .populate("category", "name")
+      .sort({ name: 1 })
+      .skip(skipCount)
+      .limit(limit)
+      .lean();
+
+    status = "success";
+    return responseHandler(
+      res,
+      200,
+      "Members fetched successfully",
+      members,
+      totalCount
+    );
+  } catch (error) {
+    errorMessage = error.message;
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  } finally {
+    await logActivity.create({
+      admin: req.user,
+      type: "category",
+      description: "Category members fetch",
+      apiEndpoint: req.originalUrl,
+      httpMethod: req.method,
+      host: req.headers["x-forwarded-for"] || req.ip,
+      agent: req.headers["user-agent"],
+      status,
+      errorMessage,
+    });
+  }
+};
