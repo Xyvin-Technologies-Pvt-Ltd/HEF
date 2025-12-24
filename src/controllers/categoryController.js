@@ -31,7 +31,7 @@ exports.getCategories = async (req, res) => {
       isAll = false,
       status: categoryStatus,
     } = req.query;
-     const skipCount = 10 * (pageNo - 1);
+     const skipCount = Number(limit) * (pageNo - 1);
     const filter = {};
 
     if (name) {
@@ -420,7 +420,7 @@ exports.getCategoryMembers = async (req, res) => {
 
     const { id } = req.params;
     const { pageNo = 1, limit = 10, search } = req.query;
-     const skipCount = 10 * (pageNo - 1);
+     const skipCount = Number(limit) * (pageNo - 1);
 
     if (!id) {
       return responseHandler(res, 400, "Category ID is required");
