@@ -6,6 +6,11 @@ const User = require("../models/userModel");
 const sendInAppNotification = require("../utils/sendInAppNotification");
 const Notification = require("../models/notificationModel");
 const mongoose = require("mongoose");
+const State = require("../models/stateModel");
+const Zone = require("../models/zoneModel");
+const District = require("../models/districtModel");
+const Chapter = require("../models/chapterModel");
+const { isUserAdmin } = require("../utils/adminCheck");
 
 exports.sendRequest = async (req, res) => {
   try {
@@ -768,6 +773,103 @@ exports.updateRequest = async (req, res) => {
       "Request updated successfully.",
       updatedRequest
     );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.downloadActivitiesApp = async (req, res) => {
+  try {
+    const { userId } = req;
+
+    const adminInfo = await isUserAdmin(userId);
+    if (!adminInfo) {
+      return responseHandler(res, 403, "Access denied");
+    }
+    let chapters = [];
+
+    if (adminInfo.type === "State Admin") {
+      const zones = await Zone.find({ stateId: adminInfo.id });
+      const districts = await District.find({ zoneId: { $in: zones.map(z => z._id) } });
+      chapters = await Chapter.find({ districtId: { $in: districts.map(d => d._id) } });
+    } else if (adminInfo.type === "Zone Admin") {
+      const districts = await District.find({ zoneId: adminInfo.id });
+      chapters = await Chapter.find({ districtId: { $in: districts.map(d => d._id) } });
+    } else if (adminInfo.type === "District Admin") {
+      chapters = await Chapter.find({ districtId: adminInfo.id });
+    } else if (adminInfo.type === "Chapter Admin") {
+      const chapter = await Chapter.findById(adminInfo.id);
+      chapters = chapter ? [chapter] : [];
+    }
+
+    if (chapters.length === 0) {
+      return responseHandler(res, 404, "No chapters found");
+    }
+
+    const chapterIds = chapters.map(c => c._id);
+    const users = await User.find({ chapter: { $in: chapterIds } }).select("_id");
+    const userIds = users.map(u => u._id);
+
+    const pipeline = [
+      {
+        $match: {
+          $or: [
+            { sender: { $in: userIds } },
+            { member: { $in: userIds } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "sender",
+          foreignField: "_id",
+          as: "senderData"
+        }
+      },
+      { $unwind: { path: "$senderData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "member",
+          foreignField: "_id",
+          as: "memberData"
+        }
+      },
+      { $unwind: { path: "$memberData", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          date: 1,
+          businessGiver: "$senderData.name",
+          businessReceiver: "$memberData.name",
+          requestType: "$type",
+          status: 1,
+          amount: { $toDouble: { $ifNull: ["$amount", 0] } }
+        }
+      }
+    ];
+
+    const data = await Analytic.aggregate(pipeline);
+
+    if (!data || data.length === 0) {
+      return responseHandler(res, 404, "No requests found");
+    }
+
+    const headers = [
+      { header: "Date", key: "date" },
+      { header: "Business Giver", key: "businessGiver" },
+      { header: "Business Receiver", key: "businessReceiver" },
+      { header: "Request Type", key: "requestType" },
+      { header: "Status", key: "status" },
+      { header: "Amount", key: "amount" },
+    ];
+
+    return responseHandler(res, 200, "Requests fetched successfully", {
+      headers,
+      body: data,
+      totalCount: data.length
+    });
+
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

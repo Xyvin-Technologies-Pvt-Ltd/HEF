@@ -368,24 +368,60 @@ exports.createProductByUser = async (req, res) => {
 exports.getUserProducts = async (req, res) => {
   try {
     const { pageNo = 1, limit = 10, search } = req.query;
-    const filter = { status: "accepted" };
-
     const skip = (pageNo - 1) * limit;
 
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+    // if (search) {
+    //   filter.$or = [
+    //     { name: { $regex: search, $options: "i" } },
+    //     { description: { $regex: search, $options: "i" } },
+    //   ];
+    // }
+
+    const pipeline = [
+      {
+        $match: { status: "accepted" }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "seller",
+          foreignField: "_id",
+          as: "seller",
+        },
+      },
+      { $unwind: { path: "$seller", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "seller.category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+    ];
+
+    if (search && search.trim() !== "") {
+      const regex = new RegExp(search, "i");
+      pipeline.push({
+        $match: {
+          "category.name": regex
+        }
+      });
     }
 
-    const products = await Product.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit))
-      .lean();
+    const countPipeline = [...pipeline, { $count: "total" }];
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: Number(limit) }
+    );
 
-    const totalProducts = await Product.countDocuments(filter);
+    const [products, countResult] = await Promise.all([
+      Product.aggregate(pipeline),
+      Product.aggregate(countPipeline),
+    ]);
+    const totalProducts = countResult[0]?.total || 0;
 
     return responseHandler(
       res,

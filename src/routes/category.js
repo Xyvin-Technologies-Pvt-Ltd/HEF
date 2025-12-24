@@ -19,5 +19,7 @@ categoryRoute
   .put(categoryController.updateCategory)
   .delete(categoryController.deleteCategory);
 
+categoryRoute.get("/members/:id", categoryController.getCategoryMembers);
+
 module.exports = categoryRoute;
 

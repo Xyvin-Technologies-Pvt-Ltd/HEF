@@ -11,6 +11,7 @@ analyticRoute
   .get(analyticControler.getRequests);
 
 analyticRoute.get("/download", analyticControler.downloadRequests);
+analyticRoute.get("/download-app", analyticControler.downloadActivitiesApp);
 analyticRoute.post("/status", analyticControler.updateRequestStatus);
 analyticRoute.delete("/:requestId", analyticControler.deleteRequestById);
 analyticRoute.get(
