@@ -405,7 +405,10 @@ exports.getUserProducts = async (req, res) => {
       const regex = new RegExp(search, "i");
       pipeline.push({
         $match: {
-          "category.name": regex
+          $or: [
+            { name: regex },
+            { "category.name": regex }
+          ]
         }
       });
     }
