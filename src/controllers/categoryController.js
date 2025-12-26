@@ -10,18 +10,6 @@ exports.getCategories = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const access = await checkAccess(req.roleId, "permissions");
-    if (
-      !access ||
-      (!access.includes("categoryManagement_view") &&
-        !access.includes("memberManagement_view"))
-    ) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
 
     const {
       pageNo = 1,
@@ -169,18 +157,6 @@ exports.getCategoryById = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const access = await checkAccess(req.roleId, "permissions");
-    if (
-      !access ||
-      (!access.includes("categoryManagement_view") &&
-        !access.includes("memberManagement_view"))
-    ) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
 
     const { id } = req.params;
     if (!id) {
@@ -327,18 +303,6 @@ exports.downloadCategories = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const access = await checkAccess(req.roleId, "permissions");
-    if (
-      !access ||
-      (!access.includes("categoryManagement_view") &&
-        !access.includes("memberManagement_view"))
-    ) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
 
     const categories = await Category.aggregate([
       { $match: { status: true } },
@@ -407,16 +371,6 @@ exports.getCategoryMembers = async (req, res) => {
   let status = "failure";
   let errorMessage = null;
   try {
-    const access = await checkAccess(req.roleId, "permissions");
-    if (
-      !access || (!access.includes("categoryManagement_view") && !access.includes("memberManagement_view"))
-    ) {
-      return responseHandler(
-        res,
-        403,
-        "You don't have permission to perform this action"
-      );
-    }
 
     const { id } = req.params;
     const { pageNo = 1, limit = 10, search } = req.query;
