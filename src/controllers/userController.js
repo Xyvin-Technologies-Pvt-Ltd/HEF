@@ -1517,7 +1517,7 @@ exports.fetchDashboard = async (req, res) => {
       }),
     ]);
 
-    return responseHandler(res, 200, "Dashboard data fetched successfully", {
+    return responseHandler(res, 200, "Dashboard data retrieved successfully", {
       businessGiven: businessGiven[0]?.totalAmount || 0,
       businessReceived: businessReceived[0]?.totalAmount || 0,
       refferalGiven,
