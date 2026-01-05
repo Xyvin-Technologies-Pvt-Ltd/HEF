@@ -19,7 +19,7 @@ const Analytic = require("../models/analyticModel");
 const Chat = require("../models/chatModel");
 const Product = require("../models/productModel");
 const mongoose = require("mongoose");
-
+const moment = require("moment-timezone");
 exports.sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -1459,9 +1459,9 @@ exports.fetchDashboard = async (req, res) => {
     const filter = {};
 
     if (startDate && endDate) {
-      filter.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+   filter.createdAt = {
+        $gte: moment(startDate).startOf("day").toDate(),
+        $lte: moment(endDate).endOf("day").toDate(),
       };
     }
 
@@ -1524,7 +1524,7 @@ exports.fetchDashboard = async (req, res) => {
       }),
     ]);
 
-    return responseHandler(res, 200, "Dashboard data fetched successfully", {
+    return responseHandler(res, 200, "Dashboard data retrieved successfully", {
       businessGiven: businessGiven[0]?.totalAmount || 0,
       businessReceived: businessReceived[0]?.totalAmount || 0,
       refferalGiven,
