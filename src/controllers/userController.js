@@ -728,7 +728,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.listUsers = async (req, res) => {
   try {
-    const { pageNo = 1, limit = 10, search, district, tags, chapter } = req.query;
+    const { pageNo = 1, limit = 10, search, district, tags, chapter, category } = req.query;
     const skipCount = limit * (pageNo - 1);
 
     const currentUser = await User.findById(req.userId).select("blockedUsers");
@@ -801,20 +801,11 @@ exports.listUsers = async (req, res) => {
     //   }));
     //   searchConditions.push(...tagSearchQueries);
     // }
-    
-    if (tags) {
-      const words = tags
-        .toLowerCase()
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
 
-      const andConditions = words.map(word => ({
-        businessTags: { $regex: new RegExp(word, "i") }
-      }));
-
-      searchConditions.push({ $and: andConditions });
+    if (category) {
+      searchConditions.push({ category: new mongoose.Types.ObjectId(category) });
     }
+    
     if (searchConditions.length > 0) {
       matchQuery.$or = searchConditions;
     }
@@ -828,6 +819,9 @@ exports.listUsers = async (req, res) => {
       : {};
 
     const result = await User.aggregate([
+      {
+        $match: matchQuery,
+      },
       {
         $lookup: {
           from: "chapters",
@@ -867,12 +861,21 @@ exports.listUsers = async (req, res) => {
       },
       { $unwind: { path: "$state", preserveNullAndEmptyArrays: true } },
       {
-        $match: {
-          ...matchQuery,
-          ...(chapter ? { "chapter._id": new mongoose.Types.ObjectId(chapter) } : {}),
-          ...(district ? { "chapter.districtId": new mongoose.Types.ObjectId(district) } : {}),
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
         },
       },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      // {
+      //   $match: {
+      //     ...matchQuery,
+      //     ...(chapter ? { "chapter._id": new mongoose.Types.ObjectId(chapter) } : {}),
+      //     ...(district ? { "chapter.districtId": new mongoose.Types.ObjectId(district) } : {}),
+      //   },
+      // },
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -887,6 +890,10 @@ exports.listUsers = async (req, res) => {
                 status: 1,
                 memberId: 1,
                 businessTags: 1,
+                category: {
+                  _id: "$category._id",
+                  name: "$category.name",
+                },
                 level: {
                   $concat: [
                     { $ifNull: ["$state.name", ""] },
