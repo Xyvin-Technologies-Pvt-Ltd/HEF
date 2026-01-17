@@ -41,7 +41,7 @@ const userSchema = mongoose.Schema(
       },
     ],
     businessCatogary: { type: String },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+    category: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     businessSubCatogary: { type: String },
     businessTags: [{ type: String, trim: true, lowercase: true }],
     file: [{ type: String }],
