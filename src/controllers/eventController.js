@@ -481,7 +481,10 @@ exports.addRSVP = async (req, res) => {
 exports.getRegEvents = async (req, res) => {
   try {
     const regEvents = await Event.find({
-      rsvp: { $elemMatch: { $eq: req.userId } },
+      $or: [
+        { rsvp: req.userId },
+        { "rsvpnew.user": req.userId }
+      ]
     });
     if (!regEvents || regEvents.length === 0) {
       return responseHandler(res, 404, "No events found");
@@ -588,12 +591,16 @@ exports.getAttendedUsers = async (req, res) => {
   try {
     const event = await Event.findById(eventId)
       .populate("rsvp", "name email image")
+      .populate({ path: "rsvpnew.user", select: "name email image" })
       .populate("attented", "name email image");
 
-    const rsvpUserIds = new Set(event.rsvp.map((user) => user._id.toString()));
+   const oldRegs = event.rsvp || [];
+    const newRegs = (event.rsvpnew || []).map(r => r.user);
+    const registeredUsers = [...oldRegs, ...newRegs];
 
-    const newlyReg = event.attented.filter(
-      (user) => !rsvpUserIds.has(user._id.toString())
+    const rsvpUserIds = new Set(registeredUsers.map(u => u._id.toString()));
+    const newlyReg = (event.attented || []).filter(
+      u => !rsvpUserIds.has(u._id.toString())
     );
 
     const uniqueUsersCount = newlyReg.length;
@@ -607,8 +614,8 @@ exports.getAttendedUsers = async (req, res) => {
       200,
       "Registered and Attended users retrieved successfully.",
       {
-        registeredUsers: event.rsvp,
-        attendedUsers: event.attented,
+        registeredUsers,
+        attendedUsers: event.attented || [],
         uniqueUsersCount,
       }
     );
