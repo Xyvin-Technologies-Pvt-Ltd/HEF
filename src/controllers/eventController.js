@@ -592,9 +592,12 @@ exports.getAttendedUsers = async (req, res) => {
     const event = await Event.findById(eventId)
       .populate("rsvp", "name email image")
       .populate({ path: "rsvpnew.user", select: "name email image" })
-      .populate("attented", "name email image chapter");
-
-   const oldRegs = event.rsvp || [];
+      .populate({
+        path: "attented",
+        select: "name email image chapter",
+        populate: { path: "chapter", select: "name" },
+      });  
+    const oldRegs = event.rsvp || [];
     const newRegs = (event.rsvpnew || []).map(r => r.user);
     const registeredUsers = [...oldRegs, ...newRegs];
 
