@@ -591,7 +591,11 @@ exports.getAttendedUsers = async (req, res) => {
   try {
     const event = await Event.findById(eventId)
       .populate("rsvp", "name email image")
-      .populate({ path: "rsvpnew.user", select: "name email image" })
+      .populate({
+        path: "rsvpnew.user",
+        select: "name email image chapter",
+        populate: { path: "chapter", select: "name" },
+      })
       .populate({
         path: "attented",
         select: "name email image chapter",
