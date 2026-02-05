@@ -478,6 +478,110 @@ exports.addRSVP = async (req, res) => {
   }
 };
 
+exports.getrsvp = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    let { pageNo = 1, limit = 10 } = req.query;
+
+    pageNo = Number(pageNo);
+    limit = Number(limit);
+
+    const skipCount = (pageNo - 1) * limit;
+
+    const event = await Event.findById(eventId)
+      .populate({
+        path: "rsvp",
+        select: "name phone memberId chapter",
+        populate: { path: "chapter", select: "name" },
+      })
+      .populate({
+        path: "rsvpnew.user",
+        select: "name phone memberId chapter",
+        populate: { path: "chapter", select: "name" },
+      });
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+    const oldRsvp = (event.rsvp || []).map((user) => ({
+      _id: user._id,
+      name: user.name || "Unknown",
+      phone: user.phone || "-",
+      chaptername: user.chapter?.name || "-",
+      registeredDate: "unknown",
+    }));
+
+    const newRsvp = (event.rsvpnew || []).map((rsvp) => ({
+      _id: rsvp.user?._id,
+      name: rsvp.user?.name || "Unknown",
+      phone: rsvp.user?.phone || "-",
+      chaptername: rsvp.user?.chapter?.name || "-",
+      registeredDate: rsvp.registeredDate
+        ? new Date(rsvp.registeredDate).toLocaleString()
+        : "unknown",
+    }));
+
+    const mergedRsvp = [...oldRsvp, ...newRsvp];
+    const totalCount = mergedRsvp.length;
+
+    const paginatedRsvp = mergedRsvp.slice(skipCount, skipCount + limit);
+
+    return responseHandler(
+      res,
+      200,
+      "RSVP retrieved successfully",
+      paginatedRsvp,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
+  }
+};
+
+exports.removeRsvp = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return responseHandler(res, 400, "User ID is required");
+    }
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+    if (req.role === "user") {
+
+      const isCoordinator = event.coordinator.some(
+        (c) => c.toString() === req.userId
+      );
+
+      if (!isCoordinator) {
+        return responseHandler(
+          res,
+          403,
+          "You are not authorized to remove RSVP for this event"
+        );
+      }
+    }
+
+    event.rsvp = event.rsvp.filter((id) => id.toString() !== userId);
+
+    event.rsvpnew = event.rsvpnew.filter((rsvp) => rsvp.user.toString() !== userId);
+
+    await event.save();
+
+    return responseHandler(res, 200, "RSVP removed successfully");
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+
 exports.getRegEvents = async (req, res) => {
   try {
     const regEvents = await Event.find({
@@ -758,10 +862,22 @@ exports.downloadRsvp = async (req, res) => {
         : "unknown",
     }));
     const body = [...oldRsvp, ...newRsvp];
+    body.sort((a, b) => {
+      const nameA = (a.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      const nameB = (b.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    const totalSeats = event.limit || 0;
+    const registeredCount = body.length;
+    const balanceSeats = totalSeats - registeredCount;
 
     return responseHandler(res, 200, "RSVPs fetched successfully", {
       headers,
       body,
+      totalSeats,
+      registeredCount,
+      balanceSeats
     });
   } catch (error) {
     console.error("Download RSVP Error:", error);
