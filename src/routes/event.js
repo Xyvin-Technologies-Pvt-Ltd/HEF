@@ -16,6 +16,8 @@ eventRoute
   .get(eventController.getSingleEvent)
   .delete(eventController.deleteEvent)
   .patch(eventController.addRSVP);
+eventRoute.get("/:eventId/rsvp", eventController.getrsvp)
+eventRoute.patch("/single/:eventId/remove-rsvp",authVerify,eventController.removeRsvp);
 
 eventRoute.get("/reg-events", eventController.getRegEvents);
 
