@@ -481,7 +481,8 @@ exports.addRSVP = async (req, res) => {
 exports.getrsvp = async (req, res) => {
   try {
     const { eventId } = req.params;
-    let { pageNo = 1, limit = 10 } = req.query;
+    let { pageNo = 1, limit = 10, chapterId = null } = req.query;
+
 
     pageNo = Number(pageNo);
     limit = Number(limit);
@@ -508,6 +509,7 @@ exports.getrsvp = async (req, res) => {
       _id: user._id,
       name: user.name || "Unknown",
       phone: user.phone || "-",
+      chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
       registeredDate: "unknown",
     }));
@@ -516,13 +518,21 @@ exports.getrsvp = async (req, res) => {
       _id: rsvp.user?._id,
       name: rsvp.user?.name || "Unknown",
       phone: rsvp.user?.phone || "-",
+      chapterId: rsvp?.user?.chapter?._id || null,
       chaptername: rsvp.user?.chapter?.name || "-",
       registeredDate: rsvp.registeredDate
         ? new Date(rsvp.registeredDate).toLocaleString()
         : "unknown",
     }));
 
-    const mergedRsvp = [...oldRsvp, ...newRsvp];
+    let mergedRsvp = [...oldRsvp, ...newRsvp];
+
+    if (typeof chapterId === "string" && chapterId.trim()) {
+      mergedRsvp = mergedRsvp.filter(
+        r => r?.chapterId?.toString() === chapterId.toString()
+      );
+    }
+
     const totalCount = mergedRsvp.length;
 
     const paginatedRsvp = mergedRsvp.slice(skipCount, skipCount + limit);
@@ -704,7 +714,7 @@ exports.getAttendedUsers = async (req, res) => {
         path: "attented",
         select: "name email image chapter",
         populate: { path: "chapter", select: "name" },
-      });  
+      });
     const oldRegs = event.rsvp || [];
     const newRegs = (event.rsvpnew || []).map(r => r.user);
     const registeredUsers = [...oldRegs, ...newRegs];
