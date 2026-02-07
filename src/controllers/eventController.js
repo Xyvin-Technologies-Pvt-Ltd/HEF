@@ -834,6 +834,7 @@ exports.downloadRsvp = async (req, res) => {
   try {
     const { eventId } = req.params;
 
+    let { chapterId = null } = req.query;
     const event = await Event.findById(eventId)
       .populate({
         path: "rsvp",
@@ -860,22 +861,29 @@ exports.downloadRsvp = async (req, res) => {
     const oldRsvp = (event.rsvp || []).map(user => ({
       name: user.name || "-",
       phone: user.phone || "-",
+      chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
       registeredDate: "unknown",
     }));
     const newRsvp = (event.rsvpnew || []).map(rsvp => ({
       name: rsvp.user?.name || "-",
       phone: rsvp.user?.phone || "-",
+      chapterId: rsvp?.user?.chapter?._id || null,
       chaptername: rsvp.user?.chapter?.name || "-",
       registeredDate: rsvp.registeredDate
         ? new Date(rsvp.registeredDate).toLocaleString()
         : "unknown",
     }));
-    const body = [...oldRsvp, ...newRsvp];
+    let body = [...oldRsvp, ...newRsvp];
+    if (typeof chapterId === "string" && chapterId.trim()) {
+      body = body.filter(
+        r => r?.chapterId?.toString() === chapterId.toString()
+      );
+    }
     body.sort((a, b) => {
-      const nameA = (a.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      const nameB = (b.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      return nameA.localeCompare(nameB);
+      const chapterA = (a.chaptername || "").toLowerCase();
+      const chapterB = (b.chaptername || "").toLowerCase();
+      return chapterA.localeCompare(chapterB);
     });
 
     const totalSeats = event.limit || 0;
