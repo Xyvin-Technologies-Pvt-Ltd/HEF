@@ -36,9 +36,17 @@ exports.createEvent = async (req, res) => {
       );
     }
     const newEvent = await Event.create(req.body);
-    const users = await User.find({
-      status: "active",
-    }).select("fcm");
+
+    let users;
+
+    if (req.body.isAllUsers) {
+      users = await User.find({ status: "active" }).select("fcm");
+    } else {
+      users = await User.find({
+        status: "active",
+        chapter: { $in: req.body.chapters },
+      }).select("fcm");
+    }
     let FCM = [];
     if (users.length > 0) {
       FCM = users.map((user) => user.fcm);
@@ -448,6 +456,19 @@ exports.addRSVP = async (req, res) => {
     if (!findEvent) {
       return responseHandler(res, 404, "Event not found");
     }
+    const userData = await User.findById(req.userId).select("chapter");
+    if (!findEvent.isAllUsers) {
+      const allowed = findEvent.chapters?.some(
+        (c) => c.toString() === userData.chapter.toString()
+      );
+      if (!allowed) {
+        return responseHandler(
+          res,
+          403,
+          "This event is not available for your chapter"
+        );
+      }
+    }
     const alreadyRSVP = findEvent.rsvpnew.some(
       (rsvp) => rsvp.user.toString() === req.userId.toString()
     );
@@ -650,6 +671,19 @@ exports.markAttendance = async (req, res) => {
       },
     });
 
+
+    if (!event.isAllUsers) {
+      const allowed = event.chapters?.some(
+        (c) => c.toString() === user.chapter._id.toString()
+      );
+      if (!allowed) {
+        return responseHandler(
+          res,
+          403,
+          "User does not belong to this event chapter"
+        );
+      }
+    }
     const mappedData = {
       username: user.name,
       image: user.image,
@@ -742,6 +776,53 @@ exports.getAttendedUsers = async (req, res) => {
     );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.getAttendedUsersList = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    let { pageNo = 1, limit = 10, chapterId = null } = req.query;
+
+    pageNo = Number(pageNo);
+    limit = Number(limit);
+    const skipCount = (pageNo - 1) * limit;
+
+    const event = await Event.findById(eventId).populate({
+      path: "attented",
+      select: "name phone memberId chapter",
+      populate: { path: "chapter", select: "name" },
+    });
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+    let attendedUsers = (event.attented || []).map((user) => ({
+      _id: user._id,
+      name: user.name || "Unknown",
+      phone: user.phone || "-",
+      chapterId: user?.chapter?._id || null,
+      chaptername: user.chapter?.name || "-",
+    }));
+
+    if (typeof chapterId === "string" && chapterId.trim()) {
+      attendedUsers = attendedUsers.filter(
+        u => u?.chapterId?.toString() === chapterId.toString()
+      );
+    }
+
+    const totalCount = attendedUsers.length;
+    const paginatedUsers = attendedUsers.slice(skipCount, skipCount + limit);
+
+    return responseHandler(
+      res,
+      200,
+      "Attended users retrieved successfully",
+      paginatedUsers,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error ${error.message}`);
   }
 };
 exports.downloadEvents = async (req, res) => {
@@ -899,6 +980,60 @@ exports.downloadRsvp = async (req, res) => {
     });
   } catch (error) {
     console.error("Download RSVP Error:", error);
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+exports.downloadAttendedUsers = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    let { chapterId = null } = req.query;
+
+    const event = await Event.findById(eventId).populate({
+      path: "attented",
+      select: "name phone chapter",
+      populate: { path: "chapter", select: "name" },
+    });
+
+    if (!event) {
+      return responseHandler(res, 404, "Event not found");
+    }
+
+    const headers = [
+      { header: "Name", key: "name" },
+      { header: "Phone", key: "phone" },
+      { header: "Chapter", key: "chaptername" },
+    ];
+
+    let body = (event.attented || []).map(user => ({
+      name: user.name || "-",
+      phone: user.phone || "-",
+      chapterId: user?.chapter?._id || null,
+      chaptername: user.chapter?.name || "-",
+    }));
+
+    if (typeof chapterId === "string" && chapterId.trim()) {
+      body = body.filter(
+        r => r?.chapterId?.toString() === chapterId.toString()
+      );
+    }
+
+    body.sort((a, b) => {
+      const chapterA = (a.chaptername || "").toLowerCase();
+      const chapterB = (b.chaptername || "").toLowerCase();
+      return chapterA.localeCompare(chapterB);
+    });
+
+    const attendedCount = body.length;
+    const totalSeats = event.limit || 0;
+
+    return responseHandler(res, 200, "Attended users fetched successfully", {
+      headers,
+      body,
+      attendedCount,
+      totalSeats,
+    });
+  } catch (error) {
+    console.error("Download Attended Users Error:", error);
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }
 };

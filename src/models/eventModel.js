@@ -31,7 +31,7 @@ const eventSchema = mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["pending", "live", "completed", "cancelled"],
+      enum: ["pending", "live", "completed", "cancelled","upcoming"],
       default: "pending",
     },
     rsvp: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", },],
@@ -47,6 +47,8 @@ const eventSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    isAllUsers: { type: Boolean, default: true },
+    chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }],
     allowGuestRegistration: { type: Boolean, default: false },
     guests: [
       {

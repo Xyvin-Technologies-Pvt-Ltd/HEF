@@ -47,6 +47,12 @@ exports.createEventSchema = Joi.object({
     .required(),
   status: Joi.string(),
   attended: Joi.array().items(Joi.string()),
+  isAllUsers: Joi.boolean().default(true),
+  chapters: Joi.when("isAllUsers", {
+    is: false,
+    then: Joi.array().items(Joi.string()).min(1).required(),
+    otherwise: Joi.optional(),
+  }),
 });
 
 exports.editEventSchema = Joi.object({
@@ -76,6 +82,12 @@ exports.editEventSchema = Joi.object({
   ),
   status: Joi.string(),
   attended: Joi.array().items(Joi.string()),
+  isAllUsers: Joi.boolean(),
+  chapters: Joi.when("isAllUsers", {
+    is: false,
+    then: Joi.array().items(Joi.string()).min(1).required(),
+    otherwise: Joi.optional(),
+  }),
 });
 
 exports.createRoleSchema = Joi.object({

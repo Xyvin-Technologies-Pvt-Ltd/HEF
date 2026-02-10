@@ -23,12 +23,14 @@ eventRoute.get("/reg-events", eventController.getRegEvents);
 
 eventRoute.post("/attend/:eventId", eventController.markAttendance);
 eventRoute.get("/attend/:eventId", eventController.getAttendedUsers);
+eventRoute.get("/:eventId/attended-users", eventController.getAttendedUsersList);
 eventRoute.post("/:eventId/guests/add", eventController.addGuest);
 eventRoute.put("/:eventId/guests/:guestId/edit", eventController.editGuest);
 eventRoute.delete("/:eventId/guests/:guestId/delete", eventController.deleteGuest);
 eventRoute.get("/download", eventController.downloadEvents);
 eventRoute.get("/:eventId/download", eventController.downloadGuests);
 eventRoute.get("/:eventId/download-rsvp", eventController.downloadRsvp);
+eventRoute.get("/:eventId/download-attended", eventController.downloadAttendedUsers);
 
 
 module.exports = eventRoute;
