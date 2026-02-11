@@ -31,7 +31,7 @@ const eventSchema = mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["pending", "live", "completed", "cancelled","upcoming"],
+      enum: ["pending", "live", "completed", "cancelled"],
       default: "pending",
     },
     rsvp: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", },],
