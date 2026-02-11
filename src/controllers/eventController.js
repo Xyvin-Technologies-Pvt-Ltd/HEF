@@ -407,7 +407,6 @@ exports.getAllEventsForAdmin = async (req, res) => {
     const mappedEvents = events.map((event) => {
       return {
         ...event,
-        status: event.status == "pending",
         rsvpCount: event.rsvp.length,
         rsvp: event.rsvp.map((rsvp) => {
           return {
