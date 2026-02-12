@@ -404,9 +404,10 @@ exports.getAllEventsForAdmin = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
     const totalCount = await Event.countDocuments(filter);
-    const mappedEvents = events.map((event) => {
+    const mappedEvents = events.map((event) => {      
       return {
         ...event,
+        status: event.status === "pending" ? "upcoming" : event.status,
         rsvpCount: event.rsvp.length,
         rsvp: event.rsvp.map((rsvp) => {
           return {
