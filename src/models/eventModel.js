@@ -47,6 +47,8 @@ const eventSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    isAllUsers: { type: Boolean, default: true },
+    chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }],
     allowGuestRegistration: { type: Boolean, default: false },
     guests: [
       {

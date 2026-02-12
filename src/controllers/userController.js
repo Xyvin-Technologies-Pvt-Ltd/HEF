@@ -877,6 +877,14 @@ exports.listUsers = async (req, res) => {
       //   },
       // },
       {
+        $group: {
+          _id: "$_id",
+          doc: { $first: "$$ROOT" }
+        }
+      },
+      { $replaceRoot: { newRoot: "$doc" } },
+
+      {
         $facet: {
           metadata: [{ $count: "total" }],
           users: [
