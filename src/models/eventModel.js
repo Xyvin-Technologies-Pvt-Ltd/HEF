@@ -1,5 +1,12 @@
 const mongoose = require("mongoose");
 
+const moment = require("moment-timezone");
+const TIMEZONE = "Asia/Kolkata";
+
+const setEndOfDay = (value) => {
+  if (!value) return value;
+  return moment.tz(value, TIMEZONE).endOf("day").toDate();
+};
 const eventSchema = mongoose.Schema(
   {
     eventName: { type: String },
@@ -10,10 +17,10 @@ const eventSchema = mongoose.Schema(
     },
     image: { type: String },
     eventDate: { type: Date },
-    eventEndDate: { type: Date },
+    eventEndDate: { type: Date, set:setEndOfDay},
     startDate: { type: Date },
     startTime: { type: Date },
-    endDate: { type: Date },
+    endDate: { type: Date , set:setEndOfDay },
     endTime: { type: Date },
     platform: { type: String },
     link: { type: String },
