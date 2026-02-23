@@ -912,6 +912,7 @@ exports.downloadUser = async (req, res) => {
       name = "",
       membershipId = "",
       chapter,
+      district,
       from,
       to,
       businessCategory,
@@ -928,6 +929,13 @@ exports.downloadUser = async (req, res) => {
     }
     if (chapter && chapter !== "") {
       filter.chapter = new mongoose.Types.ObjectId(chapter);
+    }
+    else if (district && district !== "") {
+      const chapters = await Chapter.find({
+        districtId: new mongoose.Types.ObjectId(district),
+      }).select("_id");
+      const chapterIds = chapters.map(ch => ch._id);
+      filter.chapter = { $in: chapterIds };
     }
     if (businessCategory && businessCategory !== "") {
       filter.businessCatogary = { $regex: businessCategory, $options: "i" };
