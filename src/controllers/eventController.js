@@ -404,7 +404,7 @@ exports.getAllEventsForAdmin = async (req, res) => {
       .sort({ createdAt: -1, _id: 1 })
       .lean();
     const totalCount = await Event.countDocuments(filter);
-    const mappedEvents = events.map((event) => {      
+    const mappedEvents = events.map((event) => {
       return {
         ...event,
         status: event.status === "pending" ? "upcoming" : event.status,
@@ -514,12 +514,12 @@ exports.getrsvp = async (req, res) => {
     const event = await Event.findById(eventId)
       .populate({
         path: "rsvp",
-        select: "name phone memberId chapter",
+        select: "name phone memberId chapter businessCatogary",
         populate: { path: "chapter", select: "name" },
       })
       .populate({
         path: "rsvpnew.user",
-        select: "name phone memberId chapter",
+        select: "name phone memberId chapter businessCatogary",
         populate: { path: "chapter", select: "name" },
       });
 
@@ -533,6 +533,7 @@ exports.getrsvp = async (req, res) => {
       phone: user.phone || "-",
       chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
+      businessCatogary: user.businessCatogary || "-",
       registeredDate: "unknown",
     }));
 
@@ -542,6 +543,7 @@ exports.getrsvp = async (req, res) => {
       phone: rsvp.user?.phone || "-",
       chapterId: rsvp?.user?.chapter?._id || null,
       chaptername: rsvp.user?.chapter?.name || "-",
+      businessCatogary: rsvp.user?.businessCatogary || "-",
       registeredDate: rsvp.registeredDate
         ? new Date(rsvp.registeredDate).toLocaleString()
         : "unknown",
@@ -790,7 +792,7 @@ exports.getAttendedUsersList = async (req, res) => {
 
     const event = await Event.findById(eventId).populate({
       path: "attented",
-      select: "name phone memberId chapter",
+      select: "name phone memberId chapter businessCatogary",
       populate: { path: "chapter", select: "name" },
     });
 
@@ -804,6 +806,7 @@ exports.getAttendedUsersList = async (req, res) => {
       phone: user.phone || "-",
       chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
+      businessCatogary: user.businessCatogary || "-",
     }));
 
     if (typeof chapterId === "string" && chapterId.trim()) {
@@ -920,12 +923,12 @@ exports.downloadRsvp = async (req, res) => {
     const event = await Event.findById(eventId)
       .populate({
         path: "rsvp",
-        select: "name phone chapter",
+        select: "name phone chapter businessCatogary",
         populate: { path: "chapter", select: "name" },
       })
       .populate({
         path: "rsvpnew.user",
-        select: "name phone chapter",
+        select: "name phone chapter businessCatogary",
         populate: { path: "chapter", select: "name" },
       });
 
@@ -938,6 +941,7 @@ exports.downloadRsvp = async (req, res) => {
       { header: "Phone", key: "phone" },
       { header: "Chapter", key: "chaptername" },
       { header: "Registration Date", key: "registeredDate" },
+      { header: "Business Category", key: "businessCatogary" },
     ];
 
     const oldRsvp = (event.rsvp || []).map(user => ({
@@ -945,6 +949,7 @@ exports.downloadRsvp = async (req, res) => {
       phone: user.phone || "-",
       chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
+      businessCatogary: user.businessCatogary || "-",
       registeredDate: "unknown",
     }));
     const newRsvp = (event.rsvpnew || []).map(rsvp => ({
@@ -952,6 +957,7 @@ exports.downloadRsvp = async (req, res) => {
       phone: rsvp.user?.phone || "-",
       chapterId: rsvp?.user?.chapter?._id || null,
       chaptername: rsvp.user?.chapter?.name || "-",
+      businessCatogary: rsvp.user?.businessCatogary || "-",
       registeredDate: rsvp.registeredDate
         ? new Date(rsvp.registeredDate).toLocaleString()
         : "unknown",
@@ -991,7 +997,7 @@ exports.downloadAttendedUsers = async (req, res) => {
 
     const event = await Event.findById(eventId).populate({
       path: "attented",
-      select: "name phone chapter",
+      select: "name phone chapter businessCatogary",
       populate: { path: "chapter", select: "name" },
     });
 
@@ -1003,6 +1009,7 @@ exports.downloadAttendedUsers = async (req, res) => {
       { header: "Name", key: "name" },
       { header: "Phone", key: "phone" },
       { header: "Chapter", key: "chaptername" },
+      { header: "Business Category", key: "businessCatogary" },
     ];
 
     let body = (event.attented || []).map(user => ({
@@ -1010,6 +1017,7 @@ exports.downloadAttendedUsers = async (req, res) => {
       phone: user.phone || "-",
       chapterId: user?.chapter?._id || null,
       chaptername: user.chapter?.name || "-",
+      businessCatogary: user.businessCatogary || "-",
     }));
 
     if (typeof chapterId === "string" && chapterId.trim()) {
