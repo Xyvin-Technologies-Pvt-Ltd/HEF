@@ -35,6 +35,7 @@ exports.createEventSchema = Joi.object({
   organiserName: Joi.string().required(),
   coordinator: Joi.array().items(Joi.string()),
   allowGuestRegistration: Joi.boolean(),
+  registrationEnabled: Joi.boolean().default(true),
   speakers: Joi.array()
     .items(
       Joi.object({
@@ -72,6 +73,7 @@ exports.editEventSchema = Joi.object({
   organiserName: Joi.string(),
   coordinator: Joi.array().items(Joi.string()),
   allowGuestRegistration: Joi.boolean(),
+  registrationEnabled: Joi.boolean(),
   speakers: Joi.array().items(
     Joi.object({
       name: Joi.string(),
