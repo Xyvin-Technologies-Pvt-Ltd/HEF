@@ -191,6 +191,16 @@ exports.addGuest = async (req, res) => {
     if (!event) {
       return responseHandler(res, 404, "Event not found");
     }
+
+    if (event.registrationEnabled === false) {
+      return responseHandler(res, 403, "Registrations are disabled for this event");
+    }
+    if (event.eventEndDate && new Date(event.eventEndDate) < new Date()) {
+      return responseHandler(res, 403, "Registration closed (visibility ended)");
+    }
+    if (event.endDate && new Date(event.endDate) < new Date()) {
+      return responseHandler(res, 403, "Event registration has closed");
+    }
     if (!event.allowGuestRegistration) {
       return responseHandler(
         res,
@@ -370,7 +380,12 @@ exports.getSingleEvent = async (req, res) => {
 
 exports.getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find()
+    const now = new Date();
+    const events = await Event.find({
+      registrationEnabled: { $ne: false },
+      eventEndDate: { $gte: now },
+      endDate: { $gte: now },
+    })
       .populate()
       .sort({ createdAt: -1, _id: 1 });
 
@@ -456,6 +471,16 @@ exports.addRSVP = async (req, res) => {
     const findEvent = await Event.findById(id);
     if (!findEvent) {
       return responseHandler(res, 404, "Event not found");
+    }
+
+    if (findEvent.registrationEnabled === false) {
+      return responseHandler(res, 403, "Registrations are disabled for this event");
+    }
+    if (findEvent.eventEndDate && new Date(findEvent.eventEndDate) < new Date()) {
+      return responseHandler(res, 403, "Registration closed (visibility ended)");
+    }
+    if (findEvent.endDate && new Date(findEvent.endDate) < new Date()) {
+      return responseHandler(res, 403, "Event registration has closed");
     }
     const userData = await User.findById(req.userId).select("chapter");
     if (!findEvent.isAllUsers) {
