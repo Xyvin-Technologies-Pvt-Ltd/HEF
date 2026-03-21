@@ -195,9 +195,6 @@ exports.addGuest = async (req, res) => {
     if (event.registrationEnabled === false) {
       return responseHandler(res, 403, "Registrations are disabled for this event");
     }
-    if (event.eventEndDate && new Date(event.eventEndDate) < new Date()) {
-      return responseHandler(res, 403, "Registration closed (visibility ended)");
-    }
     if (event.endDate && new Date(event.endDate) < new Date()) {
       return responseHandler(res, 403, "Event registration has closed");
     }
@@ -383,7 +380,6 @@ exports.getAllEvents = async (req, res) => {
     const now = new Date();
     const events = await Event.find({
       registrationEnabled: { $ne: false },
-      eventEndDate: { $gte: now },
       endDate: { $gte: now },
     })
       .populate()
@@ -475,9 +471,6 @@ exports.addRSVP = async (req, res) => {
 
     if (findEvent.registrationEnabled === false) {
       return responseHandler(res, 403, "Registrations are disabled for this event");
-    }
-    if (findEvent.eventEndDate && new Date(findEvent.eventEndDate) < new Date()) {
-      return responseHandler(res, 403, "Registration closed (visibility ended)");
     }
     if (findEvent.endDate && new Date(findEvent.endDate) < new Date()) {
       return responseHandler(res, 403, "Event registration has closed");
