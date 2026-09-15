@@ -1,22 +1,43 @@
 const { getMessaging } = require("firebase-admin/messaging");
 
+/**
+ * Send FCM push. All `data` values must be strings (FCM requirement).
+ * @param {string[]} fcmTokens
+ * @param {string} title
+ * @param {string} body
+ * @param {string|null} media
+ * @param {string} tag - mapped to data.screen
+ * @param {string|null} id - mapped to data.id (conversation / entity id)
+ * @param {Record<string, string|number|boolean>} [extraData]
+ */
 const sendInAppNotification = async (
   fcmTokens,
   title,
   body,
   media = null,
   tag = "general",
-  id = null
+  id = null,
+  extraData = {}
 ) => {
   try {
-    if (!fcmTokens || fcmTokens.length === 0) {
-      throw new Error("FCM tokens are required");
+    const tokens = (fcmTokens || []).filter(
+      (t) => typeof t === "string" && t.trim().length > 0
+    );
+    if (tokens.length === 0) {
+      console.warn("sendInAppNotification: no valid FCM tokens, skipping");
+      return;
+    }
+
+    const stringData = {};
+    for (const [key, value] of Object.entries(extraData || {})) {
+      if (value === undefined || value === null) continue;
+      stringData[key] = String(value);
     }
 
     const message = {
       notification: {
         title,
-        body,
+        body: body || "",
       },
       android: {
         notification: {
@@ -36,20 +57,21 @@ const sendInAppNotification = async (
         },
       },
       data: {
-        screen: tag,
-        ...(id && { id }),
+        screen: String(tag),
+        ...(id != null && id !== "" && { id: String(id) }),
+        ...stringData,
       },
     };
 
-    if (fcmTokens.length === 1) {
+    if (tokens.length === 1) {
       const singleMessage = {
         ...message,
-        token: fcmTokens[0],
+        token: tokens[0],
       };
       const response = await getMessaging().send(singleMessage);
       console.log("🚀 ~ Single message sent successfullyy:", response);
     } else {
-      message.tokens = fcmTokens;
+      message.tokens = tokens;
       const response = await getMessaging().sendEachForMulticast(message);
       console.log("🚀 ~ Multicast message sent successfullyy:", response);
 

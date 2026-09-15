@@ -92,11 +92,15 @@ exports.sendMessage = async (req, res) => {
 
       await sendInAppNotification(
         fcmTokens,
-        `New Message ${chat.groupName}`,
-        content,
+        `New Message ${chat.groupName || "Group"}`,
+        content || "New attachment",
         null,
         "group_chat",
-        to
+        to,
+        {
+          senderId: from.toString(),
+          isGroup: "true",
+        }
       );
       for (const user of allUsers) {
         const receiverSocketId = getReceiverSocketId(user.toString());
@@ -115,11 +119,15 @@ exports.sendMessage = async (req, res) => {
       const fcmUser = [toUser.fcm];
       await sendInAppNotification(
         fcmUser,
-        `New Message ${fromUser.name}`,
-        content,
+        `New Message ${fromUser?.name || "User"}`,
+        content || "New attachment",
         null,
         "chat",
-        from.toString()
+        from.toString(),
+        {
+          senderId: from.toString(),
+          isGroup: "false",
+        }
       );
       if (receiverSocketId) {
         chatNamespace.to(receiverSocketId).emit("message", newMessage);
@@ -149,6 +157,16 @@ exports.getBetweenUsers = async (req, res) => {
         select: "media",
       })
       .populate("product", "name image price");
+
+    // Soft-deleted tombstones: keep row for timeline, clear sensitive payload
+    for (const msg of messages) {
+      if (msg.isDeleted) {
+        msg.content = "";
+        msg.attachments = [];
+        msg.feed = undefined;
+        msg.product = undefined;
+      }
+    }
 
     await Message.updateMany(
       { from: userId, to: id, status: { $ne: "seen" } },
@@ -182,6 +200,13 @@ exports.getChats = async (req, res) => {
       .populate("lastMessage")
       .sort({ lastMessage: -1, _id: 1 })
       .exec();
+
+    for (const chat of chats) {
+      if (chat.lastMessage && chat.lastMessage.isDeleted) {
+        chat.lastMessage.content = "";
+        chat.lastMessage.attachments = [];
+      }
+    }
 
     const totalCount = await Chat.countDocuments({
       participants: req.userId,
@@ -254,6 +279,13 @@ exports.getGroupMessage = async (req, res) => {
       .sort({ createdAt: 1, _id: 1 })
       .populate("from", "name image");
 
+    for (const msg of messages) {
+      if (msg.isDeleted) {
+        msg.content = "";
+        msg.attachments = [];
+      }
+    }
+
     if (!messages.length) {
       return responseHandler(res, 404, "No messages found in this group.");
     }
@@ -294,10 +326,15 @@ exports.getGroupList = async (req, res) => {
       participants: req.userId,
     });
     const mappedData = group.map((item) => {
+      const last = item.lastMessage;
+      const lastPreview =
+        last && last.isDeleted
+          ? "This message was deleted"
+          : last?.content || "";
       return {
         _id: item._id,
         groupName: item.groupName,
-        lastMessage: item.lastMessage?.content,
+        lastMessage: lastPreview,
         unreadCount: item.unreadCount[req.userId] || 0,
       };
     });
@@ -468,6 +505,136 @@ exports.getGroup = async (req, res) => {
       return responseHandler(res, 404, `Group not found`);
     }
     return responseHandler(res, 200, `Group details`, group);
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+
+/**
+ * Soft-delete a message (own messages only).
+ * DELETE /api/v1/chat/delete-message/:messageId
+ * Emits socket event: message_deleted for peer sync.
+ */
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.userId;
+    const mongoose = require("mongoose");
+
+    if (!messageId) {
+      return responseHandler(res, 400, "Message id is required");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return responseHandler(res, 400, "Invalid message id");
+    }
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return responseHandler(res, 404, "Message not found");
+    }
+
+    if (message.from.toString() !== userId.toString()) {
+      return responseHandler(
+        res,
+        403,
+        "You can only delete your own messages"
+      );
+    }
+
+    if (message.isDeleted) {
+      const already = message.toObject();
+      already.content = "";
+      already.attachments = [];
+      return responseHandler(res, 200, "Message already deleted", already);
+    }
+
+    message.isDeleted = true;
+    message.deletedAt = new Date();
+    // Keep content for audit on server; clients should hide body when isDeleted
+    await message.save();
+
+    // If this was the chat's lastMessage, point to previous non-deleted message
+    const chatsWithLast = await Chat.find({ lastMessage: message._id });
+    for (const chat of chatsWithLast) {
+      let previous = null;
+      if (chat.isGroup) {
+        previous = await Message.findOne({
+          to: chat._id,
+          isDeleted: { $ne: true },
+        }).sort({ createdAt: -1, _id: -1 });
+      } else {
+        const participantIds = (chat.participants || []).map((p) =>
+          p.toString()
+        );
+        if (participantIds.length >= 2) {
+          previous = await Message.findOne({
+            isDeleted: { $ne: true },
+            $or: [
+              { from: participantIds[0], to: participantIds[1] },
+              { from: participantIds[1], to: participantIds[0] },
+            ],
+          }).sort({ createdAt: -1, _id: -1 });
+        }
+      }
+      chat.lastMessage = previous ? previous._id : null;
+      await chat.save();
+    }
+
+    // Realtime notify peers (single event name to avoid double client handling)
+    const payloadBase = {
+      _id: message._id.toString(),
+      from: message.from.toString(),
+      to: message.to ? message.to.toString() : null,
+      content: "",
+      attachments: [],
+      status: message.status,
+      isDeleted: true,
+      deletedAt: message.deletedAt,
+      createdAt: message.createdAt,
+      updatedAt: message.updatedAt,
+    };
+
+    const emitDeleted = (receiverId, isGroup) => {
+      const socketId = getReceiverSocketId(receiverId.toString());
+      if (!socketId) return;
+      const payload = isGroup
+        ? {
+            ...payloadBase,
+            isGroup: true,
+            // Group client model expects from as user object
+            from: { _id: message.from.toString() },
+          }
+        : { ...payloadBase, isGroup: false };
+      chatNamespace.to(socketId).emit("message_deleted", payload);
+    };
+
+    // Determine group vs 1:1 from Chat document if possible
+    const groupChat = await Chat.findById(message.to);
+    if (groupChat && groupChat.isGroup) {
+      for (const participant of groupChat.participants) {
+        if (participant.toString() === userId.toString()) continue;
+        emitDeleted(participant, true);
+      }
+    } else {
+      // 1:1 — message.to is the peer user id
+      const peerId =
+        message.from.toString() === userId.toString()
+          ? message.to
+          : message.from;
+      if (peerId) emitDeleted(peerId, false);
+    }
+
+    const responseBody = message.toObject();
+    responseBody.content = "";
+    responseBody.attachments = [];
+    return responseHandler(
+      res,
+      200,
+      "Message deleted successfully",
+      responseBody
+    );
   } catch (error) {
     return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
   }

@@ -308,3 +308,32 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /chat/delete-message/{messageId}:
+ *   delete:
+ *     summary: Soft-delete a chat message
+ *     description: Marks a message as deleted. Only the sender can delete their own message. Peers are notified via Socket.IO events `message_deleted` / `messageDeleted`.
+ *     tags:
+ *       - Chat
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *         description: Message document ID
+ *     responses:
+ *       200:
+ *         description: Message soft-deleted successfully
+ *       403:
+ *         description: Not the message owner
+ *       404:
+ *         description: Message not found
+ *       500:
+ *         description: Internal server error
+ */

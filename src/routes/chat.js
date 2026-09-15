@@ -5,7 +5,8 @@ const chatRoute = express.Router();
 
 chatRoute.use(authVerify);
 
-chatRoute.post("/send-message/:id",chatController.sendMessage);
+chatRoute.post("/send-message/:id", chatController.sendMessage);
+chatRoute.delete("/delete-message/:messageId", chatController.deleteMessage);
 chatRoute.post("/create-group", chatController.createGroup);
 chatRoute.get("/get-chats", chatController.getChats);
 chatRoute.get("/group-message/:id", chatController.getGroupMessage);
