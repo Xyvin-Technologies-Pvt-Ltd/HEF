@@ -622,36 +622,75 @@ exports.getHierarchyList = async (req, res) => {
     let data = [];
     let totalCount = 0;
     const mapData = (items, category) =>
-      items.map((item) => ({
-        _id: item._id,
-        name: item.name,
-        admins: item.admins || [],
-        category,
-        pstCount: item.admins.length,
-        createdAt: item.createdAt,
-      }));
+      items.map((item) => {
+        const adminsList = item.admins || [];
+        const pstDetails = adminsList
+          .map((a) => {
+            const roleName = a.role
+              ? a.role.charAt(0).toUpperCase() + a.role.slice(1)
+              : "Admin";
+            const userName =
+              a.user?.name || (typeof a.user === "string" ? a.user : "Unknown");
+            return `${roleName}: ${userName}`;
+          })
+          .join(", ");
+
+        return {
+          _id: item._id,
+          name: item.name,
+          admins: adminsList,
+          category,
+          pstCount: adminsList.length,
+          pstMembers: pstDetails || "None",
+          createdAt: item.createdAt,
+        };
+      });
 
     if (type === "state") {
       totalCount = await State.countDocuments(filter);
-      const states = await State.find(filter).sort({ name: 1 }).limit(limit).skip(skip);
+      const states = await State.find(filter)
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 })
+        .limit(limit)
+        .skip(skip);
       data = mapData(states, "state");
     } else if (type === "zone") {
       totalCount = await Zone.countDocuments(filter);
-      const zones = await Zone.find(filter).sort({ name: 1 }).limit(limit).skip(skip);
+      const zones = await Zone.find(filter)
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 })
+        .limit(limit)
+        .skip(skip);
       data = mapData(zones, "zone");
     } else if (type === "district") {
       totalCount = await District.countDocuments(filter);
-      const districts = await District.find(filter).sort({ name: 1 }).limit(limit).skip(skip);
+      const districts = await District.find(filter)
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 })
+        .limit(limit)
+        .skip(skip);
       data = mapData(districts, "district");
     } else if (type === "chapter") {
       totalCount = await Chapter.countDocuments(filter);
-      const chapters = await Chapter.find(filter).sort({ name: 1 }).limit(limit).skip(skip);
+      const chapters = await Chapter.find(filter)
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 })
+        .limit(limit)
+        .skip(skip);
       data = mapData(chapters, "chapter");
     } else if (type === "all") {
-      const states = await State.find().sort({ name: 1 });
-      const zones = await Zone.find().sort({ name: 1 });
-      const districts = await District.find().sort({ name: 1 });
-      const chapters = await Chapter.find().sort({ name: 1 });
+      const states = await State.find()
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 });
+      const zones = await Zone.find()
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 });
+      const districts = await District.find()
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 });
+      const chapters = await Chapter.find()
+        .populate("admins.user", "name phone email memberId")
+        .sort({ name: 1 });
 
       data = [
         ...mapData(states, "state"),
