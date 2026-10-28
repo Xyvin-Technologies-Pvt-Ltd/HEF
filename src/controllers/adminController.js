@@ -871,9 +871,32 @@ exports.bulkCreateUser = async (req, res) => {
     let generatedMemberIds = new Set();
 
     for (let user of users) {
-      const chapter = await Chapter.findById(user.chapter);
+      const chapterCode = String(user.chapterCode || user.chapter || "").trim();
+
+      // Look up chapter by shortCode (case-insensitive)
+      let chapter = await Chapter.findOne({
+        shortCode: { $regex: new RegExp(`^${chapterCode}$`, "i") },
+      });
+
+      // Fallback: in case an existing MongoDB ObjectId is passed
+      if (!chapter && mongoose.Types.ObjectId.isValid(chapterCode)) {
+        chapter = await Chapter.findById(chapterCode);
+      }
+
       if (!chapter) {
-        return responseHandler(res, 400, `Invalid chapter ID: ${user.chapter}`);
+        return responseHandler(
+          res,
+          400,
+          `Invalid chapter code or ID: ${chapterCode}`
+        );
+      }
+
+      if (!chapter.shortCode) {
+        return responseHandler(
+          res,
+          400,
+          `Chapter '${chapter.name}' does not have a short code configured.`
+        );
       }
 
       let uniqueMemberId = await generateUniqueMemberId(
@@ -883,6 +906,10 @@ exports.bulkCreateUser = async (req, res) => {
       );
       user.memberId = uniqueMemberId;
       generatedMemberIds.add(uniqueMemberId);
+
+      // Set the chapter reference in the DB to the Chapter's ObjectId
+      user.chapter = chapter._id;
+      delete user.chapterCode;
 
       if (user.businessTags && typeof user.businessTags === "string") {
         user.businessTags = user.businessTags

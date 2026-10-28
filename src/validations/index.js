@@ -599,11 +599,12 @@ exports.bulkCreateUserSchema = Joi.array().items(
     name: Joi.string().required(),
     email: Joi.string().allow("").email(),
     phone: Joi.string().required(),
-    chapter: Joi.string().required(),
+    chapterCode: Joi.string(),
+    chapter: Joi.string(),
     businessTags: Joi.array(),
     dateOfJoining: Joi.date(),
     designation: Joi.string(),
-  })
+  }).or("chapterCode", "chapter")
 );
 
 exports.addGuestUserSchema =
