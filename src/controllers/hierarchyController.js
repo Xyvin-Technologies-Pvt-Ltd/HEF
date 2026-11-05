@@ -7,7 +7,7 @@ const Zone = require("../models/zoneModel");
 const Chapter = require("../models/chapterModel");
 const Member = require("../models/memberModel");
 const User = require("../models/userModel");
-const { isUserAdmin } = require("../utils/adminCheck");
+const { isUserAdmin, hierarchyRoleLabel } = require("../utils/adminCheck");
 
 //state
 
@@ -626,9 +626,7 @@ exports.getHierarchyList = async (req, res) => {
         const adminsList = item.admins || [];
         const pstDetails = adminsList
           .map((a) => {
-            const roleName = a.role
-              ? a.role.charAt(0).toUpperCase() + a.role.slice(1)
-              : "Admin";
+            const roleName = hierarchyRoleLabel(a.role);
             const userName =
               a.user?.name || (typeof a.user === "string" ? a.user : "Unknown");
             return `${roleName}: ${userName}`;

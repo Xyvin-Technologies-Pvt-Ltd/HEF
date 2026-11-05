@@ -155,7 +155,7 @@
  *               role:
  *                 type: string
  *                 description: Role assigned to the user.
- *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
+ *                 enum: ["president", "secretary", "treasurer", "b2b_coordinator", "rep", "member"]
  *                 example: "member"
  *               chapter:
  *                 type: string
@@ -376,7 +376,7 @@
  *                 example: "O+"
  *               role:
  *                 type: string
- *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
+ *                 enum: ["president", "secretary", "treasurer", "b2b_coordinator", "rep", "member"]
  *                 description: Role assigned to the user.
  *                 example: "member"
  *               chapter:
@@ -586,7 +586,7 @@
  *               role:
  *                 type: string
  *                 description: Role assigned to the user.
- *                 enum: ["president", "secretary", "treasurer", "rep", "member"]
+ *                 enum: ["president", "secretary", "treasurer", "b2b_coordinator", "rep", "member"]
  *                 example: "member"
  *               chapter:
  *                 type: string
