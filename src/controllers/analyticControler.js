@@ -10,7 +10,11 @@ const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
 const District = require("../models/districtModel");
 const Chapter = require("../models/chapterModel");
-const { isUserAdmin } = require("../utils/adminCheck");
+const {
+  isUserAdmin,
+  getScopedChapterIds,
+  canUserAcceptBusiness,
+} = require("../utils/adminCheck");
 
 exports.sendRequest = async (req, res) => {
   try {
@@ -309,13 +313,29 @@ exports.getRequests = async (req, res) => {
 
     const skipCount = 10 * (pageNo - 1);
 
+    const adminInfo = await isUserAdmin(userId);
+    const isB2BCoordinator = adminInfo?.role === "b2b_coordinator";
+    const scopedChapterIds = isB2BCoordinator
+      ? await getScopedChapterIds(adminInfo)
+      : [];
+
     let query;
     if (filter === "sent") {
       query = { sender: userId };
     } else if (filter === "received") {
       query = { member: userId };
     } else {
-      query = { $or: [{ sender: userId }, { member: userId }] };
+      const or = [{ sender: userId }, { member: userId }];
+      if (isB2BCoordinator && scopedChapterIds.length) {
+        const receivers = await User.find({
+          chapter: { $in: scopedChapterIds },
+        }).select("_id");
+        const receiverIds = receivers.map((receiver) => receiver._id);
+        if (receiverIds.length) {
+          or.push({ member: { $in: receiverIds }, status: "pending" });
+        }
+      }
+      query = { $or: or };
     }
 
     if (requestType) {
@@ -335,7 +355,7 @@ exports.getRequests = async (req, res) => {
 
     const response = await Analytic.find(query)
       .populate("sender", "name image")
-      .populate("member", "name image")
+      .populate("member", "name image chapter")
       .skip(skipCount)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -345,6 +365,16 @@ exports.getRequests = async (req, res) => {
       let user_image;
       let user_id;
 
+      const isSender = String(data.sender?._id || "") === String(userId);
+      const isReceiver = String(data.member?._id || "") === String(userId);
+      const receiverChapter = data.member?.chapter;
+      const coordinatorInScope =
+        isB2BCoordinator &&
+        !isSender &&
+        scopedChapterIds.some(
+          (chapterId) => String(chapterId) === String(receiverChapter)
+        );
+
       if (filter === "sent") {
         user_id = data.member?._id;
         username = data.member?.name || "";
@@ -353,20 +383,23 @@ exports.getRequests = async (req, res) => {
         user_id = data.sender?._id;
         username = data.sender?.name || "";
         user_image = data.sender?.image || "";
+      } else if (!isSender && !isReceiver) {
+        user_id = data.member?._id;
+        username = data.member?.name || "";
+        user_image = data.member?.image || "";
       } else {
-        user_id =
-          req.userId == data.sender?._id
-            ? data.member?._id
-            : data.sender?._id || "";
-        username =
-          req.userId == data.sender?._id
-            ? data.member?.name
-            : data.sender?.name || "";
-        user_image =
-          req.userId == data.sender?._id
-            ? data.member?.image
-            : data.sender?.image || "";
+        user_id = isSender ? data.member?._id : data.sender?._id || "";
+        username = isSender
+          ? data.member?.name || ""
+          : data.sender?.name || "";
+        user_image = isSender
+          ? data.member?.image || ""
+          : data.sender?.image || "";
       }
+
+      let viewerRole = "sender";
+      if (!isSender && isReceiver) viewerRole = "receiver";
+      else if (!isSender && !isReceiver) viewerRole = "coordinator";
 
       return {
         _id: data._id,
@@ -382,6 +415,10 @@ exports.getRequests = async (req, res) => {
         amount: data.amount,
         meetingLink: data?.meetingLink,
         referral: data?.referral,
+        senderName: data.sender?.name || "",
+        receiverName: data.member?.name || "",
+        viewerRole,
+        canAccept: !isSender && (isReceiver || coordinatorInScope),
       };
     });
     return responseHandler(
@@ -578,6 +615,34 @@ exports.updateRequestStatus = async (req, res) => {
         400,
         "Invalid input: Request ID and action (accepted/rejected/meeting_scheduled) are required."
       );
+    }
+
+    const existingRequest = await Analytic.findById(requestId)
+      .populate("sender", "fcm")
+      .populate("member", "fcm chapter");
+
+    if (!existingRequest) {
+      return responseHandler(res, 404, "Request not found.");
+    }
+
+    if (["accepted", "rejected"].includes(action) && req.role !== "admin") {
+      const senderId = existingRequest.sender?._id || existingRequest.sender;
+      if (senderId && String(senderId) === String(req.userId)) {
+        return responseHandler(
+          res,
+          403,
+          "Sender cannot accept or reject this business"
+        );
+      }
+
+      const allowed = await canUserAcceptBusiness(req.userId, existingRequest);
+      if (!allowed) {
+        return responseHandler(
+          res,
+          403,
+          "Only the receiver or the B2B coordinator can accept or reject this business"
+        );
+      }
     }
 
     const updatedRequest = await Analytic.findByIdAndUpdate(

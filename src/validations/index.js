@@ -199,51 +199,58 @@ exports.createReport = Joi.object({
   reason: Joi.string().allow(""),
 });
 
+const hierarchyAdminSchema = Joi.object({
+  user: Joi.string().required(),
+  role: Joi.string()
+    .valid("president", "secretary", "treasurer", "b2b_coordinator")
+    .required(),
+}).unknown(true);
+
 exports.createStateSchema = Joi.object({
   name: Joi.string().required(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.editStateSchema = Joi.object({
   name: Joi.string().required(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.createDistrictSchema = Joi.object({
   name: Joi.string().required(),
   zoneId: Joi.string().required(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.editDistrictSchema = Joi.object({
   name: Joi.string(),
   zoneId: Joi.string(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.createChapterSchema = Joi.object({
   name: Joi.string().required(),
   shortCode: Joi.string().required(),
   districtId: Joi.string().required(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.editChapterSchema = Joi.object({
   name: Joi.string().required(),
   districtId: Joi.string(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.createZoneSchema = Joi.object({
   name: Joi.string().required(),
   stateId: Joi.string().required(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.editZoneSchema = Joi.object({
   name: Joi.string(),
   stateId: Joi.string(),
-  admins: Joi.array(),
+  admins: Joi.array().items(hierarchyAdminSchema),
 });
 
 exports.createMemberSchema = Joi.object({
