@@ -2,6 +2,7 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
+const User = require("../models/userModel");
 const HIERARCHY_ROLE_LABELS = {
   president: "President",
   secretary: "Secretary",
@@ -105,6 +106,58 @@ const toId = (value) => {
 
 const partyId = (party) => toId(party?._id || party);
 
+const findCoordinatorAssignments = async (userId) => {
+  const assignments = [];
+  const collect = (docs, type) => {
+    for (const doc of docs) {
+      const entry = (doc.admins || []).find(
+        (admin) =>
+          admin.user &&
+          String(admin.user) === String(userId) &&
+          normalizedRole(admin.role) === "b2b_coordinator"
+      );
+      if (entry) {
+        assignments.push({
+          type,
+          id: doc._id,
+          name: doc.name,
+          role: "b2b_coordinator",
+        });
+      }
+    }
+  };
+
+  collect(await State.find({ "admins.user": userId }).select("name admins"), "State Admin");
+  collect(await Zone.find({ "admins.user": userId }).select("name admins"), "Zone Admin");
+  collect(
+    await District.find({ "admins.user": userId }).select("name admins"),
+    "District Admin"
+  );
+  collect(
+    await Chapter.find({ "admins.user": userId }).select("name admins"),
+    "Chapter Admin"
+  );
+  return assignments;
+};
+
+const getCoordinatorChapterIds = async (userId) => {
+  const assignments = await findCoordinatorAssignments(userId);
+  const ids = [];
+  for (const assignment of assignments) {
+    ids.push(...(await getScopedChapterIds(assignment)));
+  }
+  return [...new Map(ids.map((id) => [toId(id), id])).values()];
+};
+
+const chapterIdOf = async (party) => {
+  const direct = party?.chapter?._id || party?.chapter;
+  if (direct) return toId(direct);
+  const id = partyId(party);
+  if (!id) return "";
+  const user = await User.findById(id).select("chapter");
+  return toId(user?.chapter);
+};
+
 const canUserAcceptBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
 
@@ -115,18 +168,24 @@ const canUserAcceptBusiness = async (userId, analytic) => {
 
 const canCoordinatorReviewBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
-  if (String(analytic.type || "").trim() !== "Business") return false;
+  if (String(analytic.type || "").trim().toLowerCase() !== "business") return false;
+  if (partyId(analytic.sender) === toId(userId)) return false;
 
-  const adminInfo = await isUserAdmin(userId);
-  // Chapter ids on the business do not reliably match the chapter this
-  // coordinator administers, so a B2B coordinator may decide any business:
-  // their own, one they received, or one between other members.
-  return normalizedRole(adminInfo?.role) === "b2b_coordinator";
+  const assignments = await findCoordinatorAssignments(userId);
+  if (!assignments.length) return false;
+
+  const chapterIds = await getCoordinatorChapterIds(userId);
+  const allowed = new Set(chapterIds.map((id) => toId(id)));
+  const receiverChapter = await chapterIdOf(analytic.member);
+  const senderChapter = await chapterIdOf(analytic.sender);
+  return allowed.has(receiverChapter) || allowed.has(senderChapter);
 };
 
 module.exports = {
   isUserAdmin,
   getScopedChapterIds,
+  getCoordinatorChapterIds,
+  findCoordinatorAssignments,
   canUserAcceptBusiness,
   canCoordinatorReviewBusiness,
   hierarchyRoleLabel,

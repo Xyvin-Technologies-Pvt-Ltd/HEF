@@ -12,7 +12,8 @@ const District = require("../models/districtModel");
 const Chapter = require("../models/chapterModel");
 const {
   isUserAdmin,
-  getScopedChapterIds,
+  getCoordinatorChapterIds,
+  findCoordinatorAssignments,
   canUserAcceptBusiness,
   canCoordinatorReviewBusiness,
 } = require("../utils/adminCheck");
@@ -314,11 +315,12 @@ exports.getRequests = async (req, res) => {
 
     const skipCount = 10 * (pageNo - 1);
 
-    const adminInfo = await isUserAdmin(userId);
-    const isB2BCoordinator = adminInfo?.role === "b2b_coordinator";
+    const coordinatorAssignments = await findCoordinatorAssignments(userId);
+    const isB2BCoordinator = coordinatorAssignments.length > 0;
     const scopedChapterIds = isB2BCoordinator
-      ? await getScopedChapterIds(adminInfo)
+      ? await getCoordinatorChapterIds(userId)
       : [];
+    const scopedChapterSet = new Set(scopedChapterIds.map((id) => String(id)));
 
     let query;
     if (filter === "sent") {
@@ -328,12 +330,15 @@ exports.getRequests = async (req, res) => {
     } else {
       const or = [{ sender: userId }, { member: userId }];
       if (isB2BCoordinator && scopedChapterIds.length) {
-        const receivers = await User.find({
+        const people = await User.find({
           chapter: { $in: scopedChapterIds },
         }).select("_id");
-        const receiverIds = receivers.map((receiver) => receiver._id);
-        if (receiverIds.length) {
-          or.push({ member: { $in: receiverIds }, status: "pending" });
+        const peopleIds = people.map((person) => person._id);
+        if (peopleIds.length) {
+          or.push({
+            type: "Business",
+            $or: [{ member: { $in: peopleIds } }, { sender: { $in: peopleIds } }],
+          });
         }
       }
       query = { $or: or };
@@ -355,7 +360,7 @@ exports.getRequests = async (req, res) => {
     const totalCount = await Analytic.countDocuments(query);
 
     const response = await Analytic.find(query)
-      .populate("sender", "name image")
+      .populate("sender", "name image chapter")
       .populate("member", "name image chapter")
       .skip(skipCount)
       .limit(limit)
@@ -395,6 +400,15 @@ exports.getRequests = async (req, res) => {
       if (!isSender && isReceiver) viewerRole = "receiver";
       else if (!isSender && !isReceiver) viewerRole = "coordinator";
 
+      const partyChapter = (party) =>
+        String(party?.chapter?._id || party?.chapter || "");
+      const inCoordinatorChapter =
+        isB2BCoordinator &&
+        !isSender &&
+        String(data.type || "") === "Business" &&
+        (scopedChapterSet.has(partyChapter(data.member)) ||
+          scopedChapterSet.has(partyChapter(data.sender)));
+
       return {
         _id: data._id,
         username,
@@ -412,9 +426,7 @@ exports.getRequests = async (req, res) => {
         senderName: data.sender?.name || "",
         receiverName: data.member?.name || "",
         viewerRole,
-        canAccept:
-          (isReceiver && !isSender) ||
-          (isB2BCoordinator && data.type === "Business" && data.status !== "completed"),
+        canAccept: (isReceiver && !isSender) || inCoordinatorChapter,
       };
     });
     return responseHandler(
@@ -431,12 +443,8 @@ exports.getRequests = async (req, res) => {
 
 exports.getChapterBusiness = async (req, res) => {
   try {
-    const adminInfo = await isUserAdmin(req.userId);
-    const coordinatorRole = String(adminInfo?.role || "")
-      .trim()
-      .toLowerCase()
-      .replace(/[\s-]+/g, "_");
-    if (coordinatorRole !== "b2b_coordinator") {
+    const assignments = await findCoordinatorAssignments(req.userId);
+    if (!assignments.length) {
       return responseHandler(
         res,
         403,
@@ -444,9 +452,7 @@ exports.getChapterBusiness = async (req, res) => {
       );
     }
 
-    const chapterIds = await getScopedChapterIds(adminInfo);
-    const self = await User.findById(req.userId).select("chapter");
-    if (self?.chapter) chapterIds.push(self.chapter);
+    const chapterIds = await getCoordinatorChapterIds(req.userId);
     if (!chapterIds.length) {
       return responseHandler(res, 200, "Requests fetched successfully", [], 0);
     }
@@ -501,7 +507,9 @@ exports.getChapterBusiness = async (req, res) => {
         amount: data.amount,
         referral: data.referral,
         viewerRole: "coordinator",
-        canAccept: data.status !== "completed",
+        canAccept:
+          data.status !== "completed" &&
+          String(data.sender?._id || "") !== String(req.userId),
       };
     });
 
@@ -732,7 +740,7 @@ exports.updateRequestStatus = async (req, res) => {
           return responseHandler(
             res,
             403,
-            "Only the receiver can accept or reject this request"
+            "Only the receiver, or the B2B coordinator for this chapter, can accept or reject this request"
           );
         }
       }
