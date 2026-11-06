@@ -2,6 +2,7 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
+const User = require("../models/userModel");
 const HIERARCHY_ROLE_LABELS = {
   president: "President",
   secretary: "Secretary",
@@ -100,9 +101,44 @@ const canUserAcceptBusiness = async (userId, analytic) => {
   return Boolean(receiverId && String(receiverId) === String(userId));
 };
 
+const chapterIdOf = (value) => {
+  if (!value) return "";
+  if (value._id) return String(value._id);
+  return String(value);
+};
+
+const canCoordinatorReviewBusiness = async (userId, analytic) => {
+  if (!userId || !analytic || analytic.type !== "Business") return false;
+
+  const senderId = analytic.sender?._id || analytic.sender;
+  if (senderId && String(senderId) === String(userId)) return false;
+
+  const adminInfo = await isUserAdmin(userId);
+  if (!adminInfo || adminInfo.role !== "b2b_coordinator") return false;
+
+  const chapterIds = (await getScopedChapterIds(adminInfo)).map(String);
+  if (!chapterIds.length) return false;
+
+  const memberId = analytic.member?._id || analytic.member;
+  let chapters = [
+    chapterIdOf(analytic.sender?.chapter),
+    chapterIdOf(analytic.member?.chapter),
+  ].filter(Boolean);
+
+  if (!chapters.length) {
+    const users = await User.find({
+      _id: { $in: [senderId, memberId].filter(Boolean) },
+    }).select("chapter");
+    chapters = users.map((user) => chapterIdOf(user.chapter)).filter(Boolean);
+  }
+
+  return chapters.some((chapterId) => chapterIds.includes(chapterId));
+};
+
 module.exports = {
   isUserAdmin,
   getScopedChapterIds,
   canUserAcceptBusiness,
+  canCoordinatorReviewBusiness,
   hierarchyRoleLabel,
 };

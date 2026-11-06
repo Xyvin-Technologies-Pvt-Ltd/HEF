@@ -122,7 +122,7 @@
  * /analytic/status:
  *   post:
  *     summary: Update the status of an analytic request
- *     description: Updates the status of an analytic request. Accept, reject, and meeting scheduling are allowed only for the receiver. The sender can send the request and cannot accept it.
+ *     description: Updates the status of an analytic request. The receiver can accept, reject, or schedule. A B2B coordinator can accept or reject a business in their chapter. The sender cannot accept.
  *     tags:
  *       - Analytic
  *     requestBody:

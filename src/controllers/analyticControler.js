@@ -14,6 +14,7 @@ const {
   isUserAdmin,
   getScopedChapterIds,
   canUserAcceptBusiness,
+  canCoordinatorReviewBusiness,
 } = require("../utils/adminCheck");
 
 exports.sendRequest = async (req, res) => {
@@ -426,6 +427,89 @@ exports.getRequests = async (req, res) => {
   }
 };
 
+exports.getChapterBusiness = async (req, res) => {
+  try {
+    const adminInfo = await isUserAdmin(req.userId);
+    if (!adminInfo || adminInfo.role !== "b2b_coordinator") {
+      return responseHandler(
+        res,
+        403,
+        "Only a B2B coordinator can view chapter business"
+      );
+    }
+
+    const chapterIds = await getScopedChapterIds(adminInfo);
+    if (!chapterIds.length) {
+      return responseHandler(res, 200, "Requests fetched successfully", [], 0);
+    }
+
+    const members = await User.find({ chapter: { $in: chapterIds } }).select(
+      "_id"
+    );
+    const memberIds = members.map((member) => member._id);
+    if (!memberIds.length) {
+      return responseHandler(res, 200, "Requests fetched successfully", [], 0);
+    }
+
+    const { startDate, endDate, limit = 20, pageNo = 1 } = req.query;
+    const query = {
+      type: "Business",
+      $or: [{ sender: { $in: memberIds } }, { member: { $in: memberIds } }],
+    };
+
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(`${startDate}T00:00:00.000Z`),
+        $lte: new Date(`${endDate}T23:59:59.999Z`),
+      };
+    }
+
+    const page = Math.max(Number(pageNo) || 1, 1);
+    const pageLimit = Math.min(Math.max(Number(limit) || 20, 1), 10000);
+    const totalCount = await Analytic.countDocuments(query);
+    const rows = await Analytic.find(query)
+      .populate("sender", "name image")
+      .populate("member", "name image")
+      .sort({ date: -1, createdAt: -1 })
+      .skip(pageLimit * (page - 1))
+      .limit(pageLimit);
+
+    const mapped = rows.map((data) => {
+      const senderName = data.sender?.name || "";
+      const receiverName = data.member?.name || "";
+      const isSender = String(data.sender?._id || "") === String(req.userId);
+      return {
+        _id: data._id,
+        username: [senderName, receiverName].filter(Boolean).join(" → "),
+        user_id: data.member?._id,
+        user_image: data.member?.image || data.sender?.image || "",
+        senderName,
+        receiverName,
+        title: data.title,
+        status: data.status,
+        time: data.time,
+        date: data.date,
+        description: data.description,
+        type: data.type,
+        amount: data.amount,
+        referral: data.referral,
+        viewerRole: "coordinator",
+        canAccept: data.status === "pending" && !isSender,
+      };
+    });
+
+    return responseHandler(
+      res,
+      200,
+      "Requests fetched successfully",
+      mapped,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
 exports.downloadRequests = async (req, res) => {
   try {
     const { startDate, endDate, chapter, type, status, user, sortByAmount } =
@@ -631,7 +715,16 @@ exports.updateRequestStatus = async (req, res) => {
         );
       }
 
-      const allowed = await canUserAcceptBusiness(req.userId, existingRequest);
+      let allowed = await canUserAcceptBusiness(req.userId, existingRequest);
+      if (
+        !allowed &&
+        ["accepted", "rejected"].includes(action)
+      ) {
+        allowed = await canCoordinatorReviewBusiness(
+          req.userId,
+          existingRequest
+        );
+      }
       if (!allowed) {
         return responseHandler(
           res,
