@@ -2,8 +2,6 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
-const User = require("../models/userModel");
-
 const HIERARCHY_ROLE_LABELS = {
   president: "President",
   secretary: "Secretary",
@@ -92,53 +90,44 @@ const getScopedChapterIds = async (adminInfo) => {
   return [];
 };
 
-const isChapterInAdminScope = async (adminInfo, chapterId) => {
-  if (!adminInfo || !chapterId) return false;
-  if (adminInfo.type === "Chapter Admin") {
-    return String(adminInfo.id) === String(chapterId);
-  }
+const normalizedRole = (role) =>
+  String(role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 
-  const chapter = await Chapter.findById(chapterId).select("districtId");
-  if (!chapter) return false;
-  if (adminInfo.type === "District Admin") {
-    return String(chapter.districtId) === String(adminInfo.id);
-  }
-
-  const district = await District.findById(chapter.districtId).select("zoneId");
-  if (!district) return false;
-  if (adminInfo.type === "Zone Admin") {
-    return String(district.zoneId) === String(adminInfo.id);
-  }
-
-  const zone = await Zone.findById(district.zoneId).select("stateId");
-  if (!zone) return false;
-  return String(zone.stateId) === String(adminInfo.id);
+const toId = (value) => {
+  if (value == null || value === "") return "";
+  if (typeof value.toHexString === "function") return value.toHexString();
+  if (value._id) return toId(value._id);
+  return String(value);
 };
+
+const partyId = (party) => toId(party?._id || party);
 
 const canUserAcceptBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
 
-  const senderId = analytic.sender?._id || analytic.sender;
-  if (senderId && String(senderId) === String(userId)) return false;
+  const me = toId(userId);
+  if (partyId(analytic.sender) === me) return false;
+  return partyId(analytic.member) === me;
+};
 
-  const receiverId = analytic.member?._id || analytic.member;
-  if (receiverId && String(receiverId) === String(userId)) return true;
+const canCoordinatorReviewBusiness = async (userId, analytic) => {
+  if (!userId || !analytic) return false;
+  if (String(analytic.type || "").trim() !== "Business") return false;
 
   const adminInfo = await isUserAdmin(userId);
-  if (!adminInfo || adminInfo.role !== "b2b_coordinator") return false;
-
-  let receiverChapter = analytic.member?.chapter?._id || analytic.member?.chapter;
-  if (!receiverChapter && receiverId) {
-    const receiver = await User.findById(receiverId).select("chapter");
-    receiverChapter = receiver?.chapter;
-  }
-
-  return isChapterInAdminScope(adminInfo, receiverChapter);
+  // Chapter ids on the business do not reliably match the chapter this
+  // coordinator administers, so a B2B coordinator may decide any business:
+  // their own, one they received, or one between other members.
+  return normalizedRole(adminInfo?.role) === "b2b_coordinator";
 };
 
 module.exports = {
   isUserAdmin,
   getScopedChapterIds,
   canUserAcceptBusiness,
+  canCoordinatorReviewBusiness,
   hierarchyRoleLabel,
 };

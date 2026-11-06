@@ -14,6 +14,7 @@ const {
   isUserAdmin,
   getScopedChapterIds,
   canUserAcceptBusiness,
+  canCoordinatorReviewBusiness,
 } = require("../utils/adminCheck");
 
 exports.sendRequest = async (req, res) => {
@@ -367,13 +368,6 @@ exports.getRequests = async (req, res) => {
 
       const isSender = String(data.sender?._id || "") === String(userId);
       const isReceiver = String(data.member?._id || "") === String(userId);
-      const receiverChapter = data.member?.chapter;
-      const coordinatorInScope =
-        isB2BCoordinator &&
-        !isSender &&
-        scopedChapterIds.some(
-          (chapterId) => String(chapterId) === String(receiverChapter)
-        );
 
       if (filter === "sent") {
         user_id = data.member?._id;
@@ -418,7 +412,9 @@ exports.getRequests = async (req, res) => {
         senderName: data.sender?.name || "",
         receiverName: data.member?.name || "",
         viewerRole,
-        canAccept: !isSender && (isReceiver || coordinatorInScope),
+        canAccept:
+          (isReceiver && !isSender) ||
+          (isB2BCoordinator && data.type === "Business" && data.status !== "completed"),
       };
     });
     return responseHandler(
@@ -426,6 +422,94 @@ exports.getRequests = async (req, res) => {
       200,
       "Requests fetched successfully",
       mappedData,
+      totalCount
+    );
+  } catch (error) {
+    return responseHandler(res, 500, `Internal Server Error: ${error.message}`);
+  }
+};
+
+exports.getChapterBusiness = async (req, res) => {
+  try {
+    const adminInfo = await isUserAdmin(req.userId);
+    const coordinatorRole = String(adminInfo?.role || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    if (coordinatorRole !== "b2b_coordinator") {
+      return responseHandler(
+        res,
+        403,
+        "Only a B2B coordinator can view chapter business"
+      );
+    }
+
+    const chapterIds = await getScopedChapterIds(adminInfo);
+    const self = await User.findById(req.userId).select("chapter");
+    if (self?.chapter) chapterIds.push(self.chapter);
+    if (!chapterIds.length) {
+      return responseHandler(res, 200, "Requests fetched successfully", [], 0);
+    }
+
+    const members = await User.find({ chapter: { $in: chapterIds } }).select(
+      "_id"
+    );
+    const memberIds = members.map((member) => member._id);
+    if (!memberIds.length) {
+      return responseHandler(res, 200, "Requests fetched successfully", [], 0);
+    }
+
+    const { startDate, endDate, limit = 20, pageNo = 1 } = req.query;
+    const query = {
+      type: "Business",
+      $or: [{ sender: { $in: memberIds } }, { member: { $in: memberIds } }],
+    };
+
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(`${startDate}T00:00:00.000Z`),
+        $lte: new Date(`${endDate}T23:59:59.999Z`),
+      };
+    }
+
+    const page = Math.max(Number(pageNo) || 1, 1);
+    const pageLimit = Math.min(Math.max(Number(limit) || 20, 1), 10000);
+    const totalCount = await Analytic.countDocuments(query);
+    const rows = await Analytic.find(query)
+      .populate("sender", "name image")
+      .populate("member", "name image")
+      .sort({ date: -1, createdAt: -1 })
+      .skip(pageLimit * (page - 1))
+      .limit(pageLimit);
+
+    const mapped = rows.map((data) => {
+      const senderName = data.sender?.name || "";
+      const receiverName = data.member?.name || "";
+      return {
+        _id: data._id,
+        username: [senderName, receiverName].filter(Boolean).join(" → "),
+        user_id: data.member?._id,
+        user_image: data.member?.image || data.sender?.image || "",
+        senderName,
+        receiverName,
+        title: data.title,
+        status: data.status,
+        time: data.time,
+        date: data.date,
+        description: data.description,
+        type: data.type,
+        amount: data.amount,
+        referral: data.referral,
+        viewerRole: "coordinator",
+        canAccept: data.status !== "completed",
+      };
+    });
+
+    return responseHandler(
+      res,
+      200,
+      "Requests fetched successfully",
+      mapped,
       totalCount
     );
   } catch (error) {
@@ -618,30 +702,39 @@ exports.updateRequestStatus = async (req, res) => {
     }
 
     const existingRequest = await Analytic.findById(requestId)
-      .populate("sender", "fcm")
+      .populate("sender", "fcm chapter")
       .populate("member", "fcm chapter");
 
     if (!existingRequest) {
       return responseHandler(res, 404, "Request not found.");
     }
 
-    if (["accepted", "rejected"].includes(action) && req.role !== "admin") {
-      const senderId = existingRequest.sender?._id || existingRequest.sender;
-      if (senderId && String(senderId) === String(req.userId)) {
-        return responseHandler(
-          res,
-          403,
-          "Sender cannot accept or reject this business"
-        );
-      }
+    if (
+      ["accepted", "rejected", "meeting_scheduled"].includes(action) &&
+      req.role !== "admin"
+    ) {
+      const coordinatorReview =
+        ["accepted", "rejected"].includes(action) &&
+        (await canCoordinatorReviewBusiness(req.userId, existingRequest));
 
-      const allowed = await canUserAcceptBusiness(req.userId, existingRequest);
-      if (!allowed) {
-        return responseHandler(
-          res,
-          403,
-          "Only the receiver or the B2B coordinator can accept or reject this business"
-        );
+      if (!coordinatorReview) {
+        const senderId = existingRequest.sender?._id || existingRequest.sender;
+        if (senderId && String(senderId) === String(req.userId)) {
+          return responseHandler(
+            res,
+            403,
+            "Sender cannot accept or reject this request"
+          );
+        }
+
+        const allowed = await canUserAcceptBusiness(req.userId, existingRequest);
+        if (!allowed) {
+          return responseHandler(
+            res,
+            403,
+            "Only the receiver can accept or reject this request"
+          );
+        }
       }
     }
 
