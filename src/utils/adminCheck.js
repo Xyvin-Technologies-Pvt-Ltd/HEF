@@ -110,22 +110,20 @@ const chapterIdOf = (value) => {
 const canCoordinatorReviewBusiness = async (userId, analytic) => {
   if (!userId || !analytic || analytic.type !== "Business") return false;
 
-  const senderId = analytic.sender?._id || analytic.sender;
-  if (senderId && String(senderId) === String(userId)) return false;
-
   const adminInfo = await isUserAdmin(userId);
   if (!adminInfo || adminInfo.role !== "b2b_coordinator") return false;
 
   const chapterIds = (await getScopedChapterIds(adminInfo)).map(String);
   if (!chapterIds.length) return false;
 
+  const senderId = analytic.sender?._id || analytic.sender;
   const memberId = analytic.member?._id || analytic.member;
   let chapters = [
     chapterIdOf(analytic.sender?.chapter),
     chapterIdOf(analytic.member?.chapter),
   ].filter(Boolean);
 
-  if (!chapters.length) {
+  if (chapters.length < 2) {
     const users = await User.find({
       _id: { $in: [senderId, memberId].filter(Boolean) },
     }).select("chapter");

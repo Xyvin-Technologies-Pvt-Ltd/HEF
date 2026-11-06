@@ -477,7 +477,6 @@ exports.getChapterBusiness = async (req, res) => {
     const mapped = rows.map((data) => {
       const senderName = data.sender?.name || "";
       const receiverName = data.member?.name || "";
-      const isSender = String(data.sender?._id || "") === String(req.userId);
       return {
         _id: data._id,
         username: [senderName, receiverName].filter(Boolean).join(" → "),
@@ -494,7 +493,7 @@ exports.getChapterBusiness = async (req, res) => {
         amount: data.amount,
         referral: data.referral,
         viewerRole: "coordinator",
-        canAccept: data.status === "pending" && !isSender,
+        canAccept: data.status !== "completed",
       };
     });
 
@@ -695,7 +694,7 @@ exports.updateRequestStatus = async (req, res) => {
     }
 
     const existingRequest = await Analytic.findById(requestId)
-      .populate("sender", "fcm")
+      .populate("sender", "fcm chapter")
       .populate("member", "fcm chapter");
 
     if (!existingRequest) {
@@ -706,31 +705,28 @@ exports.updateRequestStatus = async (req, res) => {
       ["accepted", "rejected", "meeting_scheduled"].includes(action) &&
       req.role !== "admin"
     ) {
-      const senderId = existingRequest.sender?._id || existingRequest.sender;
-      if (senderId && String(senderId) === String(req.userId)) {
-        return responseHandler(
-          res,
-          403,
-          "Sender cannot accept or reject this request"
-        );
-      }
+      const coordinatorReview =
+        ["accepted", "rejected"].includes(action) &&
+        (await canCoordinatorReviewBusiness(req.userId, existingRequest));
 
-      let allowed = await canUserAcceptBusiness(req.userId, existingRequest);
-      if (
-        !allowed &&
-        ["accepted", "rejected"].includes(action)
-      ) {
-        allowed = await canCoordinatorReviewBusiness(
-          req.userId,
-          existingRequest
-        );
-      }
-      if (!allowed) {
-        return responseHandler(
-          res,
-          403,
-          "Only the receiver can accept or reject this request"
-        );
+      if (!coordinatorReview) {
+        const senderId = existingRequest.sender?._id || existingRequest.sender;
+        if (senderId && String(senderId) === String(req.userId)) {
+          return responseHandler(
+            res,
+            403,
+            "Sender cannot accept or reject this request"
+          );
+        }
+
+        const allowed = await canUserAcceptBusiness(req.userId, existingRequest);
+        if (!allowed) {
+          return responseHandler(
+            res,
+            403,
+            "Only the receiver can accept or reject this request"
+          );
+        }
       }
     }
 
