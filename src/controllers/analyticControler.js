@@ -412,7 +412,9 @@ exports.getRequests = async (req, res) => {
         senderName: data.sender?.name || "",
         receiverName: data.member?.name || "",
         viewerRole,
-        canAccept: isReceiver && !isSender,
+        canAccept:
+          (isReceiver && !isSender) ||
+          (isB2BCoordinator && data.type === "Business" && data.status !== "completed"),
       };
     });
     return responseHandler(
@@ -430,7 +432,11 @@ exports.getRequests = async (req, res) => {
 exports.getChapterBusiness = async (req, res) => {
   try {
     const adminInfo = await isUserAdmin(req.userId);
-    if (!adminInfo || adminInfo.role !== "b2b_coordinator") {
+    const coordinatorRole = String(adminInfo?.role || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    if (coordinatorRole !== "b2b_coordinator") {
       return responseHandler(
         res,
         403,
@@ -439,6 +445,8 @@ exports.getChapterBusiness = async (req, res) => {
     }
 
     const chapterIds = await getScopedChapterIds(adminInfo);
+    const self = await User.findById(req.userId).select("chapter");
+    if (self?.chapter) chapterIds.push(self.chapter);
     if (!chapterIds.length) {
       return responseHandler(res, 200, "Requests fetched successfully", [], 0);
     }

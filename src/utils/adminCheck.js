@@ -2,7 +2,6 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
-const User = require("../models/userModel");
 const HIERARCHY_ROLE_LABELS = {
   president: "President",
   secretary: "Secretary",
@@ -91,15 +90,11 @@ const getScopedChapterIds = async (adminInfo) => {
   return [];
 };
 
-const canUserAcceptBusiness = async (userId, analytic) => {
-  if (!userId || !analytic) return false;
-
-  const senderId = analytic.sender?._id || analytic.sender;
-  if (senderId && String(senderId) === String(userId)) return false;
-
-  const receiverId = analytic.member?._id || analytic.member;
-  return Boolean(receiverId && String(receiverId) === String(userId));
-};
+const normalizedRole = (role) =>
+  String(role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 
 const toId = (value) => {
   if (value == null || value === "") return "";
@@ -108,43 +103,25 @@ const toId = (value) => {
   return String(value);
 };
 
+const partyId = (party) => toId(party?._id || party);
+
+const canUserAcceptBusiness = async (userId, analytic) => {
+  if (!userId || !analytic) return false;
+
+  const me = toId(userId);
+  if (partyId(analytic.sender) === me) return false;
+  return partyId(analytic.member) === me;
+};
+
 const canCoordinatorReviewBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
   if (String(analytic.type || "").trim() !== "Business") return false;
 
   const adminInfo = await isUserAdmin(userId);
-  const role = String(adminInfo?.role || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, "_");
-  if (role !== "b2b_coordinator") return false;
-
-  const senderId = toId(analytic.sender?._id || analytic.sender);
-  const memberId = toId(analytic.member?._id || analytic.member);
-  // A coordinator may decide their own business as well as anyone else's.
-  if (senderId === String(userId) || memberId === String(userId)) return true;
-
-  const chapterIds = new Set(
-    (await getScopedChapterIds(adminInfo)).map((id) => toId(id)).filter(Boolean)
-  );
-  const self = await User.findById(userId).select("chapter");
-  const ownChapter = toId(self?.chapter);
-  if (ownChapter) chapterIds.add(ownChapter);
-  if (!chapterIds.size) return false;
-
-  let chapters = [
-    toId(analytic.sender?.chapter),
-    toId(analytic.member?.chapter),
-  ].filter(Boolean);
-
-  if (!chapters.length) {
-    const users = await User.find({
-      _id: { $in: [senderId, memberId].filter(Boolean) },
-    }).select("chapter");
-    chapters = users.map((user) => toId(user.chapter)).filter(Boolean);
-  }
-
-  return chapters.some((chapterId) => chapterIds.has(chapterId));
+  // Chapter ids on the business do not reliably match the chapter this
+  // coordinator administers, so a B2B coordinator may decide any business:
+  // their own, one they received, or one between other members.
+  return normalizedRole(adminInfo?.role) === "b2b_coordinator";
 };
 
 module.exports = {
