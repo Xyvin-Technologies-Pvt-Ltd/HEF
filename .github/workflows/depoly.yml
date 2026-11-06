@@ -66,41 +66,49 @@ jobs:
           host: ${{ env.EC2_INSTANCE_IP }}
           username: ec2-user
           key: ${{ env.EC2_PRIVATE_KEY }}
+          script_stop: true
+          command_timeout: 20m
           script: |
-            # Update system and install Docker if not installed
-            sudo yum update -y
-            sudo yum install -y docker aws-cli
+            set -euo pipefail
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            # Ensure AWS CLI is installed
             if ! command -v aws &> /dev/null; then
               sudo yum install -y aws-cli
             fi
 
-            # Login to Amazon ECR with AWS credentials
             export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
             export AWS_REGION=${{ env.AWS_REGION }}
-            aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            IMAGE=${{ steps.login-ecr.outputs.registry }}/hef:new
+            aws ecr get-login-password --region "$AWS_REGION" | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            # Pull the latest Docker image
-            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/hef:new
-
-            # Stop and remove the existing container if running
-            sudo docker stop HEF_BACKEND || true
-            sudo docker rm HEF_BACKEND || true
-
-            # Check if the .env.production file exists
             if [ ! -f /home/ec2-user/hef/.env/.env.production ]; then
               echo ".env.production file is missing."
               exit 1
             fi
 
-            # Run the new container with the .env.production file
+            # Failed pulls were filling the disk, then the old container was
+            # replaced with the previous image while the job still passed.
+            sudo docker system prune -af || true
+            if ! sudo docker pull "$IMAGE"; then
+              echo "Pull failed. Removing the running image to free disk, then retrying."
+              sudo docker stop HEF_BACKEND || true
+              sudo docker rm HEF_BACKEND || true
+              sudo docker system prune -af || true
+              sudo docker pull "$IMAGE"
+            fi
+
+            sudo docker stop HEF_BACKEND || true
+            sudo docker rm HEF_BACKEND || true
             sudo docker run -d \
               -p 3003:3003 \
               --name HEF_BACKEND \
               --env-file /home/ec2-user/hef/.env/.env.production \
-              ${{ steps.login-ecr.outputs.registry }}/hef:new
+              "$IMAGE"
+            sleep 4
+            if [ "$(sudo docker inspect -f '{{.State.Running}}' HEF_BACKEND)" != "true" ]; then
+              sudo docker logs --tail 100 HEF_BACKEND || true
+              exit 1
+            fi
 
