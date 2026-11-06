@@ -101,36 +101,50 @@ const canUserAcceptBusiness = async (userId, analytic) => {
   return Boolean(receiverId && String(receiverId) === String(userId));
 };
 
-const chapterIdOf = (value) => {
-  if (!value) return "";
-  if (value._id) return String(value._id);
+const toId = (value) => {
+  if (value == null || value === "") return "";
+  if (typeof value.toHexString === "function") return value.toHexString();
+  if (value._id) return toId(value._id);
   return String(value);
 };
 
 const canCoordinatorReviewBusiness = async (userId, analytic) => {
-  if (!userId || !analytic || analytic.type !== "Business") return false;
+  if (!userId || !analytic) return false;
+  if (String(analytic.type || "").trim() !== "Business") return false;
 
   const adminInfo = await isUserAdmin(userId);
-  if (!adminInfo || adminInfo.role !== "b2b_coordinator") return false;
+  const role = String(adminInfo?.role || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  if (role !== "b2b_coordinator") return false;
 
-  const chapterIds = (await getScopedChapterIds(adminInfo)).map(String);
-  if (!chapterIds.length) return false;
+  const senderId = toId(analytic.sender?._id || analytic.sender);
+  const memberId = toId(analytic.member?._id || analytic.member);
+  // A coordinator may decide their own business as well as anyone else's.
+  if (senderId === String(userId) || memberId === String(userId)) return true;
 
-  const senderId = analytic.sender?._id || analytic.sender;
-  const memberId = analytic.member?._id || analytic.member;
+  const chapterIds = new Set(
+    (await getScopedChapterIds(adminInfo)).map((id) => toId(id)).filter(Boolean)
+  );
+  const self = await User.findById(userId).select("chapter");
+  const ownChapter = toId(self?.chapter);
+  if (ownChapter) chapterIds.add(ownChapter);
+  if (!chapterIds.size) return false;
+
   let chapters = [
-    chapterIdOf(analytic.sender?.chapter),
-    chapterIdOf(analytic.member?.chapter),
+    toId(analytic.sender?.chapter),
+    toId(analytic.member?.chapter),
   ].filter(Boolean);
 
-  if (chapters.length < 2) {
+  if (!chapters.length) {
     const users = await User.find({
       _id: { $in: [senderId, memberId].filter(Boolean) },
     }).select("chapter");
-    chapters = users.map((user) => chapterIdOf(user.chapter)).filter(Boolean);
+    chapters = users.map((user) => toId(user.chapter)).filter(Boolean);
   }
 
-  return chapters.some((chapterId) => chapterIds.includes(chapterId));
+  return chapters.some((chapterId) => chapterIds.has(chapterId));
 };
 
 module.exports = {
