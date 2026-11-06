@@ -106,7 +106,7 @@
  *           type: string
  *           enum: [sent, received]
  *         required: false
- *         description: Specify "sent" to fetch sent requests, "received" to fetch received requests, or leave empty to fetch the user's own requests. A B2B coordinator's unfiltered list also includes pending businesses whose receiver is inside that coordinator's state, zone, district, or chapter. Each item includes canAccept and viewerRole (sender, receiver, or coordinator).
+ *         description: Specify "sent" to fetch sent requests, "received" to fetch received requests, or leave empty to fetch the user's own requests. A B2B coordinator's unfiltered list also includes pending businesses whose receiver is inside that coordinator's state, zone, district, or chapter. Each item includes canAccept (true only for the receiver) and viewerRole (sender, receiver, or coordinator).
  *     responses:
  *       200:
  *         description: Successfully fetched requests.
@@ -122,7 +122,7 @@
  * /analytic/status:
  *   post:
  *     summary: Update the status of an analytic request
- *     description: Updates the status of an analytic request. Accept and reject are allowed for the receiver and for a B2B coordinator whose level covers the receiver's chapter. The sender cannot accept or reject.
+ *     description: Updates the status of an analytic request. Accept, reject, and meeting scheduling are allowed only for the receiver. The sender can send the request and cannot accept it.
  *     tags:
  *       - Analytic
  *     requestBody:
@@ -160,7 +160,7 @@
  *       400:
  *         description: Invalid input - Missing requestId or invalid action
  *       403:
- *         description: Sender, or a user who is not the receiver or an in-scope B2B coordinator
+ *         description: Sender, or any user who is not the receiver
  *       404:
  *         description: Request not found
  *       500:

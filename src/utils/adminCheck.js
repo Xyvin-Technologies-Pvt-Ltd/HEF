@@ -2,8 +2,6 @@ const Chapter = require("../models/chapterModel");
 const District = require("../models/districtModel");
 const State = require("../models/stateModel");
 const Zone = require("../models/zoneModel");
-const User = require("../models/userModel");
-
 const HIERARCHY_ROLE_LABELS = {
   president: "President",
   secretary: "Secretary",
@@ -92,29 +90,6 @@ const getScopedChapterIds = async (adminInfo) => {
   return [];
 };
 
-const isChapterInAdminScope = async (adminInfo, chapterId) => {
-  if (!adminInfo || !chapterId) return false;
-  if (adminInfo.type === "Chapter Admin") {
-    return String(adminInfo.id) === String(chapterId);
-  }
-
-  const chapter = await Chapter.findById(chapterId).select("districtId");
-  if (!chapter) return false;
-  if (adminInfo.type === "District Admin") {
-    return String(chapter.districtId) === String(adminInfo.id);
-  }
-
-  const district = await District.findById(chapter.districtId).select("zoneId");
-  if (!district) return false;
-  if (adminInfo.type === "Zone Admin") {
-    return String(district.zoneId) === String(adminInfo.id);
-  }
-
-  const zone = await Zone.findById(district.zoneId).select("stateId");
-  if (!zone) return false;
-  return String(zone.stateId) === String(adminInfo.id);
-};
-
 const canUserAcceptBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
 
@@ -122,18 +97,7 @@ const canUserAcceptBusiness = async (userId, analytic) => {
   if (senderId && String(senderId) === String(userId)) return false;
 
   const receiverId = analytic.member?._id || analytic.member;
-  if (receiverId && String(receiverId) === String(userId)) return true;
-
-  const adminInfo = await isUserAdmin(userId);
-  if (!adminInfo || adminInfo.role !== "b2b_coordinator") return false;
-
-  let receiverChapter = analytic.member?.chapter?._id || analytic.member?.chapter;
-  if (!receiverChapter && receiverId) {
-    const receiver = await User.findById(receiverId).select("chapter");
-    receiverChapter = receiver?.chapter;
-  }
-
-  return isChapterInAdminScope(adminInfo, receiverChapter);
+  return Boolean(receiverId && String(receiverId) === String(userId));
 };
 
 module.exports = {

@@ -367,13 +367,6 @@ exports.getRequests = async (req, res) => {
 
       const isSender = String(data.sender?._id || "") === String(userId);
       const isReceiver = String(data.member?._id || "") === String(userId);
-      const receiverChapter = data.member?.chapter;
-      const coordinatorInScope =
-        isB2BCoordinator &&
-        !isSender &&
-        scopedChapterIds.some(
-          (chapterId) => String(chapterId) === String(receiverChapter)
-        );
 
       if (filter === "sent") {
         user_id = data.member?._id;
@@ -418,7 +411,7 @@ exports.getRequests = async (req, res) => {
         senderName: data.sender?.name || "",
         receiverName: data.member?.name || "",
         viewerRole,
-        canAccept: !isSender && (isReceiver || coordinatorInScope),
+        canAccept: isReceiver && !isSender,
       };
     });
     return responseHandler(
@@ -625,13 +618,16 @@ exports.updateRequestStatus = async (req, res) => {
       return responseHandler(res, 404, "Request not found.");
     }
 
-    if (["accepted", "rejected"].includes(action) && req.role !== "admin") {
+    if (
+      ["accepted", "rejected", "meeting_scheduled"].includes(action) &&
+      req.role !== "admin"
+    ) {
       const senderId = existingRequest.sender?._id || existingRequest.sender;
       if (senderId && String(senderId) === String(req.userId)) {
         return responseHandler(
           res,
           403,
-          "Sender cannot accept or reject this business"
+          "Sender cannot accept or reject this request"
         );
       }
 
@@ -640,7 +636,7 @@ exports.updateRequestStatus = async (req, res) => {
         return responseHandler(
           res,
           403,
-          "Only the receiver or the B2B coordinator can accept or reject this business"
+          "Only the receiver can accept or reject this request"
         );
       }
     }
