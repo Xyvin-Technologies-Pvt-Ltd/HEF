@@ -169,7 +169,6 @@ const canUserAcceptBusiness = async (userId, analytic) => {
 const canCoordinatorReviewBusiness = async (userId, analytic) => {
   if (!userId || !analytic) return false;
   if (String(analytic.type || "").trim().toLowerCase() !== "business") return false;
-  if (partyId(analytic.sender) === toId(userId)) return false;
 
   const assignments = await findCoordinatorAssignments(userId);
   if (!assignments.length) return false;

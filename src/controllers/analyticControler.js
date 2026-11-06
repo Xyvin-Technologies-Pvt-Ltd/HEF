@@ -404,7 +404,6 @@ exports.getRequests = async (req, res) => {
         String(party?.chapter?._id || party?.chapter || "");
       const inCoordinatorChapter =
         isB2BCoordinator &&
-        !isSender &&
         String(data.type || "") === "Business" &&
         (scopedChapterSet.has(partyChapter(data.member)) ||
           scopedChapterSet.has(partyChapter(data.sender)));
@@ -507,9 +506,7 @@ exports.getChapterBusiness = async (req, res) => {
         amount: data.amount,
         referral: data.referral,
         viewerRole: "coordinator",
-        canAccept:
-          data.status !== "completed" &&
-          String(data.sender?._id || "") !== String(req.userId),
+        canAccept: data.status !== "completed",
       };
     });
 
