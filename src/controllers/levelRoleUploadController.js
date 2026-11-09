@@ -56,12 +56,12 @@ exports.createUpload = async (req, res) => {
       );
     }
 
-    const type = String(req.body.type || "").toLowerCase();
+    const type = String(req.body.type || "report").toLowerCase();
     const title = String(req.body.title || "").trim();
     const description = String(req.body.description || "").trim();
 
-    if (!["document", "report"].includes(type)) {
-      return responseHandler(res, 400, "Type must be document or report");
+    if (type !== "report") {
+      return responseHandler(res, 400, "Type must be report");
     }
     if (!title) {
       return responseHandler(res, 400, "Title is required");

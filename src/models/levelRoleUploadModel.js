@@ -4,7 +4,7 @@ const levelRoleUploadSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["document", "report"],
+      enum: ["report"],
       required: true,
     },
     title: { type: String, required: true, trim: true },
