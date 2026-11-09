@@ -31,6 +31,7 @@ const { serviceAccount } = require("./src/config/firebase");
 const { app, server } = require("./src/socket"); //! Import server and io from socket file
 const paymentRoute = require("./src/routes/payments");
 const levelRoleUploadRoute = require("./src/routes/levelRoleUpload");
+const searchRoute = require("./src/routes/search");
 const multer = require("multer");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { Upload } = require("@aws-sdk/lib-storage");
@@ -105,6 +106,7 @@ app.use(`${BASE_PATH}/useraccess`, userAccessRoute);
 app.use(`${BASE_PATH}/payment`, paymentRoute);
 app.use(`${BASE_PATH}/category`, categoryRoute);
 app.use(`${BASE_PATH}/level-role-upload`, levelRoleUploadRoute);
+app.use(`${BASE_PATH}/search`, searchRoute);
 
 app.post(`${BASE_PATH}/upload`, upload.single("image"), async (req, res) => {
   try {
