@@ -36,7 +36,7 @@ cron.schedule("0 0 * * *", async () => {
         "Subscription Expiring",
         `Your subscription to our app is expiring soon. Please renew your subscription to continue using our app.`,
         null,
-        "my_subscriptions"
+        "my_subscription"
       );
     }
 
@@ -66,7 +66,7 @@ cron.schedule("0 0 * * *", async () => {
         "Subscription Expired",
         `Your subscription to our app has expired. Please renew your subscription to continue using our app.`,
         null,
-        "my_subscriptions"
+        "my_subscription"
       );
     }
   } catch (err) {

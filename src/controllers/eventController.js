@@ -56,7 +56,9 @@ exports.createEvent = async (req, res) => {
         FCM,
         newEvent.eventName,
         newEvent.description,
-        newEvent.image
+        newEvent.image,
+        "event",
+        newEvent._id.toString()
       );
       return responseHandler(
         res,

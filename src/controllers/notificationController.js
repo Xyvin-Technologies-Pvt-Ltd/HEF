@@ -83,7 +83,8 @@ exports.createNotification = async (req, res) => {
         userFCM,
         req.body.subject,
         req.body.content,
-        media
+        media,
+        "notification"
       );
     }
 
@@ -293,7 +294,8 @@ exports.createLevelNotification = async (req, res) => {
         userFCM,
         req.body.subject,
         req.body.content,
-        media
+        media,
+        "notification"
       );
     }
 
