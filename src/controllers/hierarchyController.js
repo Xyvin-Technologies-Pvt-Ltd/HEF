@@ -560,7 +560,7 @@ exports.getLevels = async (req, res) => {
         );
       }
     } else if (type === "user") {
-      const query = { chapter: id };
+      const query = { chapter: id, status: { $ne: "suspended" } };
       let findUsers = await User.find(query).populate({
         path: "chapter",
         select: "name",
